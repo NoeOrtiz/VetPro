@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
+<jasperReport name="ReporteCobroCuentaCorriente" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="0c2a8c2a-21d9-4ce7-a0da-2c0b3a3acb5e">
+
+    <parameter name="idMovimiento" class="java.lang.Integer"/>
+
+    <queryString language="SQL"><![CDATA[
+SELECT
+  m.idMovimiento,
+  m.fechaMovimiento,
+  m.descripcion,
+  m.monto,
+  m.tipoMovimiento,
+  m.saldoResultante,
+  cc.idCuentaCorriente,
+  cc.saldoActual,
+  cc.limiteCredito,
+  CONCAT(pe.apellido,' ',pe.nombre) AS cliente
+FROM cuentacorrientemovimiento m
+JOIN cuentacorriente cc ON cc.idCuentaCorriente = m.idCuentaCorriente
+JOIN cliente c ON c.idCliente = cc.idCliente
+JOIN persona pe ON pe.idPersona = c.idPersona
+WHERE m.idMovimiento = $P{idMovimiento}
+    ]]></queryString>
+
+    <field name="idMovimiento" class="java.lang.Integer"/>
+    <field name="fechaMovimiento" class="java.sql.Date"/>
+    <field name="descripcion" class="java.lang.String"/>
+    <field name="monto" class="java.math.BigDecimal"/>
+    <field name="tipoMovimiento" class="java.lang.String"/>
+    <field name="saldoResultante" class="java.math.BigDecimal"/>
+    <field name="idCuentaCorriente" class="java.lang.Integer"/>
+    <field name="saldoActual" class="java.math.BigDecimal"/>
+    <field name="limiteCredito" class="java.math.BigDecimal"/>
+    <field name="cliente" class="java.lang.String"/>
+
+    <title>
+        <band height="90">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="22"/>
+                <textElement textAlignment="Center">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <text><![CDATA[COMPROBANTE DE COBRO - CUENTA CORRIENTE]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="0" y="28" width="300" height="16"/>
+                <textElement><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["Movimiento #" + $F{idMovimiento}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="dd/MM/yyyy">
+                <reportElement x="350" y="28" width="205" height="16"/>
+                <textElement textAlignment="Right"><font size="10"/></textElement>
+                <textFieldExpression><![CDATA[$F{fechaMovimiento}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="0" y="50" width="555" height="16"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["Cliente: " + $F{cliente}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="0" y="68" width="555" height="16"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["Descripción: " + $F{descripcion}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <detail>
+        <band height="120">
+            <staticText><reportElement x="0" y="0" width="200" height="16"/><textElement><font size="11" isBold="true"/></textElement><text><![CDATA[Detalle del cobro]]></text></staticText>
+
+            <textField pattern="#0.00">
+                <reportElement x="0" y="28" width="555" height="18"/>
+                <textElement><font size="12" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["Monto cobrado: $ " + $F{monto}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="0" y="52" width="555" height="16"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["Tipo movimiento: " + $F{tipoMovimiento}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="#0.00">
+                <reportElement x="0" y="72" width="555" height="16"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["Saldo resultante (según movimiento): $ " + $F{saldoResultante}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="#0.00">
+                <reportElement x="0" y="92" width="555" height="16"/>
+                <textElement><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["Saldo actual (Cuenta): $ " + $F{saldoActual}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="40">
+            <line><reportElement x="0" y="0" width="555" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="10" width="555" height="20"/>
+                <textElement textAlignment="Center"><font size="9"/></textElement>
+                <text><![CDATA[Gracias. Este comprobante es válido como constancia de pago.]]></text>
+            </staticText>
+        </band>
+    </summary>
+
+</jasperReport>

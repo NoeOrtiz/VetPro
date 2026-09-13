@@ -1,0 +1,25 @@
+# Archivos generados por Maven
+/target/
+
+# Logs de ejecución
+/logs/
+*.log
+
+# Configuración privada de NetBeans
+/nbproject/private/
+
+# Archivos temporales
+*.tmp
+*.bak
+
+# Credenciales y configuración local
+.env
+.env.*
+*.properties.local
+/secrets/
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+/imagen_perfil/

@@ -1,0 +1,110 @@
+nombrePermiso;descPermiso;tipoPermiso
+FormUsuario;Acceso al formulario de Usuarios;FORMULARIO
+FormCliente;Acceso al formulario de Clientes;FORMULARIO
+FormMascota;Acceso al formulario de Mascotas;FORMULARIO
+FormVisita;Acceso al formulario de Visitas;FORMULARIO
+FormGestionCuentasCorrientes;Acceso al formulario de Cuentas Corrientes;FORMULARIO
+FormCuentaCorrienteMovimientos;Acceso al formulario de Movimientos de Cuenta Corriente;FORMULARIO
+FormCajaRegistradora;Acceso al formulario de Caja Registradora;FORMULARIO
+FormProducto;Acceso al formulario de Productos;FORMULARIO
+FormProveedores;Acceso al formulario de Proveedores;FORMULARIO
+FormLaboratorio;Acceso al formulario de Laboratorio;FORMULARIO
+FormHospitalizaciones;Acceso al formulario de Hospitalizaciones;FORMULARIO
+FormProcedimientos;Acceso al formulario de Procedimientos;FORMULARIO
+FormTurnosPeluqueria;Acceso al formulario de Turnos de Peluquería;FORMULARIO
+ClassConfig;Acceso al formulario de Configuración;FORMULARIO
+FormInformesCajaMovimientos;Acceso al formulario de Informes de Caja;FORMULARIO
+FormHistoriaClinica;Acceso al formulario de Historia Clínica;FORMULARIO
+FormHistorialTurnos;Acceso al formulario de Historial de Turnos;FORMULARIO
+FormOrdenesCompra;Acceso al formulario de Órdenes de Compra;FORMULARIO
+FormRecibirPedido;Acceso al formulario de Recepción de Pedidos;FORMULARIO
+FormStockProducto;Acceso al formulario de Stock de Productos;FORMULARIO
+FormAuditoria;Acceso al formulario de Auditoría;FORMULARIO
+FormAccesoRestringido;Acceso al formulario de Acceso Restringido;FORMULARIO
+PanelTiposCitaPeluqueria;Acceso al panel de Tipos de Cita de Peluquería;FORMULARIO
+FormUsuario.GUARDAR;Guardar/Registrar en Usuarios;FUNCIONALIDAD
+FormUsuario.EDITAR;Editar/Modificar en Usuarios;FUNCIONALIDAD
+FormUsuario.ELIMINAR;Eliminar en Usuarios;FUNCIONALIDAD
+FormUsuario.NUEVO;Nuevo en Usuarios;FUNCIONALIDAD
+FormUsuario.IMPRIMIR;Imprimir en Usuarios;FUNCIONALIDAD
+FormUsuario.EXPORTAR;Exportar en Usuarios;FUNCIONALIDAD
+FormCliente.GUARDAR;Guardar/Registrar en Clientes;FUNCIONALIDAD
+FormCliente.EDITAR;Editar/Modificar en Clientes;FUNCIONALIDAD
+FormCliente.ELIMINAR;Eliminar en Clientes;FUNCIONALIDAD
+FormCliente.NUEVO;Nuevo en Clientes;FUNCIONALIDAD
+FormCliente.IMPRIMIR;Imprimir en Clientes;FUNCIONALIDAD
+FormCliente.EXPORTAR;Exportar en Clientes;FUNCIONALIDAD
+FormMascota.GUARDAR;Guardar/Registrar en Mascotas;FUNCIONALIDAD
+FormMascota.EDITAR;Editar/Modificar en Mascotas;FUNCIONALIDAD
+FormMascota.ELIMINAR;Eliminar en Mascotas;FUNCIONALIDAD
+FormMascota.NUEVO;Nuevo en Mascotas;FUNCIONALIDAD
+FormMascota.IMPRIMIR;Imprimir en Mascotas;FUNCIONALIDAD
+FormMascota.EXPORTAR;Exportar en Mascotas;FUNCIONALIDAD
+FormVisita.GUARDAR;Guardar/Registrar en Visitas;FUNCIONALIDAD
+FormVisita.EDITAR;Editar/Modificar en Visitas;FUNCIONALIDAD
+FormVisita.ELIMINAR;Eliminar en Visitas;FUNCIONALIDAD
+FormVisita.NUEVO;Nuevo en Visitas;FUNCIONALIDAD
+FormVisita.IMPRIMIR;Imprimir en Visitas;FUNCIONALIDAD
+FormVisita.EXPORTAR;Exportar en Visitas;FUNCIONALIDAD
+FormGestionCuentasCorrientes.GUARDAR;Guardar/Registrar en Cuentas Corrientes;FUNCIONALIDAD
+FormGestionCuentasCorrientes.EDITAR;Editar/Modificar en Cuentas Corrientes;FUNCIONALIDAD
+FormGestionCuentasCorrientes.ELIMINAR;Eliminar en Cuentas Corrientes;FUNCIONALIDAD
+FormGestionCuentasCorrientes.NUEVO;Nuevo en Cuentas Corrientes;FUNCIONALIDAD
+FormGestionCuentasCorrientes.IMPRIMIR;Imprimir en Cuentas Corrientes;FUNCIONALIDAD
+FormGestionCuentasCorrientes.EXPORTAR;Exportar en Cuentas Corrientes;FUNCIONALIDAD
+FormCuentaCorrienteMovimientos.GUARDAR;Guardar/Registrar en Movimientos CC;FUNCIONALIDAD
+FormCuentaCorrienteMovimientos.EDITAR;Editar/Modificar en Movimientos CC;FUNCIONALIDAD
+FormCuentaCorrienteMovimientos.ELIMINAR;Eliminar en Movimientos CC;FUNCIONALIDAD
+FormCuentaCorrienteMovimientos.NUEVO;Nuevo en Movimientos CC;FUNCIONALIDAD
+FormCuentaCorrienteMovimientos.IMPRIMIR;Imprimir en Movimientos CC;FUNCIONALIDAD
+FormCuentaCorrienteMovimientos.EXPORTAR;Exportar en Movimientos CC;FUNCIONALIDAD
+FormCajaRegistradora.GUARDAR;Guardar/Registrar en Caja;FUNCIONALIDAD
+FormCajaRegistradora.EDITAR;Editar/Modificar en Caja;FUNCIONALIDAD
+FormCajaRegistradora.ELIMINAR;Eliminar en Caja;FUNCIONALIDAD
+FormCajaRegistradora.NUEVO;Nuevo en Caja;FUNCIONALIDAD
+FormCajaRegistradora.IMPRIMIR;Imprimir en Caja;FUNCIONALIDAD
+FormCajaRegistradora.EXPORTAR;Exportar en Caja;FUNCIONALIDAD
+FormCajaRegistradora.ABRIR_CAJA;Abrir caja;FUNCIONALIDAD
+FormCajaRegistradora.CERRAR_CAJA;Cerrar caja;FUNCIONALIDAD
+FormProducto.GUARDAR;Guardar/Registrar en Productos;FUNCIONALIDAD
+FormProducto.EDITAR;Editar/Modificar en Productos;FUNCIONALIDAD
+FormProducto.ELIMINAR;Eliminar en Productos;FUNCIONALIDAD
+FormProducto.NUEVO;Nuevo en Productos;FUNCIONALIDAD
+FormProducto.IMPRIMIR;Imprimir en Productos;FUNCIONALIDAD
+FormProducto.EXPORTAR;Exportar en Productos;FUNCIONALIDAD
+FormProveedores.GUARDAR;Guardar/Registrar en Proveedores;FUNCIONALIDAD
+FormProveedores.EDITAR;Editar/Modificar en Proveedores;FUNCIONALIDAD
+FormProveedores.ELIMINAR;Eliminar en Proveedores;FUNCIONALIDAD
+FormProveedores.NUEVO;Nuevo en Proveedores;FUNCIONALIDAD
+FormProveedores.IMPRIMIR;Imprimir en Proveedores;FUNCIONALIDAD
+FormProveedores.EXPORTAR;Exportar en Proveedores;FUNCIONALIDAD
+FormLaboratorio.GUARDAR;Guardar/Registrar en Laboratorio;FUNCIONALIDAD
+FormLaboratorio.EDITAR;Editar/Modificar en Laboratorio;FUNCIONALIDAD
+FormLaboratorio.ELIMINAR;Eliminar en Laboratorio;FUNCIONALIDAD
+FormLaboratorio.NUEVO;Nuevo en Laboratorio;FUNCIONALIDAD
+FormLaboratorio.IMPRIMIR;Imprimir en Laboratorio;FUNCIONALIDAD
+FormLaboratorio.EXPORTAR;Exportar en Laboratorio;FUNCIONALIDAD
+FormHospitalizaciones.GUARDAR;Guardar/Registrar en Hospitalizaciones;FUNCIONALIDAD
+FormHospitalizaciones.EDITAR;Editar/Modificar en Hospitalizaciones;FUNCIONALIDAD
+FormHospitalizaciones.ELIMINAR;Eliminar en Hospitalizaciones;FUNCIONALIDAD
+FormHospitalizaciones.NUEVO;Nuevo en Hospitalizaciones;FUNCIONALIDAD
+FormHospitalizaciones.IMPRIMIR;Imprimir en Hospitalizaciones;FUNCIONALIDAD
+FormHospitalizaciones.EXPORTAR;Exportar en Hospitalizaciones;FUNCIONALIDAD
+FormProcedimientos.GUARDAR;Guardar/Registrar en Procedimientos;FUNCIONALIDAD
+FormProcedimientos.EDITAR;Editar/Modificar en Procedimientos;FUNCIONALIDAD
+FormProcedimientos.ELIMINAR;Eliminar en Procedimientos;FUNCIONALIDAD
+FormProcedimientos.NUEVO;Nuevo en Procedimientos;FUNCIONALIDAD
+FormProcedimientos.IMPRIMIR;Imprimir en Procedimientos;FUNCIONALIDAD
+FormProcedimientos.EXPORTAR;Exportar en Procedimientos;FUNCIONALIDAD
+FormTurnosPeluqueria.GUARDAR;Guardar/Registrar en Turnos Peluquería;FUNCIONALIDAD
+FormTurnosPeluqueria.EDITAR;Editar/Modificar en Turnos Peluquería;FUNCIONALIDAD
+FormTurnosPeluqueria.ELIMINAR;Eliminar en Turnos Peluquería;FUNCIONALIDAD
+FormTurnosPeluqueria.NUEVO;Nuevo en Turnos Peluquería;FUNCIONALIDAD
+FormTurnosPeluqueria.IMPRIMIR;Imprimir en Turnos Peluquería;FUNCIONALIDAD
+FormTurnosPeluqueria.EXPORTAR;Exportar en Turnos Peluquería;FUNCIONALIDAD
+FormConfiguracion.GUARDAR;Guardar/Aplicar Configuración;FUNCIONALIDAD
+FormConfiguracion.EDITAR;Editar Configuración;FUNCIONALIDAD
+FormConfiguracion.ELIMINAR;Eliminar en Configuración;FUNCIONALIDAD
+ClassConfig.GUARDAR;Guardar/Aplicar Configuración;FUNCIONALIDAD
+ClassConfig.EDITAR;Editar Configuración;FUNCIONALIDAD
+ClassConfig.ELIMINAR;Eliminar en Configuración;FUNCIONALIDAD

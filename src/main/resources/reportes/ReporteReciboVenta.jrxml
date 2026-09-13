@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE jasperReport PUBLIC "-//JasperReports//DTD Report Design//EN" "http://jasperreports.sourceforge.net/dtds/jasperreport.dtd">
+<jasperReport name="ReporteReciboVenta" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="3a7f1f2d-7c5b-4c19-9c37-3b2d7c2c7f11">
+
+    <parameter name="idRecibo" class="java.lang.Integer"/>
+
+    <queryString language="SQL"><![CDATA[
+SELECT
+  r.idRecibo,
+  r.fecha,
+  r.subtotalRecibo,
+  r.totalDescuento,
+  r.totalIva,
+  r.totalRecibo,
+  CONCAT(pe.apellido,' ',pe.nombre) AS cliente,
+  pr.codigo AS codigoProducto,
+  pr.nombre AS nombreProducto,
+  rp.cantidad,
+  rp.precioUnitario,
+  rp.totalCantidad
+FROM recibo r
+JOIN cliente c ON c.idCliente = r.idCliente
+JOIN persona pe ON pe.idPersona = c.idPersona
+JOIN reciboproductos rp ON rp.idRecibo = r.idRecibo
+JOIN producto pr ON pr.idProducto = rp.idProducto
+WHERE r.idRecibo = $P{idRecibo}
+ORDER BY rp.idReciboProductos ASC
+    ]]></queryString>
+
+    <field name="idRecibo" class="java.lang.Long"/>
+    <field name="fecha" class="java.sql.Timestamp"/>
+    <field name="subtotalRecibo" class="java.math.BigDecimal"/>
+    <field name="totalDescuento" class="java.math.BigDecimal"/>
+    <field name="totalIva" class="java.math.BigDecimal"/>
+    <field name="totalRecibo" class="java.math.BigDecimal"/>
+    <field name="cliente" class="java.lang.String"/>
+    <field name="codigoProducto" class="java.lang.String"/>
+    <field name="nombreProducto" class="java.lang.String"/>
+    <field name="cantidad" class="java.lang.Integer"/>
+    <field name="precioUnitario" class="java.math.BigDecimal"/>
+    <field name="totalCantidad" class="java.math.BigDecimal"/>
+
+    <title>
+        <band height="80">
+            <staticText>
+                <reportElement x="0" y="0" width="555" height="22"/>
+                <textElement textAlignment="Center">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <text><![CDATA[COMPROBANTE DE VENTA]]></text>
+            </staticText>
+
+            <textField>
+                <reportElement x="0" y="28" width="300" height="16"/>
+                <textElement>
+                    <font size="10" isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Recibo #" + $F{idRecibo}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="dd/MM/yyyy HH:mm">
+                <reportElement x="350" y="28" width="205" height="16"/>
+                <textElement textAlignment="Right">
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+            </textField>
+
+            <textField>
+                <reportElement x="0" y="48" width="555" height="16"/>
+                <textElement>
+                    <font size="10"/>
+                </textElement>
+                <textFieldExpression><![CDATA["Cliente: " + $F{cliente}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="18">
+            <staticText><reportElement x="0" y="0" width="70" height="18"/><textElement><font size="9" isBold="true"/></textElement><text><![CDATA[Código]]></text></staticText>
+            <staticText><reportElement x="72" y="0" width="260" height="18"/><textElement><font size="9" isBold="true"/></textElement><text><![CDATA[Producto]]></text></staticText>
+            <staticText><reportElement x="334" y="0" width="50" height="18"/><textElement textAlignment="Right"><font size="9" isBold="true"/></textElement><text><![CDATA[Cant.]]></text></staticText>
+            <staticText><reportElement x="386" y="0" width="80" height="18"/><textElement textAlignment="Right"><font size="9" isBold="true"/></textElement><text><![CDATA[Precio]]></text></staticText>
+            <staticText><reportElement x="468" y="0" width="87" height="18"/><textElement textAlignment="Right"><font size="9" isBold="true"/></textElement><text><![CDATA[Total]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="16">
+            <textField><reportElement x="0" y="0" width="70" height="16"/><textElement><font size="9"/></textElement><textFieldExpression><![CDATA[$F{codigoProducto}]]></textFieldExpression></textField>
+            <textField><reportElement x="72" y="0" width="260" height="16"/><textElement><font size="9"/></textElement><textFieldExpression><![CDATA[$F{nombreProducto}]]></textFieldExpression></textField>
+            <textField><reportElement x="334" y="0" width="50" height="16"/><textElement textAlignment="Right"><font size="9"/></textElement><textFieldExpression><![CDATA[$F{cantidad}]]></textFieldExpression></textField>
+            <textField pattern="#0.00"><reportElement x="386" y="0" width="80" height="16"/><textElement textAlignment="Right"><font size="9"/></textElement><textFieldExpression><![CDATA[$F{precioUnitario}]]></textFieldExpression></textField>
+            <textField pattern="#0.00"><reportElement x="468" y="0" width="87" height="16"/><textElement textAlignment="Right"><font size="9"/></textElement><textFieldExpression><![CDATA[$F{totalCantidad}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <summary>
+        <band height="70">
+            <line><reportElement x="0" y="0" width="555" height="1"/></line>
+
+            <textField pattern="#0.00">
+                <reportElement x="350" y="10" width="205" height="16"/>
+                <textElement textAlignment="Right"><font size="10" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["Subtotal: " + $F{subtotalRecibo}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="#0.00">
+                <reportElement x="350" y="28" width="205" height="16"/>
+                <textElement textAlignment="Right"><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["Descuento: " + $F{totalDescuento}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="#0.00">
+                <reportElement x="350" y="46" width="205" height="16"/>
+                <textElement textAlignment="Right"><font size="10"/></textElement>
+                <textFieldExpression><![CDATA["IVA: " + $F{totalIva}]]></textFieldExpression>
+            </textField>
+
+            <textField pattern="#0.00">
+                <reportElement x="350" y="64" width="205" height="16"/>
+                <textElement textAlignment="Right"><font size="12" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA["TOTAL: " + $F{totalRecibo}]]></textFieldExpression>
+            </textField>
+        </band>
+    </summary>
+
+</jasperReport>
