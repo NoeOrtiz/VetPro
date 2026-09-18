@@ -15,6 +15,9 @@ public class ProveedorService {
         return txRunner.runInTx(em -> {
             Persona personaManaged = personaService.persistOrAttach(em, persona);
             proveedor.setPersona(personaManaged);
+            if (proveedor.getEstado() == null || proveedor.getEstado().trim().isEmpty()) {
+                proveedor.setEstado("Activo");
+            }
             em.persist(proveedor);
             auditoriaService.registrar("CREATE", "Proveedor", (proveedor!=null? Long.valueOf(proveedor.getIdProveedor()): null), "ProveedorService", "Alta de proveedor: " + (proveedor!=null? proveedor.getRazonSocial():""), AuditoriaService.RESULT_OK, null, null, null);
             return true;
@@ -31,25 +34,52 @@ public class ProveedorService {
         });
     }
 
+    /**
+     * Compatibilidad con las pantallas actuales: eliminar ahora significa
+     * desactivar. El proveedor y su Persona se conservan para mantener la
+     * trazabilidad de compras, productos y movimientos históricos.
+     */
     public boolean eliminar(Proveedor proveedor) {
+        return desactivar(proveedor);
+    }
+
+    public boolean desactivar(Proveedor proveedor) {
+        return cambiarEstado(proveedor, "Inactivo", "DESACTIVAR");
+    }
+
+    public boolean reactivar(Proveedor proveedor) {
+        return cambiarEstado(proveedor, "Activo", "REACTIVAR");
+    }
+
+    private boolean cambiarEstado(Proveedor proveedor, String estado, String accionAuditoria) {
+        if (proveedor == null || proveedor.getIdProveedor() == null) {
+            throw new IllegalArgumentException("El proveedor es requerido");
+        }
+
         return txRunner.runInTx(em -> {
-            Integer idProveedor = proveedor != null ? proveedor.getIdProveedor() : null;
-            if (idProveedor == null) {
-                throw new IllegalArgumentException("El idProveedor no puede ser null");
+            Proveedor managed = em.find(Proveedor.class, proveedor.getIdProveedor());
+            if (managed == null) {
+                throw new IllegalArgumentException("El proveedor no existe");
             }
 
-            Proveedor managed = em.find(Proveedor.class, idProveedor);
-            Integer idPersona = null;
-            if (managed != null && managed.getPersona() != null) {
-                idPersona = managed.getPersona().getIdPersona();
-            }
+            managed.setEstado(estado);
+            em.merge(managed);
+            proveedor.setEstado(estado);
 
-            if (managed != null) {
-                em.remove(managed);
-            }
-
-            personaService.deleteIfUnused(em, idPersona);
+            auditoriaService.registrar(
+                    accionAuditoria,
+                    "Proveedor",
+                    Long.valueOf(managed.getIdProveedor()),
+                    "ProveedorService",
+                    ("Activo".equals(estado) ? "Reactivación de proveedor: " : "Desactivación de proveedor: ")
+                            + managed.getRazonSocial(),
+                    AuditoriaService.RESULT_OK,
+                    null,
+                    null,
+                    null
+            );
             return true;
         });
     }
+
 }
