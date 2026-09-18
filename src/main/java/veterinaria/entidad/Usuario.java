@@ -49,6 +49,9 @@ public class Usuario {
     @Column(name = "bloqueado_hasta")
     private LocalDateTime bloqueadoHasta;
 
+    @Column(name = "activo", nullable = false)
+    private boolean activo = true;
+
     public Usuario() {
     }
 
@@ -155,6 +158,14 @@ public class Usuario {
 
     public void setBloqueadoHasta(LocalDateTime bloqueadoHasta) {
         this.bloqueadoHasta = bloqueadoHasta;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     private void configurarEstado() {
