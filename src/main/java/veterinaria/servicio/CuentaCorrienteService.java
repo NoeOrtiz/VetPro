@@ -76,16 +76,57 @@ public class CuentaCorrienteService {
         });
     }
 
+    /**
+     * Compatibilidad con las pantallas actuales. Un movimiento financiero no
+     * se elimina: se genera un movimiento inverso que conserva la trazabilidad.
+     */
+    @Deprecated
     public boolean eliminarMovimientoYRecalcular(Integer idMovimiento) {
+        return revertirMovimiento(idMovimiento, "Reversión solicitada desde operación de baja heredada");
+    }
+
+    public boolean revertirMovimiento(Integer idMovimiento, String motivo) {
+        if (idMovimiento == null) {
+            throw new IllegalArgumentException("El movimiento es requerido.");
+        }
+        if (motivo == null || motivo.trim().isEmpty()) {
+            throw new IllegalArgumentException("El motivo de la reversión es obligatorio.");
+        }
+
         return tx.runInTx(em -> {
-            CuentaCorrienteMovimiento mov = em.find(CuentaCorrienteMovimiento.class, idMovimiento);
-            if (mov == null) {
+            CuentaCorrienteMovimiento original = em.find(
+                    CuentaCorrienteMovimiento.class, idMovimiento, LockModeType.PESSIMISTIC_WRITE);
+            if (original == null) {
                 return false;
             }
-            CuentaCorriente cc = resolveCuentaCorrienteManaged(em, mov);
+
+            Long reversiones = em.createQuery(
+                    "SELECT COUNT(m) FROM CuentaCorrienteMovimiento m "
+                    + "WHERE m.movimientoRevertido.idMovimiento = :id",
+                    Long.class)
+                    .setParameter("id", idMovimiento)
+                    .getSingleResult();
+            if (reversiones != null && reversiones.longValue() > 0L) {
+                throw new IllegalStateException("El movimiento ya fue revertido.");
+            }
+
+            CuentaCorriente cc = resolveCuentaCorrienteManaged(em, original);
             validarCuentaActiva(cc);
 
-            em.remove(mov);
+            CuentaCorrienteMovimiento reversion = new CuentaCorrienteMovimiento();
+            reversion.setCuentaCorriente(cc);
+            reversion.setFechaMovimiento(LocalDate.now());
+            reversion.setDescripcion("REVERSIÓN: " + (original.getDescripcion() == null ? "" : original.getDescripcion()));
+            reversion.setTipoMovimiento(
+                    original.getTipoMovimiento() == CuentaCorrienteMovimiento.TipoMovimiento.DEBITO
+                            ? CuentaCorrienteMovimiento.TipoMovimiento.CREDITO
+                            : CuentaCorrienteMovimiento.TipoMovimiento.DEBITO);
+            reversion.setMonto(normalizarMonto(original.getMonto()));
+            reversion.setMovimientoRevertido(original);
+            reversion.setMotivoReversion(motivo.trim());
+
+            em.persist(reversion);
+            em.flush();
             recomputarSaldosCuenta(em, cc);
             return true;
         });
