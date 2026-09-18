@@ -45,6 +45,14 @@ public class ProveedorDAO {
     }
     
     public boolean eliminar(Proveedor proveedor) throws Exception {
-        return new ProveedorService().eliminar(proveedor);
+        return new ProveedorService().desactivar(proveedor);
+    }
+
+    public boolean desactivar(Proveedor proveedor) throws Exception {
+        return new ProveedorService().desactivar(proveedor);
+    }
+
+    public boolean reactivar(Proveedor proveedor) throws Exception {
+        return new ProveedorService().reactivar(proveedor);
     }
 }
