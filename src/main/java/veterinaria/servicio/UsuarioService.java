@@ -28,6 +28,7 @@ public class UsuarioService {
         // --- 2. Marcar que es su primer ingreso para forzar el cambio de clave ---
         if (usuario != null) {
             usuario.setPrimerLogin(true); // O asignarlo según el tipo de dato de tu entidad
+            usuario.setActivo(true);
         }
         // ------------------------------------------------------------------------
 
@@ -113,51 +114,56 @@ public class UsuarioService {
         return ok;
     }
 
+    /**
+     * Conserva la firma histórica para no romper las pantallas existentes.
+     * La baja de un usuario es lógica: nunca se elimina el registro ni se
+     * desvinculan sus auditorías.
+     */
     public boolean eliminarUsuario(Persona persona, Usuario usuario, Rol rol) {
-        final Long id = (usuario != null && usuario.getIdUsuario() != null) ? Long.valueOf(usuario.getIdUsuario()) : null;
+        return desactivarUsuario(usuario);
+    }
+
+    public boolean desactivarUsuario(Usuario usuario) {
+        return cambiarEstadoActivo(usuario, false);
+    }
+
+    public boolean reactivarUsuario(Usuario usuario) {
+        return cambiarEstadoActivo(usuario, true);
+    }
+
+    private boolean cambiarEstadoActivo(Usuario usuario, boolean activo) {
+        if (usuario == null || usuario.getIdUsuario() == null) {
+            throw new IllegalArgumentException("El usuario es requerido");
+        }
+
+        final Long id = Long.valueOf(usuario.getIdUsuario());
         final String[] antes = new String[1];
-        boolean ok = txRunner.runInTx(em -> {
-            Integer idUsuario = usuario != null ? usuario.getIdUsuario() : null;
-            Integer idPersona = persona != null ? persona.getIdPersona() : null;
+        final String[] despues = new String[1];
 
-            if (idUsuario == null) {
-                throw new IllegalArgumentException("El idUsuario no puede ser null");
+        return txRunner.runInTx(em -> {
+            Usuario managed = em.find(Usuario.class, usuario.getIdUsuario());
+            if (managed == null) {
+                throw new IllegalArgumentException("El usuario no existe");
             }
 
-            em.createQuery("DELETE FROM UsuarioRol ur WHERE ur.usuario.idUsuario = :id")
-                    .setParameter("id", idUsuario)
-                    .executeUpdate();
-
-            em.createQuery("UPDATE Auditoria a SET a.usuario = NULL WHERE a.usuario.idUsuario = :id")
-                    .setParameter("id", idUsuario)
-                    .executeUpdate();
-
-            Usuario usuarioManaged = em.find(Usuario.class, idUsuario);
-            if (usuarioManaged != null) {
-                antes[0] = JsonUtil.safeToJson(usuarioManaged);
-                if (idPersona == null && usuarioManaged.getPersona() != null) {
-                    idPersona = usuarioManaged.getPersona().getIdPersona();
-                }
-                em.remove(usuarioManaged);
-            }
-
-            personaService.deleteIfUnused(em, idPersona);
-
+            antes[0] = JsonUtil.safeToJson(managed);
+            managed.setActivo(activo);
+            em.merge(managed);
+            em.flush();
+            despues[0] = JsonUtil.safeToJson(managed);
+            usuario.setActivo(activo);
             return true;
-        }, () -> {
-            auditoriaService.registrar(
-                    "DELETE",
-                    "Usuario",
-                    id,
-                    "UsuarioService",
-                    "Baja de usuario: " + (usuario != null ? usuario.getNombreUsuario() : ""),
-                    AuditoriaService.RESULT_OK,
-                    antes[0],
-                    null,
-                    null
-            );
-        });
-        return ok;
+        }, () -> auditoriaService.registrar(
+                activo ? "REACTIVAR" : "DESACTIVAR",
+                "Usuario",
+                id,
+                "UsuarioService",
+                (activo ? "Reactivación de usuario: " : "Desactivación de usuario: ") + usuario.getNombreUsuario(),
+                AuditoriaService.RESULT_OK,
+                antes[0],
+                despues[0],
+                null
+        ));
     }
 
     private Rol attachRol(EntityManager em, Rol rol) {
