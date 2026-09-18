@@ -43,6 +43,13 @@ public class CuentaCorrienteMovimiento {
     @Column(name = "saldoResultante", precision = 10, scale = 2)
     private BigDecimal saldoResultante;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idMovimientoRevertido", referencedColumnName = "idMovimiento")
+    private CuentaCorrienteMovimiento movimientoRevertido;
+
+    @Column(name = "motivoReversion", length = 255)
+    private String motivoReversion;
+
     public CuentaCorrienteMovimiento() {
     }
 
@@ -118,6 +125,22 @@ public class CuentaCorrienteMovimiento {
 
     public void setSaldoResultante(BigDecimal saldoResultante) {
         this.saldoResultante = saldoResultante;
+    }
+
+    public CuentaCorrienteMovimiento getMovimientoRevertido() {
+        return movimientoRevertido;
+    }
+
+    public void setMovimientoRevertido(CuentaCorrienteMovimiento movimientoRevertido) {
+        this.movimientoRevertido = movimientoRevertido;
+    }
+
+    public String getMotivoReversion() {
+        return motivoReversion;
+    }
+
+    public void setMotivoReversion(String motivoReversion) {
+        this.motivoReversion = motivoReversion;
     }
     
     @Override
