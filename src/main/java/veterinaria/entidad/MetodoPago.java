@@ -22,6 +22,12 @@ public class MetodoPago {
     @Column(name = "descripcion")
     private String descripcion;
 
+    @Column(name = "activo", nullable = false)
+    private boolean activo = true;
+
+    @Column(name = "afectaEfectivo", nullable = false)
+    private boolean afectaEfectivo;
+
     public MetodoPago() {
     }
 
@@ -49,6 +55,27 @@ public class MetodoPago {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public boolean isAfectaEfectivo() {
+        return afectaEfectivo;
+    }
+
+    public void setAfectaEfectivo(boolean afectaEfectivo) {
+        this.afectaEfectivo = afectaEfectivo;
+    }
+
+    @Override
+    public String toString() {
+        return nombre == null ? "" : nombre;
     }
     
     
