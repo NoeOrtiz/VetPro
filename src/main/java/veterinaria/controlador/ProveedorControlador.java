@@ -29,8 +29,21 @@ public class ProveedorControlador {
     }  
     
     public boolean eliminarProveedor(Proveedor proveedor){
+        return desactivarProveedor(proveedor);
+    }
+
+    public boolean desactivarProveedor(Proveedor proveedor){
         try {
-            return proveedorDAO.eliminar(proveedor);
+            return proveedorDAO.desactivar(proveedor);
+        } catch (Exception ex) {
+            Logger.getLogger(ProveedorControlador.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
+    public boolean reactivarProveedor(Proveedor proveedor){
+        try {
+            return proveedorDAO.reactivar(proveedor);
         } catch (Exception ex) {
             Logger.getLogger(ProveedorControlador.class.getName()).log(Level.SEVERE, null, ex);
             return false;
