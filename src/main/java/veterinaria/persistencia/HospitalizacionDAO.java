@@ -101,45 +101,18 @@ public class HospitalizacionDAO {
         em.close();
     }
 
+    /**
+     * Compatibilidad temporal. Las hospitalizaciones son registros clínicos
+     * históricos y no se eliminan físicamente, incluso después del alta.
+     */
+    @Deprecated
     public void eliminar(Integer idHospitalizacion) {
-        EntityManager em = getEntityManager();
-        Hospitalizacion hospitalizacion = em.find(Hospitalizacion.class, idHospitalizacion);
-        if (hospitalizacion != null) {
-            em.getTransaction().begin();
-            em.remove(hospitalizacion);
-            em.getTransaction().commit();
-        }
-        em.close();
+        // Intencionalmente sin borrado físico.
     }
 
-    public boolean eliminar(Hospitalizacion hospitalizacion) throws Exception {
-        EntityManager em = getEntityManager();
-        boolean state = false;
-        try {
-            em.getTransaction().begin();
-            Hospitalizacion hospitalizacionManaged = em.find(Hospitalizacion.class, hospitalizacion.getIdHospitalizacion());
-            if (hospitalizacionManaged != null) {
-                String estado = hospitalizacionManaged.getEstado();
-                if (EstadoHospitalizacion.ALTA.getEtiqueta().equalsIgnoreCase(estado)) {
-                    em.remove(hospitalizacionManaged);
-                    em.getTransaction().commit();
-                    state = true;
-                } else {
-                    em.getTransaction().rollback();
-
-                }
-            }
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            throw e;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
-        return state;
+    @Deprecated
+    public boolean eliminar(Hospitalizacion hospitalizacion) {
+        return false;
     }
 
     public Hospitalizacion obtenerActivaPorMascota(Integer idMascota) {
