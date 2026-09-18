@@ -40,45 +40,18 @@ public class ProcedimientoDAO {
         em.close();
     }
 
+    /**
+     * Compatibilidad temporal. Un procedimiento clínico no se elimina
+     * físicamente porque debe conservar su trazabilidad histórica.
+     */
+    @Deprecated
     public void eliminar(Integer idProcedimiento) {
-        EntityManager em = getEntityManager();
-        Procedimiento procedimiento = em.find(Procedimiento.class, idProcedimiento);
-        if (procedimiento != null) {
-            em.getTransaction().begin();
-            em.remove(procedimiento);
-            em.getTransaction().commit();
-        }
-        em.close();
+        // Intencionalmente sin borrado físico.
     }
 
-    public boolean eliminar(Procedimiento hospitalizacion) throws Exception {
-        EntityManager em = getEntityManager();
-        boolean state = false;
-        try {
-            em.getTransaction().begin();
-            Procedimiento procedimientoManaged = em.find(Procedimiento.class, hospitalizacion.getIdProcedimiento());
-            if (procedimientoManaged != null) {
-                String estado = procedimientoManaged.getEstado();
-                if ("Dado de Alta".equals(estado)) {
-                    em.remove(procedimientoManaged);
-                    em.getTransaction().commit();
-                    state = true;
-                } else {
-                    em.getTransaction().rollback();
-
-                }
-            }
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            throw e;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
-        return state;
+    @Deprecated
+    public boolean eliminar(Procedimiento procedimiento) {
+        return false;
     }
 
     
