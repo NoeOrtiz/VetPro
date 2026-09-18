@@ -35,6 +35,11 @@ public class AutenticacionService {
                 return false;
             }
 
+            if (!usuario.isActivo()) {
+                registrarLoginFallido(usuario, nombreUsuario, "Cuenta de usuario inactiva");
+                throw new SecurityException("La cuenta de usuario se encuentra inactiva. Contacte a un administrador.");
+            }
+
             LocalDateTime ahora = LocalDateTime.now();
 
             // 1. VALIDAR AL PRINCIPIO: ¿Está bloqueado actualmente?
@@ -358,6 +363,7 @@ public class AutenticacionService {
             usuario.setNombreUsuario("admin");
             usuario.setContrasena(PasswordSecurityUtil.normalizeForPersist("admin"));
             usuario.setRol(rolAdmin);
+            usuario.setActivo(true);
             em.persist(usuario);
 
             UsuarioRol ur = new UsuarioRol();
