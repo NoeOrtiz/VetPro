@@ -76,33 +76,14 @@ public class LaboratorioDAO {
         }
     }
 
-    public boolean eliminar(Laboratorio laboratorio) throws Exception {
-        EntityManager em = getEntityManager();
-        boolean state = false;
-        try {
-            em.getTransaction().begin();
-            Laboratorio laboratorioManaged = em.find(Laboratorio.class, laboratorio.getIdLaboratorio());
-            if (laboratorioManaged != null) {
-                String estado = laboratorioManaged.getEstado();
-                if ("Procesado".equals(estado)) {
-                    em.remove(laboratorioManaged);
-                    em.getTransaction().commit();
-                    state = true;
-                } else {
-                    em.getTransaction().rollback();
-                }
-            }
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            throw e;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
-        return state;
+    /**
+     * Los registros clínicos de laboratorio forman parte de la historia del
+     * paciente y no se eliminan físicamente. La anulación/corrección se
+     * modelará explícitamente en la migración de estados del módulo.
+     */
+    @Deprecated
+    public boolean eliminar(Laboratorio laboratorio) {
+        return false;
     }
 
     public Laboratorio buscarPorId(Integer idLaboratorio) {
