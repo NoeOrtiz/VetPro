@@ -41,6 +41,9 @@ public class Recibo {
     @Column(precision = 10, scale = 2, nullable = false)
     private BigDecimal totalRecibo;
 
+    @Column(name = "claveOperacion", length = 64, unique = true)
+    private String claveOperacion;
+
     @OneToMany(mappedBy = "recibo", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ReciboProductos> productos;
 
@@ -117,6 +120,14 @@ public class Recibo {
 
     public void setTotalRecibo(BigDecimal totalRecibo) {
         this.totalRecibo = totalRecibo;
+    }
+
+    public String getClaveOperacion() {
+        return claveOperacion;
+    }
+
+    public void setClaveOperacion(String claveOperacion) {
+        this.claveOperacion = claveOperacion;
     }
 
     public List<ReciboProductos> getProductos() {
