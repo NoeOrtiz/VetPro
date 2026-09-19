@@ -38,6 +38,17 @@ public class CuentaCorrienteService {
         });
     }
 
+    public boolean reactivarCuentaCorriente(Integer idCuentaCorriente) {
+        return tx.runInTx(em -> {
+            CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente);
+            if (cc == null) return false;
+            cc.setEstado("ACTIVO");
+            cc.setUltimaEdicion(LocalDate.now());
+            em.merge(cc);
+            return true;
+        });
+    }
+
     public boolean registrarMovimientoYActualizarSaldo(CuentaCorrienteMovimiento movimiento) {
         return tx.runInTx(em -> {
             CuentaCorriente cc = resolveCuentaCorrienteManaged(em, movimiento);
@@ -52,6 +63,7 @@ public class CuentaCorrienteService {
             switch (tipo) {
                 case DEBITO:
                     saldoResultante = saldoActual.subtract(monto);
+                    validarLimiteCredito(cc, saldoResultante);
                     break;
                 case CREDITO:
                     saldoResultante = saldoActual.add(monto);
@@ -153,6 +165,17 @@ public class CuentaCorrienteService {
         String estado = cc.getEstado();
         if (estado != null && "INACTIVO".equalsIgnoreCase(estado.trim())) {
             throw new IllegalStateException("La cuenta corriente está inactiva.");
+        }
+    }
+
+    private void validarLimiteCredito(CuentaCorriente cc, BigDecimal saldoResultante) {
+        BigDecimal limite = cc.getLimiteCredito() == null ? BigDecimal.ZERO : cc.getLimiteCredito();
+        if (limite.signum() < 0) {
+            throw new IllegalStateException("El limite de credito no puede ser negativo.");
+        }
+        BigDecimal deuda = saldoResultante.signum() < 0 ? saldoResultante.abs() : BigDecimal.ZERO;
+        if (deuda.compareTo(limite) > 0) {
+            throw new IllegalStateException("El movimiento supera el limite de credito disponible.");
         }
     }
 
