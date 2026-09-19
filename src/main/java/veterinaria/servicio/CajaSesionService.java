@@ -12,6 +12,7 @@ import veterinaria.entidad.Usuario;
 public class CajaSesionService {
 
     private final TxRunner tx = new TxRunner();
+    private final AuditoriaService auditoria = new AuditoriaService();
 
     public CajaSesion obtenerSesionAbierta() {
         return tx.runInTx(em -> em.createQuery(
@@ -52,6 +53,11 @@ public class CajaSesionService {
             sesion.setEstado(CajaSesion.Estado.ABIERTA);
             sesion.setUsuarioApertura(managed);
             em.persist(sesion);
+            em.flush();
+            auditoria.registrarConUsuario(managed, "APERTURA_CAJA", "CajaSesion",
+                    sesion.getIdCajaSesion(), "CAJA",
+                    "Apertura de caja. Efectivo inicial: " + montoInicial,
+                    AuditoriaService.RESULT_OK, null, null, null);
             return sesion;
         });
     }
@@ -94,6 +100,12 @@ public class CajaSesionService {
             sesion.setUsuarioCierre(managed);
             sesion.setEstado(CajaSesion.Estado.CERRADA);
             em.merge(sesion);
+            auditoria.registrarConUsuario(managed, "CIERRE_CAJA", "CajaSesion",
+                    sesion.getIdCajaSesion(), "CAJA",
+                    "Cierre de caja. Esperado: " + esperado + ", contado: " + efectivoContado
+                    + ", diferencia: " + diferencia
+                    + (diferencia.signum() == 0 ? "" : ", motivo: " + motivo),
+                    AuditoriaService.RESULT_OK, null, null, null);
             return sesion;
         });
     }
