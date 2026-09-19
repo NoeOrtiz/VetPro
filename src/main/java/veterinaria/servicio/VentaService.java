@@ -41,10 +41,16 @@ public class VentaService {
      */
     public Recibo confirmarVenta(Recibo recibo, List<ReciboProductos> items,
             List<ReciboMetodoPago> pagos, BigDecimal montoACuenta) {
+        return confirmarVenta(recibo, items, pagos, montoACuenta, null);
+    }
+
+    public Recibo confirmarVenta(Recibo recibo, List<ReciboProductos> items,
+            List<ReciboMetodoPago> pagos, BigDecimal montoACuenta, String claveOperacion) {
 
         if (pagos == null) pagos = Collections.emptyList();
         if (montoACuenta == null) montoACuenta = BigDecimal.ZERO;
         validarEntrada(recibo, items, pagos, montoACuenta);
+        String claveBase = normalizarClaveOperacion(claveOperacion);
 
         return tx.runInTx(em -> {
             Usuario usuario = em.find(Usuario.class, recibo.getUsuario().getIdUsuario());
@@ -119,6 +125,7 @@ public class VentaService {
                 em.persist(sm);
             }
 
+            int indicePago = 0;
             for (ReciboMetodoPago pago : pagos) {
                 MetodoPago metodo = em.find(MetodoPago.class, pago.getMetodoPago().getIdMetodoPago());
                 pago.setRecibo(recibo);
@@ -135,6 +142,8 @@ public class VentaService {
                 cm.setRecibo(recibo);
                 cm.setMetodoPago(metodo);
                 cm.setDescripcion("Venta - recibo N. " + recibo.getIdRecibo());
+                cm.setClaveOperacion(claveBase == null ? null
+                        : claveBase + "-P" + (++indicePago));
                 em.persist(cm);
             }
 
@@ -172,6 +181,17 @@ public class VentaService {
 
             return recibo;
         });
+    }
+
+    private String normalizarClaveOperacion(String claveOperacion) {
+        if (claveOperacion == null || claveOperacion.trim().isEmpty()) {
+            return null;
+        }
+        String clave = claveOperacion.trim();
+        if (clave.length() > 48) {
+            throw new IllegalArgumentException("La clave de operacion es demasiado larga.");
+        }
+        return clave;
     }
 
     private CajaSesion buscarCajaAbierta(EntityManager em) {
