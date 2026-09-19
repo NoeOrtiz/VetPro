@@ -92,18 +92,15 @@ public class CajaService {
         return null;
     }
 
+    /**
+     * El alta directa de movimientos queda bloqueada para nuevas operaciones.
+     * Deben usarse los servicios de venta/cobro o el servicio de movimientos
+     * manuales de caja, que validan sesion, medio de pago y trazabilidad.
+     */
+    @Deprecated
     public boolean registrarMovimiento(CajaMovimiento movimiento) {
-        return tx.runInTx(em -> {
-            CajaMovimiento m = movimiento;
-
-            if (m.getUsuario() != null && m.getUsuario().getIdUsuario() != null) {
-                Usuario usuarioMG = em.find(Usuario.class, m.getUsuario().getIdUsuario());
-                m.setUsuario(usuarioMG);
-            }
-
-            em.persist(m);
-            return true;
-        });
+        throw new UnsupportedOperationException(
+                "No registre movimientos directamente. Use los servicios transaccionales de Caja.");
     }
 
     /**
