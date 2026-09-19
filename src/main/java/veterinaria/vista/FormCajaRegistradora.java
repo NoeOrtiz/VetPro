@@ -2643,7 +2643,7 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
 
     private void cargarDatosComboBoxes() {
         List<Cliente> listaClientes = operandoCliente.buscarTodosLosClientes();
-        List<Producto> listaProductos = operandoProducto.buscarTodosLosProductos();
+        List<Producto> listaProductos = operandoProducto.buscarProductosDisponiblesParaVenta();
         ClienteItem clienteItem = new ClienteItem(0, "Seleccionar Cliente");
         jcbClienteVenta.addItem(clienteItem);
         jcbClienteCobro.addItem(clienteItem);
@@ -2683,7 +2683,7 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         }
 
         // Cargar Medios de Pago
-        List<MetodoPago> listaMetodoPagos = operandoMetodoPago.obtenerTodosLosMetodosPago();
+        List<MetodoPago> listaMetodoPagos = operandoMetodoPago.obtenerMetodosPagoActivos();
         MetodoPagoItem metodoPagoItem = new MetodoPagoItem(0, "Seleccionar");
         jcbMetodoDePago.addItem(metodoPagoItem);  // Añadir opción por defecto
 
