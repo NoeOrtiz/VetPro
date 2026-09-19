@@ -95,6 +95,26 @@ public class ProductoDAO {
         }
     }
 
+    /**
+     * Productos seleccionables en una venta: activos y con existencia real.
+     * Los productos con stock 0 permanecen en Inventario, pero no se ofrecen para vender.
+     */
+    public List<Producto> buscarDisponiblesParaVenta() {
+        EntityManager em = getEntityManager();
+        try {
+            TypedQuery<Producto> query = em.createQuery(
+                    "SELECT p FROM Producto p "
+                    + "WHERE (p.estado = 'Activo' OR p.estado IS NULL OR TRIM(p.estado) = '') "
+                    + "AND COALESCE(p.stock, 0) > 0 "
+                    + "ORDER BY p.rubro ASC, p.nombre ASC", Producto.class);
+            return query.getResultList();
+        } finally {
+            if (em != null) {
+                em.close();
+            }
+        }
+    }
+
     public Producto buscarPorId(Integer idProducto) {
         EntityManager em = getEntityManager();
         try {
