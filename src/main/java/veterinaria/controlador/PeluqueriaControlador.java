@@ -34,14 +34,7 @@ public class PeluqueriaControlador {
                     turno.getSlot().getIdSlot()
             );
 
-            if (ok) {
-                try {
-                    historiaEventoControlador.registrarDesdePeluqueria(turno);
-                } catch (Exception ignore) {
-                }
-            }
-
-            if (!ok) {
+             if (!ok) {
                 JOptionPane.showMessageDialog(
                         null,
                         "El horario seleccionado ya fue tomado.\nPor favor, recargue y elija otro.",
@@ -166,6 +159,18 @@ public class PeluqueriaControlador {
         if (idTurno == null) return false;
         Peluqueria db = turnoDAO.buscarPorId(idTurno);
         if (db == null) return false;
-        return turnoService.completarTurno(db.getIdTurno(), idUsuario);
+        boolean ok = turnoService.completarTurno(db.getIdTurno(), idUsuario);
+        if (ok) {
+            Peluqueria realizado = turnoDAO.buscarPorId(db.getIdTurno());
+            if (realizado != null) {
+                try {
+                    historiaEventoControlador.registrarDesdePeluqueria(realizado);
+                } catch (Exception e) {
+                    // El servicio queda realizado aunque falle la sincronización de Historia.
+                    // La reconciliación de eventos podrá reintentarse sin duplicar por refTabla/refId.
+                }
+            }
+        }
+        return ok;
     }
 }
