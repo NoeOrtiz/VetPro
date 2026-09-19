@@ -137,6 +137,10 @@ public class ProductoControlador {
         return productoDAO.buscarTodos();
     }
 
+    public List<Producto> buscarProductosDisponiblesParaVenta() {
+        return productoDAO.buscarDisponiblesParaVenta();
+    }
+
     public List<Producto> buscarProductosPorEstado(String estadoFiltro) {
         return productoDAO.buscarPorEstado(estadoFiltro);
     }
