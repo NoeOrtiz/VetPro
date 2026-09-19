@@ -2943,7 +2943,8 @@ private void generarReporte(Integer idRecibo) {
             return;
         }
 
-        if (!"Activa".equalsIgnoreCase(cuentaCorriente.getEstado())) {
+        if (cuentaCorriente.getEstado() != null
+                && "INACTIVO".equalsIgnoreCase(cuentaCorriente.getEstado().trim())) {
             txtSaldoCuentaCorriente.setText("");
             ((DefaultTableModel) tableCuentaCorriente.getModel()).setRowCount(0);
             JOptionPane.showMessageDialog(this, "Cuenta Inactiva!");
@@ -2963,8 +2964,9 @@ private void generarReporte(Integer idRecibo) {
         CuentaCorrienteMovimientoDAO operandoMovimientosCC = new CuentaCorrienteMovimientoDAO();
         BigDecimal creditos = operandoMovimientosCC.sumarCreditos(idCuentaCorriente);
         BigDecimal debitos = operandoMovimientosCC.sumarDebitos(idCuentaCorriente);
-        BigDecimal saldoCC = creditos.subtract(debitos);
-        txtSaldoCuentaCorriente.setText(MoneyUtil.formatStandard(saldoCC));
+        BigDecimal saldoInterno = creditos.subtract(debitos);
+        BigDecimal deudaVisible = saldoInterno.signum() < 0 ? saldoInterno.abs() : BigDecimal.ZERO;
+        txtSaldoCuentaCorriente.setText(MoneyUtil.formatStandard(deudaVisible));
     }
 
     private void cargarCCenTabla(List<CuentaCorrienteMovimiento> movimientos) {
