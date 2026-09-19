@@ -62,6 +62,12 @@ public class Peluqueria implements Serializable {
 
     @Column(name = "estado")
     private EstadoPeluqueriaEnum estado;
+
+    @Column(name = "estadoCobro", length = 20, nullable = false)
+    private String estadoCobro = "PENDIENTE";
+
+    @Column(name = "idReciboCobro")
+    private Long idReciboCobro;
     
     public Peluqueria() {
     }
@@ -185,6 +191,22 @@ public class Peluqueria implements Serializable {
     public void setPrecioCerrado(BigDecimal precioCerrado) {
         this.precioCerrado = precioCerrado;
     }
+    public String getEstadoCobro() {
+        return estadoCobro;
+    }
+
+    public void setEstadoCobro(String estadoCobro) {
+        this.estadoCobro = estadoCobro;
+    }
+
+    public Long getIdReciboCobro() {
+        return idReciboCobro;
+    }
+
+    public void setIdReciboCobro(Long idReciboCobro) {
+        this.idReciboCobro = idReciboCobro;
+    }
+
 public EstadoPeluqueriaEnum getEstado() {
         return estado;
     }
