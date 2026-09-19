@@ -49,6 +49,14 @@ public class CajaMovimientoService {
             if (original.isAnulado()) {
                 throw new IllegalStateException("El movimiento ya fue anulado.");
             }
+            if (original.getTipoMovimiento() != CajaMovimiento.TipoMovimiento.CREDITO
+                    && original.getTipoMovimiento() != CajaMovimiento.TipoMovimiento.DEBITO) {
+                throw new IllegalStateException("Aperturas y cierres no se anulan como movimientos manuales.");
+            }
+            if (original.getRecibo() != null) {
+                throw new IllegalStateException(
+                        "El movimiento pertenece a una venta o cobro y debe revertirse desde su operacion de origen.");
+            }
             if (original.getCajaSesion() == null) {
                 throw new IllegalStateException("El movimiento heredado no pertenece a una sesion de caja.");
             }
