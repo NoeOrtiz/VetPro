@@ -132,34 +132,14 @@ public class CuentaCorrienteService {
         });
     }
 
+    /**
+     * Los movimientos confirmados de cuenta corriente son inmutables.
+     * Para corregirlos debe registrarse una reversion con motivo.
+     */
+    @Deprecated
     public boolean actualizarMovimientoYRecalcular(CuentaCorrienteMovimiento movimiento) {
-        return tx.runInTx(em -> {
-            if (movimiento == null || movimiento.getIdMovimiento() == null) {
-                return false;
-            }
-
-            CuentaCorrienteMovimiento managed = em.find(CuentaCorrienteMovimiento.class, movimiento.getIdMovimiento());
-            if (managed == null) {
-                return false;
-            }
-
-            CuentaCorriente cc = resolveCuentaCorrienteManaged(em, movimiento);
-            validarCuentaActiva(cc);
-            validarMovimiento(movimiento);
-
-            managed.setCuentaCorriente(cc);
-            managed.setFechaMovimiento(movimiento.getFechaMovimiento() != null ? movimiento.getFechaMovimiento() : LocalDate.now());
-            managed.setDescripcion(movimiento.getDescripcion());
-            managed.setTipoMovimiento(movimiento.getTipoMovimiento());
-            managed.setMonto(normalizarMonto(movimiento.getMonto()));
-            managed.setRecibo(movimiento.getRecibo());
-
-            em.merge(managed);
-            em.flush();
-
-            recomputarSaldosCuenta(em, cc);
-            return true;
-        });
+        throw new UnsupportedOperationException(
+                "Los movimientos confirmados no pueden editarse. Use revertirMovimiento().");
     }
 
     public BigDecimal recalcularSaldo(Integer idCuentaCorriente) {
