@@ -97,27 +97,48 @@ public class MetodoPagoDAO {
         return retornar;
     }
 
+    /** @deprecated Los metodos de pago historicos no se eliminan. */
+    @Deprecated
     public boolean eliminarPorId(Integer idMetodoPago) {
+        return desactivar(idMetodoPago);
+    }
+
+    public boolean desactivar(Integer idMetodoPago) {
+        return cambiarEstado(idMetodoPago, false);
+    }
+
+    public boolean reactivar(Integer idMetodoPago) {
+        return cambiarEstado(idMetodoPago, true);
+    }
+
+    private boolean cambiarEstado(Integer idMetodoPago, boolean activo) {
         EntityManager em = getEntityManager();
-        boolean retornar = false;
         try {
             em.getTransaction().begin();
             MetodoPago mp = em.find(MetodoPago.class, idMetodoPago);
-            if (mp != null) {
-                em.remove(mp);
-            }
-            em.getTransaction().commit();
-            retornar = true;
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
+            if (mp == null) {
                 em.getTransaction().rollback();
+                return false;
             }
-            System.out.println("Error al eliminar Metodo de Pago: " + e.getMessage());
+            mp.setActivo(activo);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            return false;
         } finally {
-            if (em != null) {
-                em.close();
-            }
+            if (em != null) em.close();
         }
-        return retornar;
+    }
+
+    public List<MetodoPago> buscarActivos() {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT m FROM MetodoPago m WHERE m.activo = true ORDER BY m.nombre",
+                    MetodoPago.class).getResultList();
+        } finally {
+            if (em != null) em.close();
+        }
     }
 }
