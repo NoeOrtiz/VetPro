@@ -209,7 +209,7 @@ public class CuentaCorrienteService {
 
         TypedQuery<CuentaCorrienteMovimiento> q = em.createQuery(
                 "SELECT m FROM CuentaCorrienteMovimiento m "
-                + "WHERE m.cuentaCorriente.idCuentaCorriente = :idCC "
+                + "WHERE m.idCuentaCorriente.idCuentaCorriente = :idCC "
                 + "ORDER BY m.fechaMovimiento ASC, m.idMovimiento ASC",
                 CuentaCorrienteMovimiento.class
         );
@@ -250,7 +250,7 @@ public class CuentaCorrienteService {
         try {
             TypedQuery<BigDecimal> query = em.createQuery(
                 "SELECT m.saldoResultante FROM CuentaCorrienteMovimiento m " +
-                "WHERE m.cuentaCorriente.idCuentaCorriente = :idCC " +
+                "WHERE m.idCuentaCorriente.idCuentaCorriente = :idCC " +
                 "ORDER BY m.fechaMovimiento DESC, m.idMovimiento DESC",
                 BigDecimal.class
             );
@@ -268,7 +268,7 @@ public class CuentaCorrienteService {
 
         TypedQuery<BigDecimal> qDeb = em.createQuery(
                 "SELECT COALESCE(SUM(m.monto), 0) FROM CuentaCorrienteMovimiento m " +
-                "WHERE m.tipoMovimiento = :deb AND m.cuentaCorriente.idCuentaCorriente = :idCC",
+                "WHERE m.tipoMovimiento = :deb AND m.idCuentaCorriente.idCuentaCorriente = :idCC",
                 BigDecimal.class
         );
         qDeb.setParameter("idCC", idCuentaCorriente);
@@ -277,7 +277,7 @@ public class CuentaCorrienteService {
 
         TypedQuery<BigDecimal> qCre = em.createQuery(
                 "SELECT COALESCE(SUM(m.monto), 0) FROM CuentaCorrienteMovimiento m " +
-                "WHERE m.tipoMovimiento = :cre AND m.cuentaCorriente.idCuentaCorriente = :idCC",
+                "WHERE m.tipoMovimiento = :cre AND m.idCuentaCorriente.idCuentaCorriente = :idCC",
                 BigDecimal.class
         );
         qCre.setParameter("idCC", idCuentaCorriente);
