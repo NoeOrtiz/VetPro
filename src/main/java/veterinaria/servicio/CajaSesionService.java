@@ -115,8 +115,6 @@ public class CajaSesionService {
                 "SELECT COALESCE(SUM(m.monto), 0) FROM CajaMovimiento m "
                 + "WHERE m.cajaSesion.idCajaSesion = :idSesion "
                 + "AND m.tipoMovimiento = :tipo "
-                + "AND m.anulado = false "
-                + "AND m.movimientoReversion IS NULL "
                 + "AND m.eliminado = false "
                 + "AND m.metodoPago.afectaEfectivo = true",
                 BigDecimal.class)
