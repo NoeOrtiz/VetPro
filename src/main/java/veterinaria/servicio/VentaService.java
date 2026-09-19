@@ -83,6 +83,7 @@ public class VentaService {
             CajaSesion sesion = totalPagos.signum() > 0 ? buscarCajaAbierta(em) : null;
 
             recibo.setUsuario(usuario);
+            recibo.setClaveOperacion(claveBase);
             if (recibo.getFecha() == null) recibo.setFecha(new Date());
             em.persist(recibo);
             em.flush();
