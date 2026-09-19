@@ -16,6 +16,7 @@ import veterinaria.entidad.Usuario;
 public class CajaMovimientoService {
 
     private final TxRunner tx = new TxRunner();
+    private final AuditoriaService auditoria = new AuditoriaService();
 
     public CajaMovimiento registrarIngreso(BigDecimal monto, Integer idMetodoPago,
             String motivo, Usuario usuario) {
@@ -106,6 +107,11 @@ public class CajaMovimientoService {
             reversion.setAnulado(false);
             reversion.setEliminado(false);
             em.persist(reversion);
+            em.flush();
+            auditoria.registrarConUsuario(managedUsuario, "REVERTIR_CAJA", "CajaMovimiento",
+                    original.getIdMovimiento(), "CAJA",
+                    "Reversion de movimiento " + original.getIdMovimiento() + ". Motivo: " + motivo.trim(),
+                    AuditoriaService.RESULT_OK, null, null, null);
             return reversion;
         });
     }
@@ -160,6 +166,12 @@ public class CajaMovimientoService {
             movimiento.setAnulado(false);
             movimiento.setEliminado(false);
             em.persist(movimiento);
+            em.flush();
+            String accion = tipo == CajaMovimiento.TipoMovimiento.CREDITO ? "INGRESO_CAJA" : "EGRESO_CAJA";
+            auditoria.registrarConUsuario(managedUsuario, accion, "CajaMovimiento",
+                    movimiento.getIdMovimiento(), "CAJA",
+                    motivo.trim() + ". Importe: " + monto,
+                    AuditoriaService.RESULT_OK, null, null, null);
             return movimiento;
         });
     }
