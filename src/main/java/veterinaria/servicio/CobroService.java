@@ -50,11 +50,18 @@ public class CobroService {
                     .getResultStream().findFirst()
                     .orElseThrow(() -> new IllegalStateException("Debe abrir la caja antes de registrar un cobro."));
 
-            Long movimientosExistentes = em.createQuery(
-                    "SELECT COUNT(m) FROM CajaMovimiento m WHERE m.recibo.idRecibo = :idRecibo AND m.anulado = false",
-                    Long.class).setParameter("idRecibo", idRecibo).getSingleResult();
-            if (movimientosExistentes != null && movimientosExistentes > 0L) {
-                throw new IllegalStateException("El recibo ya posee movimientos de caja registrados.");
+            // Un mismo recibo puede recibir varios pagos parciales en fechas distintas.
+            // La proteccion contra doble clic/reintento se hace por claveOperacion,
+            // no bloqueando todos los movimientos posteriores del recibo.
+            if (claveBase != null) {
+                Long mismaOperacion = em.createQuery(
+                        "SELECT COUNT(m) FROM CajaMovimiento m WHERE m.claveOperacion LIKE :clave",
+                        Long.class)
+                        .setParameter("clave", claveBase + "-P%")
+                        .getSingleResult();
+                if (mismaOperacion != null && mismaOperacion > 0L) {
+                    throw new IllegalStateException("Esta operacion de cobro ya fue registrada.");
+                }
             }
 
             Usuario usuarioManaged = em.find(Usuario.class, usuario.getIdUsuario());
@@ -63,6 +70,7 @@ public class CobroService {
             }
             BigDecimal totalPagado = BigDecimal.ZERO;
 
+            int indicePago = 0;
             for (ReciboMetodoPago pago : pagos) {
                 if (pago == null || pago.getMetodoPago() == null || pago.getMetodoPago().getIdMetodoPago() == null
                         || pago.getMonto() == null || pago.getMonto().compareTo(BigDecimal.ZERO) <= 0) {
@@ -85,7 +93,7 @@ public class CobroService {
                 movimiento.setMetodoPago(metodo);
                 movimiento.setDescripcion("Cobro recibo N.º " + recibo.getIdRecibo());
                 movimiento.setClaveOperacion(claveBase == null ? null
-                        : claveBase + "-" + metodo.getIdMetodoPago());
+                        : claveBase + "-P" + (++indicePago));
                 em.persist(movimiento);
                 totalPagado = totalPagado.add(pago.getMonto());
             }
