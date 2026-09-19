@@ -50,6 +50,9 @@ public class CobroService {
             }
 
             Usuario usuarioManaged = em.find(Usuario.class, usuario.getIdUsuario());
+            if (usuarioManaged == null || !usuarioManaged.isActivo()) {
+                throw new IllegalStateException("El usuario no esta activo.");
+            }
             BigDecimal totalPagado = BigDecimal.ZERO;
 
             for (ReciboMetodoPago pago : pagos) {
@@ -77,13 +80,12 @@ public class CobroService {
                 totalPagado = totalPagado.add(pago.getMonto());
             }
 
-            if (recibo.getTotalRecibo() != null && totalPagado.compareTo(recibo.getTotalRecibo()) != 0) {
-                throw new IllegalStateException("La suma de los medios de pago debe coincidir con el total del recibo.");
-            }
-
             BigDecimal aplicado = montoAplicadoADeuda == null ? BigDecimal.ZERO : montoAplicadoADeuda;
             if (aplicado.compareTo(BigDecimal.ZERO) < 0 || aplicado.compareTo(totalPagado) > 0) {
-                throw new IllegalArgumentException("El importe aplicado a deuda es inválido.");
+                throw new IllegalArgumentException("El importe aplicado a deuda es invalido.");
+            }
+            if (idCuentaCorriente != null && aplicado.compareTo(totalPagado) != 0) {
+                throw new IllegalArgumentException("En un pago de deuda, todo el importe cobrado debe aplicarse a la cuenta corriente.");
             }
 
             if (aplicado.compareTo(BigDecimal.ZERO) > 0) {
@@ -93,7 +95,17 @@ public class CobroService {
                     throw new IllegalStateException("La cuenta corriente no está disponible.");
                 }
 
+                if (recibo.getCliente() == null || cc.getCliente() == null
+                        || !cc.getCliente().getIdCliente().equals(recibo.getCliente().getIdCliente())) {
+                    throw new IllegalStateException("La cuenta corriente no corresponde al cliente del recibo.");
+                }
+
                 BigDecimal saldo = cc.getSaldoActual() == null ? BigDecimal.ZERO : cc.getSaldoActual();
+                BigDecimal deudaActual = saldo.signum() < 0 ? saldo.abs() : BigDecimal.ZERO;
+                if (aplicado.compareTo(deudaActual) > 0) {
+                    throw new IllegalStateException("El pago supera el saldo adeudado actual.");
+                }
+
                 CuentaCorrienteMovimiento movCC = new CuentaCorrienteMovimiento();
                 movCC.setCuentaCorriente(cc);
                 movCC.setFechaMovimiento(LocalDate.now());
