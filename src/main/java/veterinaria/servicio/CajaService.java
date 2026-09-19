@@ -8,6 +8,12 @@ import veterinaria.entidad.CajaMovimiento;
 import veterinaria.entidad.CajaMovimiento.TipoMovimiento;
 import veterinaria.entidad.Usuario;
 
+/**
+ * @deprecated Compatibilidad temporal con pantallas heredadas. La apertura y
+ * cierre de caja nuevos se gestionan exclusivamente mediante CajaSesionService.
+ * No agregar nuevas llamadas a esta clase.
+ */
+@Deprecated
 public class CajaService {
 
     private final TxRunner tx = new TxRunner();
@@ -100,28 +106,14 @@ public class CajaService {
         });
     }
 
+    /**
+     * Los movimientos financieros confirmados no se editan. Deben anularse o
+     * revertirse para conservar trazabilidad.
+     */
+    @Deprecated
     public boolean modificarMovimiento(CajaMovimiento movimiento) {
-        return tx.runInTx(em -> {
-            CajaMovimiento existente = em.find(CajaMovimiento.class, movimiento.getIdMovimiento());
-            if (existente == null) {
-                return false;
-            }
-            existente.setMonto(movimiento.getMonto());
-            existente.setTipoMovimiento(movimiento.getTipoMovimiento());
-            existente.setFecha(movimiento.getFecha());
-            existente.setDescripcion(movimiento.getDescripcion());
-            existente.setEliminado(movimiento.isEliminado());
-
-            if (movimiento.getUsuario() != null && movimiento.getUsuario().getIdUsuario() != null) {
-                Usuario usuarioMG = em.find(Usuario.class, movimiento.getUsuario().getIdUsuario());
-                existente.setUsuario(usuarioMG);
-            } else {
-                existente.setUsuario(null);
-            }
-
-            em.merge(existente);
-            return true;
-        });
+        throw new UnsupportedOperationException(
+                "Los movimientos de caja confirmados no pueden modificarse.");
     }
 
     public boolean existeMovimientoEnFecha(Date fecha, TipoMovimiento tipo) {
@@ -139,7 +131,13 @@ public class CajaService {
         return query.getSingleResult() > 0;
     }
 
+    @Deprecated
     public boolean registrarApertura(BigDecimal montoInicial, Usuario usuario, Date fecha) {
+        throw new UnsupportedOperationException(
+                "Use CajaSesionService.abrir() para nuevas aperturas.");
+    }
+
+    private boolean registrarAperturaLegacy(BigDecimal montoInicial, Usuario usuario, Date fecha) {
         return tx.runInTx(em -> {
             Date f = onlyDate(fecha);
 
@@ -175,7 +173,13 @@ public class CajaService {
         });
     }
 
+    @Deprecated
     public boolean registrarCierre(BigDecimal montoFinal, Usuario usuario, Date fecha) {
+        throw new UnsupportedOperationException(
+                "Use CajaSesionService.cerrar() para nuevos cierres.");
+    }
+
+    private boolean registrarCierreLegacy(BigDecimal montoFinal, Usuario usuario, Date fecha) {
         return tx.runInTx(em -> {
             Date f = onlyDate(fecha);
 
@@ -223,7 +227,13 @@ public class CajaService {
         });
     }
 
+    @Deprecated
     public boolean registrarCierrePorAperturaId(BigDecimal montoFinal, Usuario usuario, Long idApertura) {
+        throw new UnsupportedOperationException(
+                "Use CajaSesionService.cerrar() para nuevos cierres.");
+    }
+
+    private boolean registrarCierrePorAperturaIdLegacy(BigDecimal montoFinal, Usuario usuario, Long idApertura) {
         return tx.runInTx(em -> {
             if (idApertura == null) {
                 throw new IllegalStateException("No se indicó la apertura a cerrar.");
@@ -275,7 +285,13 @@ public class CajaService {
         });
     }
 
+    @Deprecated
     public boolean registrarCierreConAjuste(BigDecimal montoFisico, Usuario usuario, Date fecha, String motivo) {
+        throw new UnsupportedOperationException(
+                "Use CajaSesionService.cerrar(); la diferencia queda registrada sin crear ajustes ficticios.");
+    }
+
+    private boolean registrarCierreConAjusteLegacy(BigDecimal montoFisico, Usuario usuario, Date fecha, String motivo) {
         return tx.runInTx(em -> {
             Date f = onlyDate(fecha);
 
