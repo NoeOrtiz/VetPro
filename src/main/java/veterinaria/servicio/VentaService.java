@@ -2,11 +2,16 @@ package veterinaria.servicio;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import veterinaria.entidad.CajaMovimiento;
 import veterinaria.entidad.CajaSesion;
+import veterinaria.entidad.Cliente;
+import veterinaria.entidad.CuentaCorriente;
+import veterinaria.entidad.CuentaCorrienteMovimiento;
 import veterinaria.entidad.MetodoPago;
 import veterinaria.entidad.Producto;
 import veterinaria.entidad.Recibo;
@@ -27,7 +32,19 @@ public class VentaService {
     public Recibo confirmarVenta(Recibo recibo, List<ReciboProductos> items,
             List<ReciboMetodoPago> pagos) {
 
-        validarEntrada(recibo, items, pagos);
+        return confirmarVenta(recibo, items, pagos, BigDecimal.ZERO);
+    }
+
+    /**
+     * Permite pago total, pago mixto y saldo a cuenta corriente.
+     * montoACuenta es la parte NO cobrada ahora y que pasa a deuda del cliente.
+     */
+    public Recibo confirmarVenta(Recibo recibo, List<ReciboProductos> items,
+            List<ReciboMetodoPago> pagos, BigDecimal montoACuenta) {
+
+        if (pagos == null) pagos = Collections.emptyList();
+        if (montoACuenta == null) montoACuenta = BigDecimal.ZERO;
+        validarEntrada(recibo, items, pagos, montoACuenta);
 
         return tx.runInTx(em -> {
             Usuario usuario = em.find(Usuario.class, recibo.getUsuario().getIdUsuario());
@@ -35,7 +52,11 @@ public class VentaService {
                 throw new IllegalStateException("El usuario no esta activo.");
             }
 
-            CajaSesion sesion = buscarCajaAbierta(em);
+            Cliente cliente = em.find(Cliente.class, recibo.getCliente().getIdCliente());
+            if (cliente == null || !cliente.isActivo()) {
+                throw new IllegalStateException("El cliente no esta activo.");
+            }
+            recibo.setCliente(cliente);
 
             BigDecimal totalPagos = BigDecimal.ZERO;
             for (ReciboMetodoPago pago : pagos) {
@@ -49,9 +70,11 @@ public class VentaService {
                 }
                 totalPagos = totalPagos.add(pago.getMonto());
             }
-            if (totalPagos.compareTo(recibo.getTotalRecibo()) != 0) {
-                throw new IllegalStateException("La suma de los medios de pago no coincide con el total de la venta.");
+            if (totalPagos.add(montoACuenta).compareTo(recibo.getTotalRecibo()) != 0) {
+                throw new IllegalStateException("Pagos + cuenta corriente deben coincidir con el total de la venta.");
             }
+
+            CajaSesion sesion = totalPagos.signum() > 0 ? buscarCajaAbierta(em) : null;
 
             recibo.setUsuario(usuario);
             if (recibo.getFecha() == null) recibo.setFecha(new Date());
@@ -115,6 +138,38 @@ public class VentaService {
                 em.persist(cm);
             }
 
+            if (montoACuenta.signum() > 0) {
+                CuentaCorriente cuenta = em.createQuery(
+                        "SELECT c FROM CuentaCorriente c WHERE c.cliente.idCliente = :idCliente",
+                        CuentaCorriente.class)
+                        .setParameter("idCliente", cliente.getIdCliente())
+                        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                        .getResultStream().findFirst()
+                        .orElseThrow(() -> new IllegalStateException(
+                                "El cliente no posee una cuenta corriente habilitada."));
+
+                if (!"Activo".equalsIgnoreCase(cuenta.getEstado())) {
+                    throw new IllegalStateException("La cuenta corriente del cliente no esta activa.");
+                }
+
+                BigDecimal saldoAnterior = cuenta.getSaldoActual() == null
+                        ? BigDecimal.ZERO : cuenta.getSaldoActual();
+                BigDecimal saldoNuevo = saldoAnterior.subtract(montoACuenta);
+
+                CuentaCorrienteMovimiento mov = new CuentaCorrienteMovimiento();
+                mov.setCuentaCorriente(cuenta);
+                mov.setFechaMovimiento(LocalDate.now());
+                mov.setDescripcion("Venta a cuenta corriente - recibo N. " + recibo.getIdRecibo());
+                mov.setTipoMovimiento(CuentaCorrienteMovimiento.TipoMovimiento.DEBITO);
+                mov.setRecibo(recibo);
+                mov.setMonto(montoACuenta);
+                mov.setSaldoResultante(saldoNuevo);
+                em.persist(mov);
+
+                cuenta.setSaldoActual(saldoNuevo);
+                cuenta.setUltimaEdicion(LocalDate.now());
+            }
+
             return recibo;
         });
     }
@@ -130,7 +185,7 @@ public class VentaService {
     }
 
     private void validarEntrada(Recibo recibo, List<ReciboProductos> items,
-            List<ReciboMetodoPago> pagos) {
+            List<ReciboMetodoPago> pagos, BigDecimal montoACuenta) {
         if (recibo == null || recibo.getTotalRecibo() == null
                 || recibo.getTotalRecibo().compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El recibo y su total son obligatorios.");
@@ -144,8 +199,11 @@ public class VentaService {
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("La venta debe contener al menos un producto.");
         }
-        if (pagos == null || pagos.isEmpty()) {
-            throw new IllegalArgumentException("Debe indicar al menos un medio de pago.");
+        if (montoACuenta == null || montoACuenta.signum() < 0) {
+            throw new IllegalArgumentException("El importe a cuenta corriente no puede ser negativo.");
+        }
+        if ((pagos == null || pagos.isEmpty()) && montoACuenta.signum() == 0) {
+            throw new IllegalArgumentException("Debe indicar un medio de pago o un importe a cuenta corriente.");
         }
     }
 }
