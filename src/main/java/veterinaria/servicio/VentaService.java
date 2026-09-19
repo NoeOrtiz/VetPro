@@ -165,6 +165,20 @@ public class VentaService {
                 BigDecimal saldoAnterior = cuenta.getSaldoActual() == null
                         ? BigDecimal.ZERO : cuenta.getSaldoActual();
                 BigDecimal saldoNuevo = saldoAnterior.subtract(montoACuenta);
+                BigDecimal limite = cuenta.getLimiteCredito() == null
+                        ? BigDecimal.ZERO : cuenta.getLimiteCredito();
+                if (limite.signum() < 0) {
+                    throw new IllegalStateException("El limite de credito configurado no puede ser negativo.");
+                }
+                BigDecimal deudaResultante = saldoNuevo.signum() < 0
+                        ? saldoNuevo.abs() : BigDecimal.ZERO;
+                if (deudaResultante.compareTo(limite) > 0) {
+                    BigDecimal disponible = limite.subtract(
+                            saldoAnterior.signum() < 0 ? saldoAnterior.abs() : BigDecimal.ZERO);
+                    if (disponible.signum() < 0) disponible = BigDecimal.ZERO;
+                    throw new IllegalStateException(
+                            "La venta supera el limite de cuenta corriente. Disponible: " + disponible + ".");
+                }
 
                 CuentaCorrienteMovimiento mov = new CuentaCorrienteMovimiento();
                 mov.setCuentaCorriente(cuenta);
