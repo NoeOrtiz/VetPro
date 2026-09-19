@@ -25,10 +25,18 @@ public class CobroService {
 
     public boolean registrarCobroRecibo(Long idRecibo, List<ReciboMetodoPago> pagos,
             Usuario usuario, Integer idCuentaCorriente, BigDecimal montoAplicadoADeuda) {
+        return registrarCobroRecibo(idRecibo, pagos, usuario, idCuentaCorriente,
+                montoAplicadoADeuda, null);
+    }
+
+    public boolean registrarCobroRecibo(Long idRecibo, List<ReciboMetodoPago> pagos,
+            Usuario usuario, Integer idCuentaCorriente, BigDecimal montoAplicadoADeuda,
+            String claveOperacion) {
 
         if (idRecibo == null) throw new IllegalArgumentException("El recibo es requerido.");
         if (pagos == null || pagos.isEmpty()) throw new IllegalArgumentException("Debe indicar al menos un medio de pago.");
         if (usuario == null || usuario.getIdUsuario() == null) throw new IllegalArgumentException("El usuario es requerido.");
+        String claveBase = normalizarClaveOperacion(claveOperacion);
 
         return tx.runInTx(em -> {
             Recibo recibo = em.find(Recibo.class, idRecibo, LockModeType.PESSIMISTIC_WRITE);
@@ -76,6 +84,8 @@ public class CobroService {
                 movimiento.setRecibo(recibo);
                 movimiento.setMetodoPago(metodo);
                 movimiento.setDescripcion("Cobro recibo N.º " + recibo.getIdRecibo());
+                movimiento.setClaveOperacion(claveBase == null ? null
+                        : claveBase + "-" + metodo.getIdMetodoPago());
                 em.persist(movimiento);
                 totalPagado = totalPagado.add(pago.getMonto());
             }
@@ -123,5 +133,16 @@ public class CobroService {
 
             return true;
         });
+    }
+
+    private String normalizarClaveOperacion(String claveOperacion) {
+        if (claveOperacion == null || claveOperacion.trim().isEmpty()) {
+            return null;
+        }
+        String clave = claveOperacion.trim();
+        if (clave.length() > 48) {
+            throw new IllegalArgumentException("La clave de operacion es demasiado larga.");
+        }
+        return clave;
     }
 }
