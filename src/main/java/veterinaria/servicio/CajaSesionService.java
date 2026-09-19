@@ -42,8 +42,8 @@ public class CajaSesionService {
             }
 
             Usuario managed = em.find(Usuario.class, usuario.getIdUsuario());
-            if (managed == null) {
-                throw new IllegalStateException("El usuario de apertura no existe.");
+            if (managed == null || !managed.isActivo()) {
+                throw new IllegalStateException("El usuario de apertura no existe o esta inactivo.");
             }
 
             CajaSesion sesion = new CajaSesion();
@@ -82,8 +82,8 @@ public class CajaSesionService {
             }
 
             Usuario managed = em.find(Usuario.class, usuario.getIdUsuario());
-            if (managed == null) {
-                throw new IllegalStateException("El usuario de cierre no existe.");
+            if (managed == null || !managed.isActivo()) {
+                throw new IllegalStateException("El usuario de cierre no existe o esta inactivo.");
             }
 
             sesion.setEfectivoEsperado(esperado);
