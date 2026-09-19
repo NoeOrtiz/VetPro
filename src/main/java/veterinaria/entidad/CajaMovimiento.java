@@ -62,7 +62,10 @@ public class CajaMovimiento {
     private MetodoPago metodoPago;
     
     @Column(name = "descripcion")
-    private String descripcion; 
+    private String descripcion;
+
+    @Column(name = "claveOperacion", length = 64, unique = true)
+    private String claveOperacion; 
 
     @Column(name = "eliminado")
     private boolean eliminado;
@@ -156,6 +159,14 @@ public class CajaMovimiento {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public String getClaveOperacion() {
+        return claveOperacion;
+    }
+
+    public void setClaveOperacion(String claveOperacion) {
+        this.claveOperacion = claveOperacion;
     }
 
     public Recibo getRecibo() {
