@@ -1760,6 +1760,10 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         if (monto == null || monto.signum() <= 0) { JOptionPane.showMessageDialog(this, "Debe ingresar un monto mayor a 0."); return; }
 
         List<MetodoPago> activos = operandoMetodoPago.obtenerMetodosPagoActivos();
+        if (activos != null) {
+            activos = activos.stream().filter(mp -> !esMetodoCuentaCorriente(mp.getNombre()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
         if (activos == null || activos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No hay medios de pago activos configurados.");
             return;
