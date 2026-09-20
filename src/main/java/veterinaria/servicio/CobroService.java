@@ -58,7 +58,7 @@ public class CobroService {
                         "SELECT COUNT(m) FROM CajaMovimiento m WHERE m.claveOperacion = :base OR m.claveOperacion LIKE :prefijo",
                         Long.class)
                         .setParameter("base", claveBase)
-                        .setParameter("prefijo", escaparLike(claveBase) + "-P%")
+                        .setParameter("prefijo", claveBase + "-P%")
                         .getSingleResult();
                 if (mismaOperacion != null && mismaOperacion > 0L) {
                     throw new IllegalStateException("Esta operacion de cobro ya fue registrada.");
@@ -81,6 +81,9 @@ public class CobroService {
                 MetodoPago metodo = em.find(MetodoPago.class, pago.getMetodoPago().getIdMetodoPago());
                 if (metodo == null || !metodo.isActivo()) {
                     throw new IllegalStateException("El medio de pago seleccionado no está activo.");
+                }
+                if (esCuentaCorriente(metodo.getNombre())) {
+                    throw new IllegalArgumentException("Cuenta Corriente no es un medio de pago.");
                 }
 
                 CajaMovimiento movimiento = new CajaMovimiento();
@@ -167,6 +170,7 @@ public class CobroService {
             if (u == null || !u.isActivo()) throw new IllegalStateException("El usuario no está activo.");
             MetodoPago metodo = em.find(MetodoPago.class, idMetodoPago);
             if (metodo == null || !metodo.isActivo()) throw new IllegalStateException("El medio de pago no está activo.");
+            if (esCuentaCorriente(metodo.getNombre())) throw new IllegalArgumentException("Cuenta Corriente no es un medio de pago.");
             CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente, LockModeType.PESSIMISTIC_WRITE);
             if (cc == null || "INACTIVO".equalsIgnoreCase(cc.getEstado())) throw new IllegalStateException("La cuenta corriente no está disponible.");
             BigDecimal saldo = cc.getSaldoActual() == null ? BigDecimal.ZERO : cc.getSaldoActual();
@@ -190,8 +194,11 @@ public class CobroService {
         });
     }
 
-    private String escaparLike(String valor) {
-        return valor.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    private boolean esCuentaCorriente(String nombre) {
+        if (nombre == null) return false;
+        String n = java.text.Normalizer.normalize(nombre.trim().toLowerCase(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return n.contains("cuenta corriente") || n.contains("cta cte");
     }
 
     private String normalizarClaveOperacion(String claveOperacion) {
@@ -201,6 +208,9 @@ public class CobroService {
         String clave = claveOperacion.trim();
         if (clave.length() > 48) {
             throw new IllegalArgumentException("La clave de operacion es demasiado larga.");
+        }
+        if (!clave.matches("[A-Za-z0-9-]+")) {
+            throw new IllegalArgumentException("La clave de operacion contiene caracteres no permitidos.");
         }
         return clave;
     }
