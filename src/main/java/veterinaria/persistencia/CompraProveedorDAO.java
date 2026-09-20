@@ -168,6 +168,22 @@ public class CompraProveedorDAO {
         EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
+
+            Integer idProveedor = resolveProveedorId(compra.getProveedor());
+            String numeroFactura = compra.getNumeroFactura() == null ? "" : compra.getNumeroFactura().trim();
+            if (idProveedor == null || numeroFactura.isEmpty())
+                throw new IllegalArgumentException("Proveedor y número de factura son obligatorios");
+            Long duplicadas = em.createQuery(
+                    "SELECT COUNT(c) FROM CompraProveedor c WHERE c.proveedor.idProveedor = :idProv "
+                    + "AND c.numeroFactura = :nf AND c.estado <> :anulada", Long.class)
+                    .setParameter("idProv", idProveedor)
+                    .setParameter("nf", numeroFactura)
+                    .setParameter("anulada", CompraProveedorEstado.ANULADA)
+                    .getSingleResult();
+            if (duplicadas != null && duplicadas > 0)
+                throw new IllegalStateException("Ya existe una compra activa con esa factura para el proveedor");
+            compra.setNumeroFactura(numeroFactura);
+
             CompraProveedor compraManaged = prepararCompraManaged(em, compra);
             compraManaged.setSaldoPendiente(deuda);
             compraManaged.getPagos().clear();
