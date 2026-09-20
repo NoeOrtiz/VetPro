@@ -121,35 +121,7 @@ public class CompraProveedorDAO {
     }
 
     public void crearCompraEfectivo(CompraProveedor compra, CompraProveedorPago pago, Usuario usuario) throws Exception {
-        EntityManager em = getEntityManager();
-        try {
-            em.getTransaction().begin();
-
-            CompraProveedor compraManaged = prepararCompraManaged(em, compra);
-            pago.setMetodoPago(em.getReference(MetodoPago.class, pago.getMetodoPago().getIdMetodoPago()));
-
-            CajaMovimiento mov = new CajaMovimiento();
-            mov.setTipoMovimiento(CajaMovimiento.TipoMovimiento.DEBITO);
-            mov.setMonto(pago.getMonto());
-            mov.setFecha(onlyDate(compraManaged.getFecha() != null ? compraManaged.getFecha() : new Date()));
-            mov.setMetodoPago(pago.getMetodoPago());
-            mov.setDescripcion("Compra proveedor - Factura " + compraManaged.getNumeroFactura());
-            mov.setUsuario(em.getReference(Usuario.class, usuario.getIdUsuario()));
-            em.persist(mov);
-
-            pago.setCajaMovimiento(mov);
-            pago.setCompra(compraManaged);
-            compraManaged.getPagos().clear();
-            compraManaged.getPagos().add(pago);
-            em.persist(compraManaged);
-
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw e;
-        } finally {
-            if (em != null) em.close();
-        }
+        throw new UnsupportedOperationException("crearCompraEfectivo heredado deshabilitado: use crearCompraConPagosReales.");
     }
 
     public void crearCompraCuentaCorriente(
@@ -158,29 +130,7 @@ public class CompraProveedorDAO {
             CuentaCorrienteProveedorDAO ccpDAO,
             CuentaCorrienteProveedorMovimientoDAO movDAO
     ) throws Exception {
-        EntityManager em = getEntityManager();
-        try {
-            em.getTransaction().begin();
-
-            CompraProveedor compraManaged = prepararCompraManaged(em, compra);
-            pago.setMetodoPago(em.getReference(MetodoPago.class, pago.getMetodoPago().getIdMetodoPago()));
-
-            pago.setCompra(compraManaged);
-            compraManaged.getPagos().clear();
-            compraManaged.getPagos().add(pago);
-            em.persist(compraManaged);
-            em.flush();
-
-            ccpDAO.crearSiNoExiste(em, compraManaged.getProveedor());
-            movDAO.registrarDeudaPorCompra(em, compraManaged, pago.getMonto(), compraManaged.getFecha());
-
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw e;
-        } finally {
-            if (em != null) em.close();
-        }
+        throw new UnsupportedOperationException("crearCompraCuentaCorriente heredado deshabilitado: use crearCompraConPagosReales.");
     }
 
     public void crearCompraConPagos(
@@ -190,66 +140,7 @@ public class CompraProveedorDAO {
             CuentaCorrienteProveedorDAO ccpDAO,
             CuentaCorrienteProveedorMovimientoDAO movDAO
     ) throws Exception {
-        if (compra == null) throw new IllegalArgumentException("Compra null");
-        if (pagos == null || pagos.isEmpty()) throw new IllegalArgumentException("Pagos vacíos");
-
-        EntityManager em = getEntityManager();
-        try {
-            em.getTransaction().begin();
-
-            CompraProveedor compraManaged = prepararCompraManaged(em, compra);
-
-            BigDecimal montoCC = BigDecimal.ZERO;
-
-            compraManaged.getPagos().clear();
-            for (CompraProveedorPago p : pagos) {
-                if (p == null) continue;
-
-                if (p.getMetodoPago() == null || p.getMetodoPago().getIdMetodoPago() == null) {
-                    throw new IllegalArgumentException("Pago sin método de pago");
-                }
-                MetodoPago mpManaged = em.getReference(MetodoPago.class, p.getMetodoPago().getIdMetodoPago());
-                p.setMetodoPago(mpManaged);
-
-                p.setCompra(compraManaged);
-
-                String nombreMP = (mpManaged.getNombre() == null) ? "" : mpManaged.getNombre().trim();
-
-                if (MetodoPagoTipo.EFECTIVO == MetodoPagoTipo.fromEtiqueta(nombreMP)) {
-                    CajaMovimiento mov = new CajaMovimiento();
-                    mov.setTipoMovimiento(CajaMovimiento.TipoMovimiento.DEBITO);
-                    mov.setMonto(p.getMonto());
-                    mov.setFecha(onlyDate(compraManaged.getFecha() != null ? compraManaged.getFecha() : new Date()));
-                    mov.setMetodoPago(mpManaged);
-                    mov.setDescripcion("Compra proveedor - Factura " + compraManaged.getNumeroFactura());
-                    mov.setUsuario(em.getReference(Usuario.class, usuario.getIdUsuario()));
-                    em.persist(mov);
-                    p.setCajaMovimiento(mov);
-                }
-
-                if (MetodoPagoTipo.CUENTA_CORRIENTE == MetodoPagoTipo.fromEtiqueta(nombreMP)) {
-                    BigDecimal m = (p.getMonto() == null) ? BigDecimal.ZERO : p.getMonto();
-                    montoCC = montoCC.add(m);
-                }
-
-                compraManaged.getPagos().add(p);
-            }
-
-            em.persist(compraManaged);
-            em.flush();
-
-            if (montoCC.compareTo(BigDecimal.ZERO) > 0) {
-                ccpDAO.crearSiNoExiste(em, compraManaged.getProveedor());
-                movDAO.registrarDeudaPorCompra(em, compraManaged, montoCC, compraManaged.getFecha());
-            }
-
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw e;
-        } finally {
-            if (em != null) em.close();
-        }
+        throw new UnsupportedOperationException("crearCompraConPagos heredado deshabilitado: use crearCompraConPagosReales.");
     }
 
     /**
@@ -324,70 +215,6 @@ public class CompraProveedorDAO {
             String nombreMetodoEfectivo,
             String nombreMetodoCuentaCorriente
     ) throws Exception {
-        if (compra == null) throw new IllegalArgumentException("Compra null");
-        if (pagos == null || pagos.isEmpty()) throw new IllegalArgumentException("Pagos vacíos");
-
-        EntityManager em = getEntityManager();
-        try {
-            em.getTransaction().begin();
-
-            CompraProveedor compraManaged = prepararCompraManaged(em, compra);
-
-            BigDecimal totalCC = BigDecimal.ZERO;
-
-            compraManaged.getPagos().clear();
-            for (CompraProveedorPago pago : pagos) {
-                if (pago == null || pago.getMetodoPago() == null) {
-                    throw new IllegalArgumentException("Pago inválido");
-                }
-
-                MetodoPago mp = em.getReference(MetodoPago.class, pago.getMetodoPago().getIdMetodoPago());
-                pago.setMetodoPago(mp);
-                pago.setCompra(compraManaged);
-
-                String nombreMp = (mp.getNombre() == null) ? "" : mp.getNombre().trim();
-                String efectivoKey = (nombreMetodoEfectivo == null) ? "" : nombreMetodoEfectivo.trim();
-                String cuentaKey = (nombreMetodoCuentaCorriente == null) ? "" : nombreMetodoCuentaCorriente.trim();
-
-                if (!efectivoKey.isEmpty() && efectivoKey.equalsIgnoreCase(nombreMp)) {
-                    CajaSesion sesion = buscarCajaAbierta(em);
-                    CajaMovimiento mov = new CajaMovimiento();
-                    mov.setCajaSesion(sesion);
-                    mov.setTipoMovimiento(CajaMovimiento.TipoMovimiento.DEBITO);
-                    mov.setMonto(pago.getMonto());
-                    Date ahora = new Date();
-                    mov.setFecha(onlyDate(compraManaged.getFecha() != null ? compraManaged.getFecha() : ahora));
-                    mov.setFechaHora(ahora);
-                    mov.setMetodoPago(mp);
-                    mov.setAfectaEfectivo(mp.isAfectaEfectivo());
-                    mov.setDescripcion("Compra proveedor - Factura " + compraManaged.getNumeroFactura());
-                    mov.setUsuario(em.getReference(Usuario.class, usuario.getIdUsuario()));
-                    em.persist(mov);
-                    pago.setCajaMovimiento(mov);
-                }
-
-                if (!cuentaKey.isEmpty() && cuentaKey.equalsIgnoreCase(nombreMp)) {
-                    BigDecimal m = (pago.getMonto() == null) ? BigDecimal.ZERO : pago.getMonto();
-                    totalCC = totalCC.add(m);
-                }
-
-                compraManaged.getPagos().add(pago);
-            }
-
-            em.persist(compraManaged);
-            em.flush();
-
-            if (totalCC.compareTo(BigDecimal.ZERO) > 0) {
-                ccpDAO.crearSiNoExiste(em, compraManaged.getProveedor());
-                movDAO.registrarDeudaPorCompra(em, compraManaged, totalCC, compraManaged.getFecha());
-            }
-
-            em.getTransaction().commit();
-        } catch (Exception e) {
-            if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            throw e;
-        } finally {
-            if (em != null) em.close();
-        }
+        throw new UnsupportedOperationException("crearCompraEfectivo heredado deshabilitado: use crearCompraConPagosReales.");
     }
 }
