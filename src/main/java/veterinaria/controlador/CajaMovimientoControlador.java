@@ -103,15 +103,17 @@ public class CajaMovimientoControlador {
     }
 
     public String estadoCaja() {
-        String retornar = "Sin movimientos.";
-        Date hoy = onlyDate(new Date());
-        if (cajaDAO.existeAperturaEnFecha(hoy)) {
-            retornar = "ABIERTA";
-        }
-        if (cajaDAO.existeCierreEnFecha(hoy)) {
-            retornar = "CERRADA";
-        }
-        return retornar;
+        return cajaSesionService.obtenerSesionAbierta() != null ? "ABIERTA" : "CERRADA";
+    }
+
+    public CajaSesion obtenerSesionAbierta() {
+        return cajaSesionService.obtenerSesionAbierta();
+    }
+
+    public BigDecimal obtenerEfectivoEsperadoSesionAbierta() {
+        CajaSesion sesion = cajaSesionService.obtenerSesionAbierta();
+        return sesion == null ? BigDecimal.ZERO
+                : cajaSesionService.calcularEfectivoEsperado(sesion.getIdCajaSesion());
     }
 
     public CajaMovimiento obtenerAperturaPendienteCierre() {
