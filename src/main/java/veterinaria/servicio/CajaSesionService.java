@@ -128,7 +128,7 @@ public class CajaSesionService {
                 + "WHERE m.cajaSesion.idCajaSesion = :idSesion "
                 + "AND m.tipoMovimiento = :tipo "
                 + "AND m.eliminado = false "
-                + "AND m.metodoPago.afectaEfectivo = true",
+                + "AND m.afectaEfectivo = true",
                 BigDecimal.class)
                 .setParameter("idSesion", idSesion)
                 .setParameter("tipo", tipo)
