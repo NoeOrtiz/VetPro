@@ -1651,12 +1651,26 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "Los medios de pago cargados superan el total de la venta.");
             return;
         }
+        BigDecimal montoACuenta = BigDecimal.ZERO;
         if (pendiente.signum() > 0) {
-            JOptionPane.showMessageDialog(this,
-                    "Queda un saldo pendiente de $" + MoneyUtil.formatStandard(pendiente)
-                    + ".\nCuenta Corriente no es un medio de pago: el saldo financiado debe registrarse por separado.",
-                    "Venta incompleta", JOptionPane.WARNING_MESSAGE);
-            return;
+            CuentaCorrienteControlador cuentaC = new CuentaCorrienteControlador();
+            if (!cuentaC.cuentaCorrienteActiva(idCliente)) {
+                JOptionPane.showMessageDialog(this, "Queda un saldo pendiente de $" + MoneyUtil.formatStandard(pendiente)
+                        + " y el cliente no posee una Cuenta Corriente activa.", "Venta incompleta", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            BigDecimal margen = cuentaC.obtenerMargenDisponible(idCliente);
+            if (pendiente.compareTo(margen) > 0) {
+                JOptionPane.showMessageDialog(this, "El saldo a financiar supera el límite disponible.\nDisponible: $"
+                        + MoneyUtil.formatStandard(margen), "Cuenta Corriente", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            int financiar = JOptionPane.showConfirmDialog(this,
+                    "Queda un saldo de $" + MoneyUtil.formatStandard(pendiente)
+                    + ".\n¿Registrar este importe como deuda en Cuenta Corriente?",
+                    "Financiar saldo", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (financiar != JOptionPane.YES_OPTION) return;
+            montoACuenta = pendiente;
         }
 
         int respuesta = JOptionPane.showConfirmDialog(
@@ -1669,7 +1683,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         if (respuesta == JOptionPane.YES_OPTION) {
             // Persistir recibo + items + métodos de pago + movimientos (CAJA / CUENTA CORRIENTE)
             // de forma ATÓMICA en una sola transacción.
-            if (!persistirRecibo()) {
+            if (!persistirRecibo(montoACuenta)) {
                 // persistirRecibo ya muestra el error
                 return;
             }
@@ -2186,7 +2200,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         }
     }
 
-    private boolean persistirRecibo() {
+    private boolean persistirRecibo(BigDecimal montoACuenta) {
         recibo.setFecha(new Date());
         recibo.setTipo("Venta");
         Integer idCliente = obtenerIdClienteVentaSeleccionado();
@@ -2264,8 +2278,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 listaMetodosPago.add(reciboMetodoPago);
             }
         }
-        if (listaMetodosPago.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe agregar al menos un método de pago.", "Venta", JOptionPane.WARNING_MESSAGE);
+        if (listaMetodosPago.isEmpty() && (montoACuenta == null || montoACuenta.signum() == 0)) {
+            JOptionPane.showMessageDialog(this, "Debe agregar un medio de pago o financiar el saldo en Cuenta Corriente.", "Venta", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         recibo.setMetodosPago(listaMetodosPago);
@@ -2273,7 +2287,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         // Persistir el recibo con sus relaciones + generar movimientos de forma atómica
         veterinaria.servicio.CajaRegistradoraTxService svc = new veterinaria.servicio.CajaRegistradoraTxService();
         veterinaria.servicio.CajaRegistradoraTxService.ResultadoVenta res
-                = svc.registrarVenta(recibo, listaProductos, listaMetodosPago, usuario);
+                = svc.registrarVenta(recibo, listaProductos, listaMetodosPago, montoACuenta, usuario);
 
         if (!res.isOk()) {
             JOptionPane.showMessageDialog(this,
