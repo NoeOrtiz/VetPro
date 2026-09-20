@@ -2022,17 +2022,17 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             compraDAO.crearCompraConPagosReales(compra, pagos, montoCuentaCorriente, usuario, ccpDAO, ccpMovDAO);
 
             if (montoCuentaCorriente.signum() > 0 && sumaPagos.signum() > 0) {
-                JOptionPane.showMessageDialog(this, "Compra registrada con pagos mixtos (Efectivo + Cuenta Corriente). ");
+                JOptionPane.showMessageDialog(this, "Compra registrada con pago parcial. Saldo pendiente con el proveedor: $" + MoneyUtil.formatStandard(montoCuentaCorriente));
                 AuditoriaLogger.evento("COMPRA_PROVEEDOR_MIXTA",
                         "proveedorId=" + proveedor.getIdProveedor() + " factura=" + numeroFactura + " total=" + totalFactura + " cc=" + montoCuentaCorriente,
                         usuario);
             } else if (montoCuentaCorriente.signum() > 0) {
-                JOptionPane.showMessageDialog(this, "Compra registrada a Cuenta Corriente del proveedor.");
+                JOptionPane.showMessageDialog(this, "Compra registrada totalmente adeudada al proveedor. Saldo pendiente: $" + MoneyUtil.formatStandard(montoCuentaCorriente));
                 AuditoriaLogger.evento("COMPRA_PROVEEDOR_CC",
                         "proveedorId=" + proveedor.getIdProveedor() + " factura=" + numeroFactura + " total=" + totalFactura,
                         usuario);
             } else {
-                JOptionPane.showMessageDialog(this, "Compra registrada como salida de caja (Efectivo). ");
+                JOptionPane.showMessageDialog(this, "Compra registrada como pagada. No queda saldo pendiente con el proveedor.");
                 AuditoriaLogger.evento("COMPRA_PROVEEDOR_EFECTIVO",
                         "proveedorId=" + proveedor.getIdProveedor() + " factura=" + numeroFactura + " total=" + totalFactura,
                         usuario);
@@ -2058,8 +2058,10 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         jpCierreCaja.setVisible(false);
 
         if (!"ABIERTA".equals(estadoCaja)) {
-            JOptionPane.showMessageDialog(this, "No es posible acceder a Compras. La caja aún está cerrada!");
-            return;
+            JOptionPane.showMessageDialog(this,
+                    "Caja cerrada: puede registrar una compra totalmente adeudada al proveedor. "
+                    + "Para registrar cualquier pago real deberá abrir la Caja.",
+                    "Compras", JOptionPane.INFORMATION_MESSAGE);
         }
 
         limpiarCompra();
