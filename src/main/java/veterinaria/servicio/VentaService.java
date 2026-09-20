@@ -142,6 +142,7 @@ public class VentaService {
                 cm.setUsuario(usuario);
                 cm.setRecibo(recibo);
                 cm.setMetodoPago(metodo);
+                cm.setAfectaEfectivo(metodo.isAfectaEfectivo());
                 cm.setDescripcion("Venta - recibo N. " + recibo.getIdRecibo());
                 cm.setClaveOperacion(claveBase == null ? null
                         : claveBase + "-P" + (++indicePago));
