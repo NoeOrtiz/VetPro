@@ -190,8 +190,21 @@ public class CobroService {
             movCaja.setClaveOperacion(clave); em.persist(movCaja);
 
             cc.setSaldoActual(saldo.add(monto)); cc.setUltimaEdicion(LocalDate.now()); em.merge(cc);
-            return movCC.getIdMovimiento();
+            Integer idMovimiento = movCC.getIdMovimiento();
+            registrarAuditoriaCobro(idMovimiento, idCuentaCorriente, monto, metodo.getNombre(), u);
+            return idMovimiento;
         });
+    }
+
+    private void registrarAuditoriaCobro(Integer idMovimiento, Integer idCuentaCorriente,
+            BigDecimal monto, String metodoPago, Usuario usuario) {
+        try {
+            veterinaria.util.AuditoriaLogger.evento("CUENTA_CORRIENTE_COBRO",
+                    "movimientoId=" + idMovimiento + " cuentaId=" + idCuentaCorriente
+                    + " monto=" + monto + " medioPago=" + metodoPago, usuario);
+        } catch (Exception ignore) {
+            // La auditoría auxiliar nunca debe romper una operación financiera ya confirmada.
+        }
     }
 
     private boolean esCuentaCorriente(String nombre) {
