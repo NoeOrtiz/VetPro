@@ -167,7 +167,7 @@ public class CobroService {
         if (usuario == null || usuario.getIdUsuario() == null) throw new IllegalArgumentException("El usuario es requerido.");
         String clave = normalizarClaveOperacion(claveOperacion);
 
-        return tx.runInTx(em -> {
+        Object[] resultado = tx.runInTx(em -> {
             if (clave != null) {
                 Long repetida = em.createQuery("SELECT COUNT(m) FROM CajaMovimiento m WHERE m.claveOperacion = :clave", Long.class)
                         .setParameter("clave", clave).getSingleResult();
@@ -201,9 +201,13 @@ public class CobroService {
 
             cc.setSaldoActual(saldo.add(monto)); cc.setUltimaEdicion(LocalDate.now()); em.merge(cc);
             Integer idMovimiento = movCC.getIdMovimiento();
-            registrarAuditoriaCobro(idMovimiento, idCuentaCorriente, monto, metodo.getNombre(), u);
-            return idMovimiento;
+            return new Object[]{idMovimiento, metodo.getNombre()};
         });
+
+        Integer idMovimiento = (Integer) resultado[0];
+        String metodoPago = (String) resultado[1];
+        registrarAuditoriaCobro(idMovimiento, idCuentaCorriente, monto, metodoPago, usuario);
+        return idMovimiento;
     }
 
     private void registrarAuditoriaCobro(Integer idMovimiento, Integer idCuentaCorriente,
