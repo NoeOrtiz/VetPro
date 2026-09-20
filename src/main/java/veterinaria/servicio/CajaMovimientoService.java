@@ -101,6 +101,7 @@ public class CajaMovimientoService {
             reversion.setUsuario(managedUsuario);
             reversion.setRecibo(original.getRecibo());
             reversion.setMetodoPago(original.getMetodoPago());
+            reversion.setAfectaEfectivo(original.isAfectaEfectivo());
             reversion.setDescripcion("REVERSIÓN: " + motivo.trim());
             reversion.setMovimientoReversion(original);
             reversion.setClaveOperacion("REV-" + idMovimiento + "-" + UUID.randomUUID().toString());
@@ -161,6 +162,7 @@ public class CajaMovimientoService {
             movimiento.setFechaHora(new Date());
             movimiento.setUsuario(managedUsuario);
             movimiento.setMetodoPago(metodo);
+            movimiento.setAfectaEfectivo(metodo.isAfectaEfectivo());
             movimiento.setDescripcion(motivo.trim());
             movimiento.setClaveOperacion("MAN-" + UUID.randomUUID().toString());
             movimiento.setAnulado(false);
