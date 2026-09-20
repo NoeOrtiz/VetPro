@@ -148,6 +148,18 @@ public class VisitaDAO {
         return ok;
     }
 
+    public long contarEnEspera() {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT COUNT(v) FROM Visita v WHERE v.estado = :estado", Long.class)
+                    .setParameter("estado", "EN_ESPERA")
+                    .getSingleResult();
+        } finally {
+            if (em != null) em.close();
+        }
+    }
+
     public List<Visita> obtenerVisitasActivas() {
 
         EntityManager em = getEntityManager();
@@ -156,8 +168,8 @@ public class VisitaDAO {
 
             return em.createQuery(
                     "SELECT v FROM Visita v "
-                    + "WHERE v.estado = 'ATENDIENDO' "
-                    + "ORDER BY v.fecha DESC, v.hora DESC",
+                    + "WHERE v.estado IN ('EN_ESPERA', 'ATENDIENDO') "
+                    + "ORDER BY v.fecha ASC, v.hora ASC",
                     Visita.class)
                     .getResultList();
 
