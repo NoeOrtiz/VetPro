@@ -100,6 +100,16 @@ public class CobroService {
                 movimiento.setClaveOperacion(claveBase == null ? null
                         : claveBase + "-P" + (++indicePago));
                 em.persist(movimiento);
+
+                // El detalle del medio de pago también debe quedar asociado al recibo.
+                // Sin esta persistencia, Caja registraba el ingreso pero el recibo podía
+                // quedar sin el desglose histórico de cómo fue cobrado.
+                ReciboMetodoPago detalle = new ReciboMetodoPago();
+                detalle.setRecibo(recibo);
+                detalle.setMetodoPago(metodo);
+                detalle.setMonto(pago.getMonto());
+                em.persist(detalle);
+
                 totalPagado = totalPagado.add(pago.getMonto());
             }
 
