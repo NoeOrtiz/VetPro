@@ -56,7 +56,7 @@ public class MetodoPagoDAO {
             TypedQuery<MetodoPago> query = em.createQuery("SELECT u FROM MetodoPago u", MetodoPago.class);
             listaMetodoPago = query.getResultList();
         } catch (Exception e) {
-            System.out.println("Error al buscar todas las cuentas corrientes: " + e.getMessage());
+            System.out.println("Error al buscar todos los métodos de pago: " + e.getMessage());
         } finally {
             if (em != null) {
                 em.close();
@@ -66,14 +66,17 @@ public class MetodoPagoDAO {
     }
     
     public MetodoPago buscarPorNombre(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) return null;
         EntityManager em = getEntityManager();
         try {
-            TypedQuery<MetodoPago> query = em.createQuery("SELECT m FROM MetodoPago m WHERE m.nombre = :nombre", MetodoPago.class);
-            query.setParameter("nombre", nombre);
-            return query.getSingleResult();
-        } catch (Exception e) {
-            System.out.println("Error al buscar el método de pago por nombre: " + e.getMessage());
-            return null; // Retorna null si no encuentra ningún resultado
+            return em.createQuery(
+                    "SELECT m FROM MetodoPago m WHERE LOWER(TRIM(m.nombre)) = :nombre ORDER BY m.idMetodoPago",
+                    MetodoPago.class)
+                    .setParameter("nombre", nombre.trim().toLowerCase(java.util.Locale.ROOT))
+                    .setMaxResults(1)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
         } finally {
             if (em != null) {
                 em.close();
