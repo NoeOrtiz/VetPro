@@ -2810,9 +2810,15 @@ private void generarReporte(Integer idRecibo) {
         CuentaCorrienteMovimientoDAO operandoMovimientosCC = new CuentaCorrienteMovimientoDAO();
         BigDecimal creditos = operandoMovimientosCC.sumarCreditos(idCuentaCorriente);
         BigDecimal debitos = operandoMovimientosCC.sumarDebitos(idCuentaCorriente);
-        BigDecimal saldoInterno = creditos.subtract(debitos);
-        BigDecimal deudaVisible = saldoInterno.signum() < 0 ? saldoInterno.abs() : BigDecimal.ZERO;
-        txtSaldoCuentaCorriente.setText(MoneyUtil.formatStandard(deudaVisible));
+        BigDecimal saldoInterno = cuentaCorriente.getSaldoActual() != null
+                ? cuentaCorriente.getSaldoActual() : creditos.subtract(debitos);
+        if (saldoInterno.signum() < 0) {
+            txtSaldoCuentaCorriente.setText("Saldo adeudado: $" + MoneyUtil.formatStandard(saldoInterno.abs()));
+        } else if (saldoInterno.signum() > 0) {
+            txtSaldoCuentaCorriente.setText("Saldo a favor: $" + MoneyUtil.formatStandard(saldoInterno));
+        } else {
+            txtSaldoCuentaCorriente.setText("Al día");
+        }
     }
 
     private void cargarCCenTabla(List<CuentaCorrienteMovimiento> movimientos) {
