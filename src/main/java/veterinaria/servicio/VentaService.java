@@ -47,10 +47,10 @@ public class VentaService {
     public Recibo confirmarVenta(Recibo recibo, List<ReciboProductos> items,
             List<ReciboMetodoPago> pagos, BigDecimal montoACuenta, String claveOperacion) {
 
-        if (pagos == null) pagos = Collections.emptyList();
-        if (montoACuenta == null) montoACuenta = BigDecimal.ZERO;
-        validarEntrada(recibo, items, pagos, montoACuenta);
-        String claveBase = normalizarClaveOperacion(claveOperacion);
+        final List<ReciboMetodoPago> pagosTx = pagos == null ? Collections.emptyList() : pagos;
+        final BigDecimal montoACuentaTx = montoACuenta == null ? BigDecimal.ZERO : montoACuenta;
+        validarEntrada(recibo, items, pagosTx, montoACuentaTx);
+        final String claveBase = normalizarClaveOperacion(claveOperacion);
 
         return tx.runInTx(em -> {
             if (claveBase != null) {
