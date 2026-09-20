@@ -7,13 +7,14 @@ import veterinaria.entidad.CajaMovimiento;
 import veterinaria.entidad.CajaMovimiento.TipoMovimiento;
 import veterinaria.entidad.Usuario;
 import veterinaria.persistencia.CajaMovimientoDAO;
-import veterinaria.servicio.CajaService;
+import veterinaria.servicio.CajaSesionService;
+import veterinaria.entidad.CajaSesion;
 import veterinaria.util.AuditoriaLogger;
 
 public class CajaMovimientoControlador {
 
     private final CajaMovimientoDAO cajaDAO = new CajaMovimientoDAO();
-    private final CajaService cajaService = new CajaService();
+    private final CajaSesionService cajaSesionService = new CajaSesionService();
 
     private String ultimoError = null;
 
@@ -48,80 +49,45 @@ public class CajaMovimientoControlador {
     }
 
     public boolean registrarApertura(BigDecimal montoInicial, Usuario usuario) {
-        return registrarApertura(montoInicial, usuario, new Date());
-    }
-
-    public boolean registrarApertura(BigDecimal montoInicial, Usuario usuario, Date fecha) {
         try {
             ultimoError = null;
-            boolean ok = cajaService.registrarApertura(montoInicial, usuario, onlyDate(fecha));
-            if (ok) {
-                AuditoriaLogger.evento(
-                        "CAJA_APERTURA",
-                        "fecha=" + onlyDate(fecha) + " monto=" + montoInicial,
-                        usuario
-                );
-            }
-            return ok;
-        } catch (IllegalStateException e) {
+            cajaSesionService.abrir(montoInicial, usuario);
+            return true;
+        } catch (RuntimeException e) {
             ultimoError = e.getMessage();
-            AuditoriaLogger.evento(
-                    "CAJA_APERTURA_FALLA",
-                    "fecha=" + onlyDate(fecha) + " monto=" + montoInicial + " error=" + ultimoError,
-                    usuario
-            );
             return false;
         }
+    }
+
+    /** La apertura pertenece a una sesión, no a una fecha contable artificial. */
+    @Deprecated
+    public boolean registrarApertura(BigDecimal montoInicial, Usuario usuario, Date fecha) {
+        return registrarApertura(montoInicial, usuario);
     }
 
     public boolean registrarCierre(BigDecimal montoFinal, Usuario usuario) {
-        return registrarCierre(montoFinal, usuario, new Date());
+        try {
+            ultimoError = null;
+            CajaSesion sesion = cajaSesionService.obtenerSesionAbierta();
+            if (sesion == null) {
+                throw new IllegalStateException("No existe una sesión de caja abierta.");
+            }
+            cajaSesionService.cerrar(sesion.getIdCajaSesion(), montoFinal, null, usuario);
+            return true;
+        } catch (RuntimeException e) {
+            ultimoError = e.getMessage();
+            return false;
+        }
     }
 
+    @Deprecated
     public boolean registrarCierre(BigDecimal montoFinal, Usuario usuario, Date fecha) {
-        try {
-            ultimoError = null;
-            boolean ok = cajaService.registrarCierre(montoFinal, usuario, onlyDate(fecha));
-            if (ok) {
-                AuditoriaLogger.evento(
-                        "CAJA_CIERRE",
-                        "fecha=" + onlyDate(fecha) + " monto=" + montoFinal,
-                        usuario
-                );
-            }
-            return ok;
-        } catch (IllegalStateException e) {
-            ultimoError = e.getMessage();
-            AuditoriaLogger.evento(
-                    "CAJA_CIERRE_FALLA",
-                    "fecha=" + onlyDate(fecha) + " monto=" + montoFinal + " error=" + ultimoError,
-                    usuario
-            );
-            return false;
-        }
+        return registrarCierre(montoFinal, usuario);
     }
 
+    @Deprecated
     public boolean registrarCierrePorAperturaId(BigDecimal montoFinal, Usuario usuario, Long idApertura) {
-        try {
-            ultimoError = null;
-            boolean ok = cajaService.registrarCierrePorAperturaId(montoFinal, usuario, idApertura);
-            if (ok) {
-                AuditoriaLogger.evento(
-                        "CAJA_CIERRE",
-                        "aperturaId=" + idApertura + " monto=" + montoFinal,
-                        usuario
-                );
-            }
-            return ok;
-        } catch (IllegalStateException e) {
-            ultimoError = e.getMessage();
-            AuditoriaLogger.evento(
-                    "CAJA_CIERRE_FALLA",
-                    "aperturaId=" + idApertura + " monto=" + montoFinal + " error=" + ultimoError,
-                    usuario
-            );
-            return false;
-        }
+        return registrarCierre(montoFinal, usuario);
     }
 
     public CajaMovimiento obtenerAperturaDeCajaPorFecha(Date fecha) {
