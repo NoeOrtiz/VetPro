@@ -2170,7 +2170,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             return;
         }
 
-        List<MetodoPago> metodos = operandoMetodoPago.obtenerMetodosPagoActivos();
+        List<MetodoPago> metodos = new ArrayList<>(operandoMetodoPago.obtenerMetodosPagoActivos());
         metodos.removeIf(mp -> esMetodoCuentaCorriente(mp.getNombre()));
         if (metodos.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No hay medios de pago reales activos.");
