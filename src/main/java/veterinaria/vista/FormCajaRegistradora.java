@@ -1548,47 +1548,29 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     }//GEN-LAST:event_btnCancelarAperturaCajaActionPerformed
 
     private void btnRegistrarCierreCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarCierreCajaActionPerformed
-        if (txtMontoCierreCaja.getText() == null || txtMontoCierreCaja.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el monto físico de cierre.");
-            return;
-        }
-
-        BigDecimal monto;
         try {
-            monto = MoneyUtil.parse(txtMontoCierreCaja.getText());
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "El monto físico de cierre no es válido.");
-            return;
-        }
-
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) < 0) {
-            JOptionPane.showMessageDialog(this, "El monto físico de cierre no puede ser negativo.");
-            return;
-        }
-
-        Date fechaCierre = (fechaCajaEnCierre != null) ? fechaCajaEnCierre : new Date();
-
-        boolean ok;
-        if (aperturaIdEnCierre != null) {
-            // Cierre robusto basado en la apertura (evita mismatch de fechas)
-            ok = operarCaja.registrarCierrePorAperturaId(monto, usuario, aperturaIdEnCierre);
-        } else {
-            ok = operarCaja.registrarCierre(monto, usuario, fechaCierre);
-        }
-
-        if (ok) {
-            JOptionPane.showMessageDialog(this, "Cierre de caja diaria registrado!");
-            jpCierreCaja.setVisible(false);
-            fechaCajaEnCierre = null;
-            aperturaIdEnCierre = null;
-            actualizarForm();
-        } else {
-            if (operarCaja.getUltimoError() != null) {
-                JOptionPane.showMessageDialog(this, operarCaja.getUltimoError(), "No se puede cerrar caja", JOptionPane.WARNING_MESSAGE);
-            } else if (operarCaja.estadoCaja().equals("CERRADA")) {
-                JOptionPane.showMessageDialog(this, "La caja ya se encuentra cerrada!");
-                jpCierreCaja.setVisible(false);
+            BigDecimal contado = MoneyUtil.parse(txtMontoCierreCaja.getText());
+            if (contado == null || contado.signum() < 0) throw new IllegalArgumentException("El efectivo contado no puede ser negativo.");
+            BigDecimal esperado = operarCaja.obtenerEfectivoEsperadoSesionAbierta();
+            BigDecimal diferencia = contado.subtract(esperado);
+            String motivo = null;
+            if (diferencia.signum() != 0) {
+                motivo = JOptionPane.showInputDialog(this,
+                        "Efectivo esperado: $" + MoneyUtil.formatStandard(esperado) + "\n"
+                        + "Efectivo contado: $" + MoneyUtil.formatStandard(contado) + "\n"
+                        + "Diferencia: $" + MoneyUtil.formatStandard(diferencia) + "\n\n"
+                        + "Indique el motivo del sobrante/faltante:", "Diferencia de caja", JOptionPane.WARNING_MESSAGE);
+                if (motivo == null) return;
+                if (motivo.trim().isEmpty()) throw new IllegalArgumentException("El motivo de la diferencia es obligatorio.");
             }
+            if (!operarCaja.cerrarSesionAbierta(contado, motivo, usuario)) {
+                throw new IllegalStateException(operarCaja.getUltimoError() == null ? "No se pudo cerrar la caja." : operarCaja.getUltimoError());
+            }
+            JOptionPane.showMessageDialog(this, "Caja cerrada correctamente.\nEfectivo esperado: $"
+                    + MoneyUtil.formatStandard(esperado) + "\nEfectivo contado: $" + MoneyUtil.formatStandard(contado));
+            jpCierreCaja.setVisible(false); actualizarForm();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "No se puede cerrar caja", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnRegistrarCierreCajaActionPerformed
 
@@ -2853,95 +2835,16 @@ private void generarReporte(Integer idRecibo) {
     }
 
     private void cierreDeCajaDiario() {
-        // Si existe una caja abierta de días anteriores, cerrar esa.
-        CajaMovimiento aperturaPendiente = operarCaja.obtenerAperturaPendienteCierre();
-        if (aperturaPendiente != null) {
-            cierreDeCajaPorApertura(aperturaPendiente);
+        if (!"ABIERTA".equals(operarCaja.estadoCaja())) {
+            JOptionPane.showMessageDialog(this, "No existe una sesión de caja abierta.", "Cierre de caja", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        cierreDeCajaPorFecha(new Date());
-    }
-
-    /**
-     * Cierre basado directamente en la APERTURA (evita depender de igualdad de
-     * fechas).
-     */
-    private void cierreDeCajaPorApertura(CajaMovimiento apertura) {
-        if (apertura == null) {
-            JOptionPane.showMessageDialog(this, "No se encontró una apertura válida para cerrar.", "Cierre de caja", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        jpRegistrarCobros.setVisible(false);
-        jpAperturaCaja.setVisible(false);
-        jpRegistrarVentas.setVisible(false);
-        jpRegistrarCompras.setVisible(false);
-        jpCierreCaja.setVisible(true);
-
-        fechaCajaEnCierre = truncDate(apertura.getFecha());
-        aperturaIdEnCierre = apertura.getIdMovimiento();
-
-        if (apertura.getMonto() == null) {
-            JOptionPane.showMessageDialog(this,
-                    "La apertura encontrada no tiene monto. No se puede cerrar.",
-                    "Cierre de caja",
-                    JOptionPane.WARNING_MESSAGE);
-            jpCierreCaja.setVisible(false);
-            fechaCajaEnCierre = null;
-            aperturaIdEnCierre = null;
-            return;
-        }
-
-        BigDecimal montoApertura = apertura.getMonto();
-        BigDecimal montoIngresos = operarCaja.obtenerTotalIngresosPorFecha(fechaCajaEnCierre);
-        BigDecimal montoEgresos = operarCaja.obtenerTotalEgresosPorFecha(fechaCajaEnCierre);
-        BigDecimal montoCierreEsperado = montoIngresos.add(montoApertura).subtract(montoEgresos);
-
-        txtEgresosCierreCaja.setText(montoEgresos.toString());
-        txtIngresoCierreCaja.setText(montoIngresos.toString());
-        txtMontoCierreCaja.setText(montoCierreEsperado.toString());
-    }
-
-    private String formatFecha(Date fecha) {
-        if (fecha == null) {
-            return "";
-        }
-        return new SimpleDateFormat("dd/MM/yyyy").format(fecha);
-    }
-
-    private void cierreDeCajaPorFecha(Date fecha) {
-        jpRegistrarCobros.setVisible(false);
-        jpAperturaCaja.setVisible(false);
-        jpRegistrarVentas.setVisible(false);
-        jpRegistrarCompras.setVisible(false);
-        jpCierreCaja.setVisible(true);
-
-        // Guardar fecha objetivo del cierre (se usa luego al registrar cierre)
-        fechaCajaEnCierre = truncDate(fecha);
-
-        // Buscar apertura de esa fecha y guardar su ID (cierre robusto)
-        CajaMovimiento apertura = operarCaja.obtenerAperturaDeCajaPorFecha(fechaCajaEnCierre);
-        if (apertura == null || apertura.getMonto() == null) {
-            JOptionPane.showMessageDialog(this,
-                    "No existe apertura de caja para la fecha " + formatFecha(fechaCajaEnCierre) + ".",
-                    "Cierre de caja",
-                    JOptionPane.WARNING_MESSAGE);
-            jpCierreCaja.setVisible(false);
-            fechaCajaEnCierre = null;
-            aperturaIdEnCierre = null;
-            return;
-        }
-        aperturaIdEnCierre = apertura.getIdMovimiento();
-
-        BigDecimal montoApertura = apertura.getMonto();
-
-        BigDecimal montoIngresos = operarCaja.obtenerTotalIngresosPorFecha(fechaCajaEnCierre);
-        BigDecimal montoEgresos = operarCaja.obtenerTotalEgresosPorFecha(fechaCajaEnCierre);
-        BigDecimal montoCierreEsperado = montoIngresos.add(montoApertura).subtract(montoEgresos);
-        txtEgresosCierreCaja.setText(montoEgresos.toString());
-        txtIngresoCierreCaja.setText(montoIngresos.toString());
-        // Se precarga el esperado, pero el usuario debe ingresar el monto físico y ahora se valida.
-        txtMontoCierreCaja.setText(montoCierreEsperado.toString());
+        jpRegistrarCobros.setVisible(false); jpAperturaCaja.setVisible(false);
+        jpRegistrarVentas.setVisible(false); jpRegistrarCompras.setVisible(false); jpCierreCaja.setVisible(true);
+        BigDecimal esperado = operarCaja.obtenerEfectivoEsperadoSesionAbierta();
+        txtIngresoCierreCaja.setText(MoneyUtil.formatStandard(esperado));
+        txtEgresosCierreCaja.setText("0.00");
+        txtMontoCierreCaja.setText(MoneyUtil.formatStandard(esperado));
     }
 
     private Date truncDate(Date d) {
