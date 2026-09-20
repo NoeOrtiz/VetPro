@@ -31,6 +31,21 @@ public class CuentaCorrienteProveedorDAO {
         }
     }
 
+    /** Cuentas activas con deuda pendiente, para la pantalla de pagos a proveedores. */
+    public List<CuentaCorrienteProveedor> listarConDeuda() {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT c FROM CuentaCorrienteProveedor c JOIN FETCH c.proveedor p "
+                    + "WHERE UPPER(c.estado) = 'ACTIVA' AND COALESCE(c.saldoActual, 0) > 0 "
+                    + "ORDER BY p.razonSocial, c.idCuentaCorrienteProveedor",
+                    CuentaCorrienteProveedor.class)
+                    .getResultList();
+        } finally {
+            if (em != null) em.close();
+        }
+    }
+
     private Integer resolveProveedorId(Proveedor proveedor) {
         if (proveedor == null) {
             return null;
