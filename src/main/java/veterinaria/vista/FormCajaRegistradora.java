@@ -2498,6 +2498,8 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
 
         for (MetodoPago metodoPago : listaMetodoPagos) {
             String nombre = metodoPago.getNombre();
+            // Cuenta Corriente es financiación/deuda, no un medio de pago real.
+            if (esMetodoCuentaCorriente(nombre)) continue;
             metodoPagoItem = new MetodoPagoItem(metodoPago.getIdMetodoPago(), nombre);
             jcbMetodoDePago.addItem(metodoPagoItem);
         }
@@ -2543,6 +2545,13 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
             }
         } catch (Exception ignore) {
         }
+    }
+
+    private boolean esMetodoCuentaCorriente(String nombre) {
+        if (nombre == null) return false;
+        String n = java.text.Normalizer.normalize(nombre.trim().toLowerCase(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return n.contains("cuenta corriente") || n.contains("cta cte");
     }
 
     private void actualizarForm() {
