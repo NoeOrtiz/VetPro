@@ -184,7 +184,12 @@ public class CompraProveedorDAO {
                 throw new IllegalStateException("Ya existe una compra activa con esa factura para el proveedor");
             compra.setNumeroFactura(numeroFactura);
 
+            Usuario usuarioManaged = em.find(Usuario.class, usuario.getIdUsuario());
+            if (usuarioManaged == null || !usuarioManaged.isActivo())
+                throw new IllegalStateException("El usuario no está activo");
+
             CompraProveedor compraManaged = prepararCompraManaged(em, compra);
+            compraManaged.setUsuario(usuarioManaged);
             compraManaged.setSaldoPendiente(deuda);
             compraManaged.getPagos().clear();
 
@@ -207,7 +212,7 @@ public class CompraProveedorDAO {
                 mov.setMonto(pago.getMonto()); mov.setFecha(onlyDate(ahora)); mov.setFechaHora(ahora);
                 mov.setMetodoPago(mp); mov.setAfectaEfectivo(mp.isAfectaEfectivo());
                 mov.setDescripcion("Pago compra proveedor - Factura " + compraManaged.getNumeroFactura());
-                mov.setUsuario(em.getReference(Usuario.class, usuario.getIdUsuario()));
+                mov.setUsuario(usuarioManaged);
                 em.persist(mov); pago.setCajaMovimiento(mov); compraManaged.getPagos().add(pago);
             }
 
