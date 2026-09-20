@@ -144,6 +144,51 @@ public class CobroService {
         });
     }
 
+    /** Registra un pago parcial o total de deuda sin inventar un recibo nuevo. */
+    public Integer registrarPagoCuentaCorriente(Integer idCuentaCorriente, Integer idMetodoPago,
+            BigDecimal monto, Usuario usuario, String claveOperacion) {
+        if (idCuentaCorriente == null) throw new IllegalArgumentException("La cuenta corriente es requerida.");
+        if (idMetodoPago == null) throw new IllegalArgumentException("El medio de pago es requerido.");
+        if (monto == null || monto.signum() <= 0) throw new IllegalArgumentException("El monto debe ser mayor a 0.");
+        if (usuario == null || usuario.getIdUsuario() == null) throw new IllegalArgumentException("El usuario es requerido.");
+        String clave = normalizarClaveOperacion(claveOperacion);
+
+        return tx.runInTx(em -> {
+            if (clave != null) {
+                Long repetida = em.createQuery("SELECT COUNT(m) FROM CajaMovimiento m WHERE m.claveOperacion = :clave", Long.class)
+                        .setParameter("clave", clave).getSingleResult();
+                if (repetida != null && repetida > 0L) throw new IllegalStateException("Esta operación de cobro ya fue registrada.");
+            }
+            CajaSesion sesion = em.createQuery("SELECT s FROM CajaSesion s WHERE s.estado = :estado ORDER BY s.fechaApertura DESC", CajaSesion.class)
+                    .setParameter("estado", CajaSesion.Estado.ABIERTA).setMaxResults(1).getResultStream().findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Debe abrir la caja antes de registrar un cobro."));
+            Usuario u = em.find(Usuario.class, usuario.getIdUsuario());
+            if (u == null || !u.isActivo()) throw new IllegalStateException("El usuario no está activo.");
+            MetodoPago metodo = em.find(MetodoPago.class, idMetodoPago);
+            if (metodo == null || !metodo.isActivo()) throw new IllegalStateException("El medio de pago no está activo.");
+            CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente, LockModeType.PESSIMISTIC_WRITE);
+            if (cc == null || "INACTIVO".equalsIgnoreCase(cc.getEstado())) throw new IllegalStateException("La cuenta corriente no está disponible.");
+            BigDecimal saldo = cc.getSaldoActual() == null ? BigDecimal.ZERO : cc.getSaldoActual();
+            BigDecimal deuda = saldo.signum() < 0 ? saldo.abs() : BigDecimal.ZERO;
+            if (deuda.signum() == 0) throw new IllegalStateException("La cuenta corriente no registra deuda.");
+            if (monto.compareTo(deuda) > 0) throw new IllegalStateException("El pago supera el saldo adeudado actual.");
+
+            CuentaCorrienteMovimiento movCC = new CuentaCorrienteMovimiento();
+            movCC.setCuentaCorriente(cc); movCC.setFechaMovimiento(LocalDate.now());
+            movCC.setDescripcion("Pago de cuenta corriente"); movCC.setTipoMovimiento(CuentaCorrienteMovimiento.TipoMovimiento.CREDITO);
+            movCC.setMonto(monto); movCC.setSaldoResultante(saldo.add(monto)); em.persist(movCC); em.flush();
+
+            CajaMovimiento movCaja = new CajaMovimiento();
+            movCaja.setCajaSesion(sesion); movCaja.setMonto(monto); movCaja.setTipoMovimiento(CajaMovimiento.TipoMovimiento.CREDITO);
+            movCaja.setFecha(new Date()); movCaja.setFechaHora(new Date()); movCaja.setUsuario(u); movCaja.setMetodoPago(metodo);
+            movCaja.setAfectaEfectivo(metodo.isAfectaEfectivo()); movCaja.setDescripcion("Cobro cuenta corriente N.º " + movCC.getIdMovimiento());
+            movCaja.setClaveOperacion(clave); em.persist(movCaja);
+
+            cc.setSaldoActual(saldo.add(monto)); cc.setUltimaEdicion(LocalDate.now()); em.merge(cc);
+            return movCC.getIdMovimiento();
+        });
+    }
+
     private String normalizarClaveOperacion(String claveOperacion) {
         if (claveOperacion == null || claveOperacion.trim().isEmpty()) {
             return null;
