@@ -2158,7 +2158,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "Monto inválido.");
             return;
         }
-        String descripcion = "Metodo Pago " + metodoPagoCliente + " rc." + recibo.getIdRecibo();
+        String descripcion = "Método de pago: " + metodoPagoCliente;
         DefaultTableModel modelo = (DefaultTableModel) tableFormaDePago.getModel();
 
         boolean metodoExistente = false;
