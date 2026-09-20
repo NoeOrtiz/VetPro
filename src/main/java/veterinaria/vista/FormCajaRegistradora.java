@@ -1886,16 +1886,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         }
 
         DefaultTableModel modelo = (DefaultTableModel) tablePagosCompra.getModel();
-        if (modelo.getRowCount() <= 0) {
-            JOptionPane.showMessageDialog(this, "Debe cargar al menos un pago (o Cuenta Corriente) antes de registrar la compra.");
-            return;
-        }
-
-        // Validación de pagos cargados: permite múltiples medios (ej. EFECTIVO + CUENTA CORRIENTE)
-        boolean hayCuentaC = false;
-        boolean hayEfectivo = false;
+        // Los pagos son dinero realmente entregado. La diferencia contra el total será deuda con el proveedor.
         BigDecimal sumaPagos = BigDecimal.ZERO;
-        BigDecimal montoCuentaCorriente = BigDecimal.ZERO;
 
         for (int i = 0; i < modelo.getRowCount(); i++) {
             Object mpObj = modelo.getValueAt(i, 0);
@@ -1919,24 +1911,15 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 return;
             }
             sumaPagos = sumaPagos.add(monto);
-            // Sólo soportamos EFECTIVO y CUENTAC en este flujo
-            if (MetodoPagoTipo.CUENTA_CORRIENTE == MetodoPagoTipo.fromEtiqueta(mp.getNombre())) {
-                hayCuentaC = true;
-                montoCuentaCorriente = montoCuentaCorriente.add(monto);
-            } else if (MetodoPagoTipo.EFECTIVO == MetodoPagoTipo.fromEtiqueta(mp.getNombre())) {
-                hayEfectivo = true;
-            } else {
-                JOptionPane.showMessageDialog(this, "Método de pago no soportado para compras: " + mp.getNombre()
-                        + ". Solo se permite 'Efectivo' y 'Cuenta Corriente'.");
+            if (esMetodoCuentaCorriente(mp.getNombre())) {
+                JOptionPane.showMessageDialog(this, "Cuenta Corriente no es un medio de pago. El importe no pagado se registra automáticamente como deuda del proveedor.");
                 return;
             }
-        }
-
-        // Regla: la suma de pagos (incluida la parte a Cuenta Corriente) debe cubrir el total
-        if (sumaPagos.compareTo(totalFactura) != 0) {
-            JOptionPane.showMessageDialog(this, "La suma de pagos debe ser igual al total de la factura.");
+        if (sumaPagos.compareTo(totalFactura) > 0) {
+            JOptionPane.showMessageDialog(this, "Los pagos no pueden superar el total de la factura.");
             return;
         }
+        BigDecimal montoCuentaCorriente = totalFactura.subtract(sumaPagos);
 
         // Control de duplicidad de factura por proveedor
         try {
@@ -2036,15 +2019,14 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             CuentaCorrienteProveedorDAO ccpDAO = new CuentaCorrienteProveedorDAO();
             CuentaCorrienteProveedorMovimientoDAO ccpMovDAO = new CuentaCorrienteProveedorMovimientoDAO();
 
-            compraDAO.crearCompraConPagos(compra, pagos, usuario, ccpDAO, ccpMovDAO,
-                    METODO_DE_PAGO_EFECTIVO, METODO_DE_PAGO_CUENTAC);
+            compraDAO.crearCompraConPagosReales(compra, pagos, montoCuentaCorriente, usuario, ccpDAO, ccpMovDAO);
 
-            if (hayCuentaC && hayEfectivo) {
+            if (montoCuentaCorriente.signum() > 0 && sumaPagos.signum() > 0) {
                 JOptionPane.showMessageDialog(this, "Compra registrada con pagos mixtos (Efectivo + Cuenta Corriente). ");
                 AuditoriaLogger.evento("COMPRA_PROVEEDOR_MIXTA",
                         "proveedorId=" + proveedor.getIdProveedor() + " factura=" + numeroFactura + " total=" + totalFactura + " cc=" + montoCuentaCorriente,
                         usuario);
-            } else if (hayCuentaC) {
+            } else if (montoCuentaCorriente.signum() > 0) {
                 JOptionPane.showMessageDialog(this, "Compra registrada a Cuenta Corriente del proveedor.");
                 AuditoriaLogger.evento("COMPRA_PROVEEDOR_CC",
                         "proveedorId=" + proveedor.getIdProveedor() + " factura=" + numeroFactura + " total=" + totalFactura,
@@ -2524,36 +2506,16 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         seleccionarMetodoPagoDefault();
                 jcbClienteCobro.addActionListener(e -> onClienteCCSeleccionado());
 
-        // Compras: permitir EFECTIVO y CUENTA CORRIENTE (también pagos mixtos)
+        // Compras: mostrar únicamente medios de pago reales. La diferencia queda como deuda del proveedor.
         jcbMetodoDePagoCompra.removeAllItems();
         jcbMetodoDePagoCompra.addItem(new MetodoPagoItem(0, "Seleccionar"));
-
-        MetodoPago metodoEfectivo = listaMetodoPagos.stream()
-                .filter(mp -> Constantes.METODO_DE_PAGO_EFECTIVO.equals(mp.getNombre()))
-                .findFirst()
-                .orElse(null);
-        MetodoPago metodoCuentaCorriente = listaMetodoPagos.stream()
-                .filter(mp -> Constantes.METODO_DE_PAGO_CUENTAC.equals(mp.getNombre()))
-                .findFirst()
-                .orElse(null);
-
-        if (metodoEfectivo == null && metodoCuentaCorriente == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "No se encontraron los métodos de pago permitidos para compras (EFECTIVO / CUENTA CORRIENTE).",
-                    "Error de configuración",
-                    JOptionPane.ERROR_MESSAGE
-            );
-        } else {
-            if (metodoEfectivo != null) {
-                jcbMetodoDePagoCompra.addItem(new MetodoPagoItem(metodoEfectivo.getIdMetodoPago(), metodoEfectivo.getNombre()));
+        for (MetodoPago mp : listaMetodoPagos) {
+            if (mp != null && !esMetodoCuentaCorriente(mp.getNombre())) {
+                jcbMetodoDePagoCompra.addItem(new MetodoPagoItem(mp.getIdMetodoPago(), mp.getNombre()));
             }
-            if (metodoCuentaCorriente != null) {
-                jcbMetodoDePagoCompra.addItem(new MetodoPagoItem(metodoCuentaCorriente.getIdMetodoPago(), metodoCuentaCorriente.getNombre()));
-            }
-            jcbMetodoDePagoCompra.setSelectedIndex(0);
-            jcbMetodoDePagoCompra.setEnabled(true);
         }
+        jcbMetodoDePagoCompra.setSelectedIndex(0);
+        jcbMetodoDePagoCompra.setEnabled(jcbMetodoDePagoCompra.getItemCount() > 1);
 
         // Autocompletar monto con el total de la factura
         try {
