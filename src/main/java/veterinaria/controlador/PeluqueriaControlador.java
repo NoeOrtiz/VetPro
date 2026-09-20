@@ -161,7 +161,7 @@ public class PeluqueriaControlador {
         if (db == null) return false;
         boolean ok = turnoService.completarTurno(db.getIdTurno(), idUsuario);
         if (ok) {
-            Peluqueria realizado = turnoDAO.buscarPorId(db.getIdTurno());
+            Peluqueria realizado = turnoDAO.buscarPorId(db.getIdTurno().longValue());
             if (realizado != null) {
                 try {
                     historiaEventoControlador.registrarDesdePeluqueria(realizado);
