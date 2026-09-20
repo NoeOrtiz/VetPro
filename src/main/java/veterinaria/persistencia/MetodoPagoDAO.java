@@ -13,10 +13,15 @@ public class MetodoPagoDAO {
     }
     
     public boolean crear(MetodoPago metodoPago) {
+        if (metodoPago == null || metodoPago.getNombre() == null || metodoPago.getNombre().trim().isEmpty()) return false;
         EntityManager em = getEntityManager();
         boolean retornar = false;
         try {
             em.getTransaction().begin();
+            if (existeNombre(em, metodoPago.getNombre(), null)) {
+                em.getTransaction().rollback();
+                return false;
+            }
             em.persist(metodoPago);
             em.getTransaction().commit();
             retornar = true;
@@ -77,10 +82,15 @@ public class MetodoPagoDAO {
     }
 
     public boolean actualizar(MetodoPago metodoPago) {
+        if (metodoPago == null || metodoPago.getIdMetodoPago() == null || metodoPago.getNombre() == null || metodoPago.getNombre().trim().isEmpty()) return false;
         EntityManager em = getEntityManager();
         boolean retornar = false;
         try {
             em.getTransaction().begin();
+            if (existeNombre(em, metodoPago.getNombre(), metodoPago.getIdMetodoPago())) {
+                em.getTransaction().rollback();
+                return false;
+            }
             em.merge(metodoPago);
             em.getTransaction().commit();
             retornar = true;
@@ -141,4 +151,14 @@ public class MetodoPagoDAO {
             if (em != null) em.close();
         }
     }
+    private boolean existeNombre(EntityManager em, String nombre, Integer excluirId) {
+        String jpql = "SELECT COUNT(m) FROM MetodoPago m WHERE LOWER(TRIM(m.nombre)) = :nombre"
+                + (excluirId == null ? "" : " AND m.idMetodoPago <> :id");
+        TypedQuery<Long> q = em.createQuery(jpql, Long.class);
+        q.setParameter("nombre", nombre.trim().toLowerCase(java.util.Locale.ROOT));
+        if (excluirId != null) q.setParameter("id", excluirId);
+        Long count = q.getSingleResult();
+        return count != null && count > 0L;
+    }
+
 }
