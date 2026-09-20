@@ -252,6 +252,60 @@ public class CompraProveedorDAO {
         }
     }
 
+    /**
+     * Nuevo flujo: los pagos contienen solo medios de pago reales y saldoPendiente
+     * representa deuda con el proveedor. Cuenta Corriente deja de ser un medio de pago.
+     */
+    public void crearCompraConPagosReales(CompraProveedor compra, List<CompraProveedorPago> pagos,
+            BigDecimal saldoPendiente, Usuario usuario, CuentaCorrienteProveedorDAO ccpDAO,
+            CuentaCorrienteProveedorMovimientoDAO movDAO) throws Exception {
+        if (compra == null) throw new IllegalArgumentException("Compra null");
+        if (pagos == null) throw new IllegalArgumentException("Pagos null");
+        BigDecimal deuda = saldoPendiente == null ? BigDecimal.ZERO : saldoPendiente;
+        if (deuda.signum() < 0) throw new IllegalArgumentException("El saldo pendiente no puede ser negativo");
+
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            CompraProveedor compraManaged = prepararCompraManaged(em, compra);
+            compraManaged.setSaldoPendiente(deuda);
+            compraManaged.getPagos().clear();
+
+            for (CompraProveedorPago pago : pagos) {
+                if (pago == null || pago.getMetodoPago() == null || pago.getMetodoPago().getIdMetodoPago() == null
+                        || pago.getMonto() == null || pago.getMonto().signum() <= 0) {
+                    throw new IllegalArgumentException("Pago real inválido");
+                }
+                MetodoPago mp = em.find(MetodoPago.class, pago.getMetodoPago().getIdMetodoPago());
+                if (mp == null || !mp.isActivo()) throw new IllegalStateException("El medio de pago no está activo");
+                if (MetodoPagoTipo.CUENTA_CORRIENTE == MetodoPagoTipo.fromEtiqueta(mp.getNombre())) {
+                    throw new IllegalArgumentException("Cuenta Corriente no es un medio de pago de la compra");
+                }
+                CajaSesion sesion = buscarCajaAbierta(em);
+                pago.setMetodoPago(mp);
+                pago.setCompra(compraManaged);
+                CajaMovimiento mov = new CajaMovimiento();
+                Date ahora = new Date();
+                mov.setCajaSesion(sesion); mov.setTipoMovimiento(CajaMovimiento.TipoMovimiento.DEBITO);
+                mov.setMonto(pago.getMonto()); mov.setFecha(onlyDate(ahora)); mov.setFechaHora(ahora);
+                mov.setMetodoPago(mp); mov.setAfectaEfectivo(mp.isAfectaEfectivo());
+                mov.setDescripcion("Pago compra proveedor - Factura " + compraManaged.getNumeroFactura());
+                mov.setUsuario(em.getReference(Usuario.class, usuario.getIdUsuario()));
+                em.persist(mov); pago.setCajaMovimiento(mov); compraManaged.getPagos().add(pago);
+            }
+
+            em.persist(compraManaged); em.flush();
+            if (deuda.signum() > 0) {
+                ccpDAO.crearSiNoExiste(em, compraManaged.getProveedor());
+                movDAO.registrarDeudaPorCompra(em, compraManaged, deuda, compraManaged.getFecha());
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        } finally { if (em != null) em.close(); }
+    }
+
     private CajaSesion buscarCajaAbierta(EntityManager em) {
         return em.createQuery(
                 "SELECT s FROM CajaSesion s WHERE s.estado = :estado ORDER BY s.fechaApertura DESC", CajaSesion.class)
