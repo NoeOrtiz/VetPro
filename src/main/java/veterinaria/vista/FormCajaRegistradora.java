@@ -30,6 +30,8 @@ import veterinaria.controlador.RubroControlador;
 import veterinaria.servicio.ComprobantePdfService;
 import veterinaria.servicio.ConfiguracionService;
 import veterinaria.servicio.CobroService;
+import veterinaria.servicio.PagoProveedorService;
+import veterinaria.entidad.CuentaCorrienteProveedor;
 import veterinaria.entidad.CajaMovimiento;
 import veterinaria.entidad.Cliente;
 import veterinaria.entidad.CuentaCorriente;
@@ -88,6 +90,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     private Producto producto = new Producto();
     private final ComprobantePdfService comprobantePdf = new ComprobantePdfService();
     private final CobroService cobroService = new CobroService();
+    private final PagoProveedorService pagoProveedorService = new PagoProveedorService();
 
     // Fecha de la caja que se está cerrando (puede ser de días anteriores si quedó abierta sin cierre)
     private Date fechaCajaEnCierre = null;
@@ -2101,6 +2104,69 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         txtMontoFacturaCompra.setText("");
         DefaultTableModel modelo = (DefaultTableModel) tablePagosCompra.getModel();
         modelo.setRowCount(0);
+    }
+
+    /**
+     * Flujo transitorio de pago a proveedores hasta incorporar el panel definitivo del rediseño.
+     * Solo muestra proveedores a los que VetPRO realmente adeuda dinero.
+     */
+    private void registrarPagoDeudaProveedor() {
+        CuentaCorrienteProveedorDAO dao = new CuentaCorrienteProveedorDAO();
+        List<CuentaCorrienteProveedor> deudas = dao.listarConDeuda();
+        if (deudas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay saldos pendientes con proveedores.", "Pagos a proveedores", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        String[] opciones = new String[deudas.size()];
+        for (int i = 0; i < deudas.size(); i++) {
+            CuentaCorrienteProveedor cc = deudas.get(i);
+            Proveedor p = cc.getProveedor();
+            String nombre = p.getRazonSocial();
+            if ((nombre == null || nombre.trim().isEmpty()) && p.getPersona() != null) {
+                nombre = (p.getPersona().getNombre() + " " + p.getPersona().getApellido()).trim();
+            }
+            if (nombre == null || nombre.isEmpty()) nombre = "Proveedor " + p.getIdProveedor();
+            opciones[i] = nombre + " — Saldo adeudado: $" + MoneyUtil.formatStandard(cc.getSaldoActual());
+        }
+        String seleccion = (String) JOptionPane.showInputDialog(this, "Seleccione el proveedor a pagar:", "Pagos a proveedores",
+                JOptionPane.PLAIN_MESSAGE, null, opciones, opciones[0]);
+        if (seleccion == null) return;
+        int idx = java.util.Arrays.asList(opciones).indexOf(seleccion);
+        if (idx < 0) return;
+        CuentaCorrienteProveedor cc = deudas.get(idx);
+
+        String montoTxt = JOptionPane.showInputDialog(this,
+                "Saldo adeudado: $" + MoneyUtil.formatStandard(cc.getSaldoActual()) + "\nIngrese el importe que VetPRO pagará al proveedor:");
+        if (montoTxt == null) return;
+        BigDecimal monto;
+        try { monto = MoneyUtil.parse(montoTxt); } catch (Exception ex) { monto = null; }
+        if (monto == null || monto.signum() <= 0 || monto.compareTo(cc.getSaldoActual()) > 0) {
+            JOptionPane.showMessageDialog(this, "El importe debe ser mayor a cero y no superar el saldo adeudado.");
+            return;
+        }
+
+        List<MetodoPago> metodos = operandoMetodoPago.obtenerMetodosPagoActivos();
+        metodos.removeIf(mp -> esMetodoCuentaCorriente(mp.getNombre()));
+        if (metodos.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay medios de pago reales activos.");
+            return;
+        }
+        MetodoPago mp = (MetodoPago) JOptionPane.showInputDialog(this, "Medio con el que VetPRO pagará al proveedor:",
+                "Pagos a proveedores", JOptionPane.PLAIN_MESSAGE, null, metodos.toArray(), metodos.get(0));
+        if (mp == null) return;
+        int confirmar = JOptionPane.showConfirmDialog(this,
+                "¿Confirmar pago de $" + MoneyUtil.formatStandard(monto) + " al proveedor?\nMedio: " + mp.getNombre(),
+                "Confirmar pago", JOptionPane.YES_NO_OPTION);
+        if (confirmar != JOptionPane.YES_OPTION) return;
+        try {
+            String clave = "PPR-" + cc.getIdCuentaCorrienteProveedor() + "-" + System.currentTimeMillis();
+            pagoProveedorService.registrarPago(cc.getIdCuentaCorrienteProveedor(), mp.getIdMetodoPago(), monto, usuario, clave);
+            BigDecimal restante = cc.getSaldoActual().subtract(monto);
+            JOptionPane.showMessageDialog(this, restante.signum() == 0 ? "Pago registrado. El proveedor quedó al día."
+                    : "Pago registrado. Saldo adeudado restante: $" + MoneyUtil.formatStandard(restante));
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo registrar el pago. " + ex.getMessage(), "Pagos a proveedores", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private Integer obtenerIdProductoSeleccionado() {
