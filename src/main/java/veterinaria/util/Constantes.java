@@ -51,6 +51,7 @@ public class Constantes {
     public static final String ESTADO_PELUQUERIA_CANCELADO = EstadoPeluqueria.CANCELADO.getEtiqueta();
  
     public enum EstadoVisita {
+        EN_ESPERA,
         ATENDIENDO,
         FINALIZADO,
         CANCELADO
