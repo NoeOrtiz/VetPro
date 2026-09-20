@@ -39,18 +39,27 @@ public class CajaRegistradoraTxService {
             List<ReciboProductos> productos,
             List<ReciboMetodoPago> metodosPago,
             Usuario usuario) {
+        return registrarVenta(recibo, productos, metodosPago, BigDecimal.ZERO, usuario);
+    }
+
+    public ResultadoVenta registrarVenta(Recibo recibo,
+            List<ReciboProductos> productos,
+            List<ReciboMetodoPago> metodosPago,
+            BigDecimal montoACuenta,
+            Usuario usuario) {
         try {
             if (recibo == null) throw new IllegalArgumentException("Recibo nulo.");
             recibo.setUsuario(usuario);
 
             List<ReciboMetodoPago> pagosReales = new ArrayList<>();
-            BigDecimal montoACuenta = BigDecimal.ZERO;
+            BigDecimal financiado = montoACuenta == null ? BigDecimal.ZERO : montoACuenta;
+            if (financiado.signum() < 0) throw new IllegalArgumentException("El saldo a cuenta corriente no puede ser negativo.");
             if (metodosPago != null) {
                 for (ReciboMetodoPago pago : metodosPago) {
                     if (pago == null || pago.getMetodoPago() == null) continue;
                     String nombre = pago.getMetodoPago().getNombre();
                     if (esCuentaCorriente(nombre)) {
-                        if (pago.getMonto() != null) montoACuenta = montoACuenta.add(pago.getMonto());
+                        if (pago.getMonto() != null) financiado = financiado.add(pago.getMonto());
                     } else {
                         pagosReales.add(pago);
                     }
@@ -59,7 +68,7 @@ public class CajaRegistradoraTxService {
 
             String clave = "VENTA-" + UUID.randomUUID();
             Recibo guardado = ventaService.confirmarVenta(
-                    recibo, productos, pagosReales, montoACuenta, clave);
+                    recibo, productos, pagosReales, financiado, clave);
             return new ResultadoVenta(true, guardado.getIdRecibo(), null);
         } catch (Exception e) {
             return new ResultadoVenta(false, null, e.getMessage());
