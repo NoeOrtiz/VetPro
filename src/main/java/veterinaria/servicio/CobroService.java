@@ -55,9 +55,10 @@ public class CobroService {
             // no bloqueando todos los movimientos posteriores del recibo.
             if (claveBase != null) {
                 Long mismaOperacion = em.createQuery(
-                        "SELECT COUNT(m) FROM CajaMovimiento m WHERE m.claveOperacion LIKE :clave",
+                        "SELECT COUNT(m) FROM CajaMovimiento m WHERE m.claveOperacion = :base OR m.claveOperacion LIKE :prefijo",
                         Long.class)
-                        .setParameter("clave", claveBase + "-P%")
+                        .setParameter("base", claveBase)
+                        .setParameter("prefijo", escaparLike(claveBase) + "-P%")
                         .getSingleResult();
                 if (mismaOperacion != null && mismaOperacion > 0L) {
                     throw new IllegalStateException("Esta operacion de cobro ya fue registrada.");
@@ -187,6 +188,10 @@ public class CobroService {
             cc.setSaldoActual(saldo.add(monto)); cc.setUltimaEdicion(LocalDate.now()); em.merge(cc);
             return movCC.getIdMovimiento();
         });
+    }
+
+    private String escaparLike(String valor) {
+        return valor.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 
     private String normalizarClaveOperacion(String claveOperacion) {
