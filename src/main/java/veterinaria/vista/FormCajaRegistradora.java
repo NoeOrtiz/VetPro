@@ -1644,56 +1644,19 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente válido para registrar la venta.");
             return;
         }
-        DefaultTableModel modeloMetodosPago = (DefaultTableModel) tableFormaDePago.getModel();
-        // Reset montos acumulados para soportar pagos mixtos
-        movimientoCuentaC.setMonto(BigDecimal.ZERO);
-        movimientoEfectivo.setMonto(BigDecimal.ZERO);
-
-        for (int i = 0; i < modeloMetodosPago.getRowCount(); i++) {
-            String metodoPago = (String) modeloMetodosPago.getValueAt(i, 0);
-            Object montomasObj = modeloMetodosPago.getValueAt(i, 1);
-
-            BigDecimal monto;
-
-            if (montomasObj instanceof Double) {
-                monto = MoneyUtil.of((Double) montomasObj);
-            } else if (montomasObj instanceof String) {
-                // Puede venir como String ya formateado; parse tolerante + normalización a BigDecimal.
-                monto = MoneyUtil.parse((String) montomasObj);
-            } else {
-                throw new IllegalArgumentException("Tipo de dato inesperado para monto: " + montomasObj.getClass().getName());
-            }
-
-            // Comparar método de pago con constante
-            if (MetodoPagoTipo.CUENTA_CORRIENTE == MetodoPagoTipo.fromEtiqueta(metodoPago)) {
-                movimientoCuentaC.setMonto(monto);
-            }
-            if (MetodoPagoTipo.EFECTIVO == MetodoPagoTipo.fromEtiqueta(metodoPago)) {
-                movimientoEfectivo.setMonto(monto);
-            }
+        BigDecimal pendiente;
+        try { pendiente = MoneyUtil.parse(txtSaldoPendiente.getText()); }
+        catch (Exception ex) { JOptionPane.showMessageDialog(this, "El saldo pendiente de la venta no es válido."); return; }
+        if (pendiente == null || pendiente.signum() < 0) {
+            JOptionPane.showMessageDialog(this, "Los medios de pago cargados superan el total de la venta.");
+            return;
         }
-
-        // Validación en tiempo real (antes de grabar) para Cuenta Corriente
-        if (movimientoCuentaC.getMonto() != null && movimientoCuentaC.getMonto().compareTo(BigDecimal.ZERO) > 0) {
-            CuentaCorrienteControlador cuentaC = new CuentaCorrienteControlador();
-            if (!cuentaC.cuentaCorrienteActiva(idCliente)) {
-                JOptionPane.showMessageDialog(this,
-                        "La Cuenta Corriente del cliente está INACTIVA o no existe.\n"
-                        + "No se puede registrar la venta con este método.",
-                        "Cuenta Corriente",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            BigDecimal margen = cuentaC.obtenerMargenDisponible(idCliente);
-            if (movimientoCuentaC.getMonto().compareTo(margen) > 0) {
-                JOptionPane.showMessageDialog(this,
-                        "Margen insuficiente para Cuenta Corriente.\n"
-                        + "Margen disponible: " + MoneyUtil.formatStandard(margen) + "\n"
-                        + "Monto a debitar: " + MoneyUtil.formatStandard(movimientoCuentaC.getMonto()),
-                        "Cuenta Corriente",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
+        if (pendiente.signum() > 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Queda un saldo pendiente de $" + MoneyUtil.formatStandard(pendiente)
+                    + ".\nCuenta Corriente no es un medio de pago: el saldo financiado debe registrarse por separado.",
+                    "Venta incompleta", JOptionPane.WARNING_MESSAGE);
+            return;
         }
 
         int respuesta = JOptionPane.showConfirmDialog(
