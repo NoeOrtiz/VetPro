@@ -1775,6 +1775,17 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         try { monto = MoneyUtil.parse(txtMontoPagoCC.getText()); }
         catch (Exception ex) { JOptionPane.showMessageDialog(this, "El monto ingresado no es válido."); return; }
         if (monto == null || monto.signum() <= 0) { JOptionPane.showMessageDialog(this, "Debe ingresar un monto mayor a 0."); return; }
+        BigDecimal saldoActual = cuenta.getSaldoActual() == null ? BigDecimal.ZERO : cuenta.getSaldoActual();
+        BigDecimal deudaActual = saldoActual.signum() < 0 ? saldoActual.abs() : BigDecimal.ZERO;
+        if (deudaActual.signum() == 0) {
+            JOptionPane.showMessageDialog(this, "La Cuenta Corriente del cliente está al día. No hay deuda para cobrar.");
+            return;
+        }
+        if (monto.compareTo(deudaActual) > 0) {
+            JOptionPane.showMessageDialog(this, "El pago no puede superar el saldo adeudado de $"
+                    + MoneyUtil.formatStandard(deudaActual) + ".");
+            return;
+        }
 
         List<MetodoPago> activos = operandoMetodoPago.obtenerMetodosPagoActivos();
         if (activos != null) {
