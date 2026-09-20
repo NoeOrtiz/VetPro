@@ -347,6 +347,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         btnVentas = new javax.swing.JButton();
         btnCobros = new javax.swing.JButton();
         btnCompras = new javax.swing.JButton();
+        btnPagosProveedores = new javax.swing.JButton();
         jpAperturaCaja = new javax.swing.JPanel();
         lbApertura = new javax.swing.JLabel();
         jSeparator2 = new javax.swing.JSeparator();
@@ -496,6 +497,13 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             }
         });
 
+        btnPagosProveedores.setText("Pagar proveedores");
+        btnPagosProveedores.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                registrarPagoDeudaProveedor();
+            }
+        });
+
         javax.swing.GroupLayout jpHadearLayout = new javax.swing.GroupLayout(jpHadear);
         jpHadear.setLayout(jpHadearLayout);
         jpHadearLayout.setHorizontalGroup(
@@ -516,6 +524,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 .addComponent(btnCobros)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnCompras)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnPagosProveedores)
                 .addGap(8, 8, 8))
         );
         jpHadearLayout.setVerticalGroup(
@@ -528,7 +538,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                         .addComponent(btnAbrirCaja)
                         .addComponent(btnVentas)
                         .addComponent(btnCobros)
-                        .addComponent(btnCompras))
+                        .addComponent(btnCompras)
+                        .addComponent(btnPagosProveedores))
                     .addComponent(lbCajaRegistradora))
                 .addGap(10, 10, 10)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 3, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2899,6 +2910,7 @@ private void generarReporte(Integer idRecibo) {
     private javax.swing.JButton btnCerrarCaja;
     private javax.swing.JButton btnCobros;
     private javax.swing.JButton btnCompras;
+    private javax.swing.JButton btnPagosProveedores;
     private javax.swing.JButton btnConfirmarVenta;
     private javax.swing.JButton btnLimpiarPagos;
     private javax.swing.JButton btnLimpiarPagosCompras;
