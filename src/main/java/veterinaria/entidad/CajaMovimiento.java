@@ -65,7 +65,11 @@ public class CajaMovimiento {
     private String descripcion;
 
     @Column(name = "claveOperacion", length = 64, unique = true)
-    private String claveOperacion; 
+    private String claveOperacion;
+
+    /** Conserva el efecto sobre el efectivo tal como era al registrar el movimiento. */
+    @Column(name = "afectaEfectivo", nullable = false)
+    private boolean afectaEfectivo; 
 
     @Column(name = "eliminado")
     private boolean eliminado;
@@ -163,6 +167,14 @@ public class CajaMovimiento {
 
     public String getClaveOperacion() {
         return claveOperacion;
+    }
+
+    public boolean isAfectaEfectivo() {
+        return afectaEfectivo;
+    }
+
+    public void setAfectaEfectivo(boolean afectaEfectivo) {
+        this.afectaEfectivo = afectaEfectivo;
     }
 
     public void setClaveOperacion(String claveOperacion) {
