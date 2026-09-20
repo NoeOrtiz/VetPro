@@ -53,6 +53,14 @@ public class VentaService {
         String claveBase = normalizarClaveOperacion(claveOperacion);
 
         return tx.runInTx(em -> {
+            if (claveBase != null) {
+                List<Recibo> existentes = em.createQuery(
+                        "SELECT r FROM Recibo r WHERE r.claveOperacion = :clave", Recibo.class)
+                        .setParameter("clave", claveBase).setMaxResults(1).getResultList();
+                if (!existentes.isEmpty()) {
+                    return existentes.get(0);
+                }
+            }
             Usuario usuario = em.find(Usuario.class, recibo.getUsuario().getIdUsuario());
             if (usuario == null || !usuario.isActivo()) {
                 throw new IllegalStateException("El usuario no esta activo.");
