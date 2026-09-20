@@ -82,6 +82,9 @@ public class VentaService {
                 if (metodo == null || !metodo.isActivo()) {
                     throw new IllegalStateException("El medio de pago no esta activo.");
                 }
+                if (esCuentaCorriente(metodo.getNombre())) {
+                    throw new IllegalArgumentException("Cuenta Corriente no es un medio de pago.");
+                }
                 totalPagos = totalPagos.add(pago.getMonto());
             }
             if (totalPagos.add(montoACuenta).compareTo(recibo.getTotalRecibo()) != 0) {
@@ -215,7 +218,17 @@ public class VentaService {
         if (clave.length() > 48) {
             throw new IllegalArgumentException("La clave de operacion es demasiado larga.");
         }
+        if (!clave.matches("[A-Za-z0-9-]+")) {
+            throw new IllegalArgumentException("La clave de operacion contiene caracteres no permitidos.");
+        }
         return clave;
+    }
+
+    private boolean esCuentaCorriente(String nombre) {
+        if (nombre == null) return false;
+        String n = java.text.Normalizer.normalize(nombre.trim().toLowerCase(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return n.contains("cuenta corriente") || n.contains("cta cte");
     }
 
     private CajaSesion buscarCajaAbierta(EntityManager em) {
