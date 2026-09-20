@@ -617,11 +617,11 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         lbCierreCaja.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         lbCierreCaja.setText("Cierre de Caja");
 
-        lbMontoFinal.setText("Monto Final:");
+        lbMontoFinal.setText("Efectivo contado:");
 
         lbSignoPeso.setText("$");
 
-        lbIngreso.setText("Ingresos:");
+        lbIngreso.setText("Efectivo esperado:");
 
         lbSignoPeso1.setText("$");
 
@@ -632,7 +632,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             }
         });
 
-        lbEgreso.setText("Egreso:");
+        lbEgreso.setText("Diferencia:");
 
         lbSignoPeso2.setText("$");
 
@@ -2884,8 +2884,11 @@ private void generarReporte(Integer idRecibo) {
         jpRegistrarVentas.setVisible(false); jpRegistrarCompras.setVisible(false); jpCierreCaja.setVisible(true);
         BigDecimal esperado = operarCaja.obtenerEfectivoEsperadoSesionAbierta();
         txtIngresoCierreCaja.setText(MoneyUtil.formatStandard(esperado));
-        txtEgresosCierreCaja.setText("0.00");
-        txtMontoCierreCaja.setText(MoneyUtil.formatStandard(esperado));
+        txtEgresosCierreCaja.setText(MoneyUtil.formatStandard(BigDecimal.ZERO));
+        txtMontoCierreCaja.setText("");
+        txtIngresoCierreCaja.setEditable(false);
+        txtEgresosCierreCaja.setEditable(false);
+        txtMontoCierreCaja.requestFocusInWindow();
     }
 
     private Date truncDate(Date d) {
