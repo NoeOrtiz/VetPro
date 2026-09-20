@@ -76,6 +76,8 @@
                   <Component id="btnCobros" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="btnCompras" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="btnPagosProveedores" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
               </Group>
           </Group>
@@ -91,6 +93,7 @@
                           <Component id="btnVentas" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btnCobros" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="btnCompras" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="btnPagosProveedores" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Component id="lbCajaRegistradora" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -150,6 +153,14 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnComprasActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="btnPagosProveedores">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Pagar proveedores"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnPagosProveedoresActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>
