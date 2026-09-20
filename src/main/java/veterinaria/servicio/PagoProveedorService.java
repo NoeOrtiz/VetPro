@@ -11,7 +11,6 @@ import veterinaria.entidad.CuentaCorrienteProveedorMovimiento;
 import veterinaria.entidad.MetodoPago;
 import veterinaria.entidad.Usuario;
 import veterinaria.util.AuditoriaLogger;
-import veterinaria.util.enums.MetodoPagoTipo;
 
 /** Pago real de deuda a proveedor: reduce la deuda y registra el egreso de Caja en una sola transacción. */
 public class PagoProveedorService {
@@ -41,7 +40,7 @@ public class PagoProveedorService {
 
             MetodoPago mp = em.find(MetodoPago.class, idMetodoPago);
             if (mp == null || !mp.isActivo()) throw new IllegalStateException("El medio de pago no está activo.");
-            if (MetodoPagoTipo.CUENTA_CORRIENTE == MetodoPagoTipo.fromEtiqueta(mp.getNombre()))
+            if (esCuentaCorriente(mp.getNombre()))
                 throw new IllegalArgumentException("Cuenta Corriente no es un medio de pago.");
             Usuario u = em.find(Usuario.class, usuario.getIdUsuario());
             if (u == null || !u.isActivo()) throw new IllegalStateException("El usuario no está activo.");
@@ -68,6 +67,13 @@ public class PagoProveedorService {
                     "cuentaId=" + idCuenta + " monto=" + monto + " movimientoId=" + idMov, usuario);
         }
         return idMov;
+    }
+
+    private boolean esCuentaCorriente(String nombre) {
+        if (nombre == null) return false;
+        String n = java.text.Normalizer.normalize(nombre.trim().toLowerCase(java.util.Locale.ROOT), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        return n.contains("cuenta corriente") || n.contains("cta cte");
     }
 
     private String normalizarClave(String clave) {
