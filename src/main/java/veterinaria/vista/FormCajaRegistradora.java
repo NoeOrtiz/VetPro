@@ -1436,67 +1436,20 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "Debe ingresar un monto de apertura de caja!");
             return;
         }
-
-        BigDecimal monto;
         try {
-            monto = MoneyUtil.parse(txtMontoInicialCaja.getText());
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "El monto de apertura no es válido.");
-            return;
-        }
-
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) < 0) {
-            JOptionPane.showMessageDialog(this, "El monto de apertura no puede ser negativo.");
-            return;
-        }
-
-        if (operarCaja.registrarApertura(monto, usuario)) {
-            JOptionPane.showMessageDialog(this, "Apertura de caja diaria registrada!");
+            BigDecimal monto = MoneyUtil.parse(txtMontoInicialCaja.getText());
+            if (monto == null || monto.signum() < 0) {
+                throw new IllegalArgumentException("El monto de apertura no puede ser negativo.");
+            }
+            if (!operarCaja.registrarApertura(monto, usuario)) {
+                throw new IllegalStateException(operarCaja.getUltimoError() == null
+                        ? "No se pudo abrir la caja." : operarCaja.getUltimoError());
+            }
+            JOptionPane.showMessageDialog(this, "Caja abierta correctamente.");
             jpAperturaCaja.setVisible(false);
             actualizarForm();
-            return;
-        }
-
-        // Mostrar causa real si la apertura fue rechazada (por ejemplo, caja anterior sin cierre).
-        if (operarCaja.getUltimoError() != null) {
-            JOptionPane.showMessageDialog(this, operarCaja.getUltimoError(), "No se puede abrir caja", JOptionPane.WARNING_MESSAGE);
-        }
-
-        String estadoCaja = operarCaja.estadoCaja();
-
-        if ("ABIERTA".equals(estadoCaja)) {
-            JOptionPane.showMessageDialog(this, "La caja ya se encuentra abierta!");
-        } else if ("CERRADA".equals(estadoCaja)) {
-            JOptionPane.showMessageDialog(this, "La caja diaria ya está cerrada!");
-            int respuesta = JOptionPane.showConfirmDialog(
-                    this, "¿Desea volver a abrirla con el siguiente monto? " + txtMontoInicialCaja.getText(),
-                    "Apertura de Caja",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            if (respuesta == JOptionPane.YES_OPTION) {
-                CajaMovimiento apertura = operarCaja.obtenerAperturaDeCajaDiario();
-                CajaMovimiento cierre = operarCaja.obtenerCierreDeCajaDiario();
-
-                if (apertura == null || cierre == null) {
-                    JOptionPane.showMessageDialog(this, "No se encontraron registros de apertura/cierre anteriores.");
-                    return;
-                }
-
-                apertura.setEliminado(true);
-                cierre.setEliminado(true);
-
-                if (operarCaja.modificiarMovimiento(apertura) && operarCaja.modificiarMovimiento(cierre)) {
-                    if (operarCaja.registrarApertura(monto, usuario)) {
-                        JOptionPane.showMessageDialog(this, "Se registró una nueva apertura de caja!");
-                        jpAperturaCaja.setVisible(false);
-                        actualizarForm();
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Error al modificar los registros de apertura/cierre.");
-                }
-            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "No se puede abrir caja", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnRegistrarAperturaCajaActionPerformed
 
@@ -1515,32 +1468,16 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     }//GEN-LAST:event_btnCerrarCajaActionPerformed
 
     private void btnAbrirCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAbrirCajaActionPerformed
-        // Si existe una caja abierta de un día anterior (sin cierre), obligar a cerrarla antes de abrir.
-        CajaMovimiento aperturaPendiente = operarCaja.obtenerAperturaPendienteCierre();
-        if (aperturaPendiente != null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Existe una caja abierta sin cierre (" + formatFecha(aperturaPendiente.getFecha()) + ").\n"
-                    + "Debe realizar el cierre de caja antes de abrir nuevamente.",
-                    "Cierre pendiente",
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            // Abrir directamente el panel de cierre para la fecha pendiente
-            cierreDeCajaPorApertura(aperturaPendiente);
+        if ("ABIERTA".equals(operarCaja.estadoCaja())) {
+            JOptionPane.showMessageDialog(this, "Ya existe una sesión de caja abierta.");
             return;
         }
-
         jpRegistrarCobros.setVisible(false);
         jpCierreCaja.setVisible(false);
         jpRegistrarVentas.setVisible(false);
         jpRegistrarCompras.setVisible(false);
         jpAperturaCaja.setVisible(true);
-
-        CajaMovimiento cierreAnterior = operarCaja.obtenerUltimoCierreDeCaja();
-        if (cierreAnterior != null && cierreAnterior.getMonto() != null) {
-            txtMontoInicialCaja.setText(cierreAnterior.getMonto().toString());
-        }
+        txtMontoInicialCaja.setText("0.00");
     }//GEN-LAST:event_btnAbrirCajaActionPerformed
 
     private void btnVentasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVentasActionPerformed
