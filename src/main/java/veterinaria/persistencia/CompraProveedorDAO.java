@@ -154,6 +154,16 @@ public class CompraProveedorDAO {
         if (pagos == null) throw new IllegalArgumentException("Pagos null");
         BigDecimal deuda = saldoPendiente == null ? BigDecimal.ZERO : saldoPendiente;
         if (deuda.signum() < 0) throw new IllegalArgumentException("El saldo pendiente no puede ser negativo");
+        if (compra.getTotalFactura() == null || compra.getTotalFactura().signum() <= 0)
+            throw new IllegalArgumentException("El total de la factura debe ser mayor a cero");
+        if (usuario == null || usuario.getIdUsuario() == null)
+            throw new IllegalArgumentException("Usuario inválido");
+        BigDecimal totalPagado = BigDecimal.ZERO;
+        for (CompraProveedorPago pago : pagos) {
+            if (pago != null && pago.getMonto() != null) totalPagado = totalPagado.add(pago.getMonto());
+        }
+        if (totalPagado.add(deuda).compareTo(compra.getTotalFactura()) != 0)
+            throw new IllegalArgumentException("Los pagos reales más el saldo pendiente deben coincidir con el total de la factura");
 
         EntityManager em = getEntityManager();
         try {
