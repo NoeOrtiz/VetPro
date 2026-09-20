@@ -33,15 +33,15 @@ public class CajaMovimientoControlador {
         return ultimoError;
     }
 
+    /**
+     * Los movimientos nuevos deben registrarse mediante VentaService,
+     * CobroService o CajaMovimientoService para conservar sesión, medio de
+     * pago, auditoría e idempotencia.
+     */
+    @Deprecated
     public void registrarMovimiento(BigDecimal monto, TipoMovimiento tipo, String descripcion, Usuario usuario) {
-        CajaMovimiento movimiento = new CajaMovimiento();
-        movimiento.setMonto(monto);
-        movimiento.setTipoMovimiento(tipo);
-        movimiento.setDescripcion(descripcion);
-        movimiento.setFecha(onlyDate(new Date()));
-        movimiento.setUsuario(usuario);
-
-        cajaDAO.registrarMovimiento(movimiento);
+        throw new UnsupportedOperationException(
+                "No registre movimientos de caja directamente. Use los servicios transaccionales.");
     }
 
     public List<CajaMovimiento> obtenerMovimientos() {
@@ -98,8 +98,11 @@ public class CajaMovimientoControlador {
         }
     }
 
+    /** Los movimientos confirmados son inmutables; deben revertirse con motivo. */
+    @Deprecated
     public boolean modificiarMovimiento(CajaMovimiento movimiento) {
-        return cajaDAO.modificarMovimiento(movimiento);
+        throw new UnsupportedOperationException(
+                "Los movimientos confirmados de caja no pueden editarse.");
     }
 
     public String estadoCaja() {
