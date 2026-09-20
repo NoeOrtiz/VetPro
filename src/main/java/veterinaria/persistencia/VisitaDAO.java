@@ -64,15 +64,17 @@ public class VisitaDAO {
         em.close();
     }
 
+    /** @deprecated Las visitas clínicas son históricas y nunca se eliminan físicamente. */
+    @Deprecated
     public void eliminar(Integer idVisita) {
-        EntityManager em = getEntityManager();
-        Visita visita = em.find(Visita.class, idVisita);
-        if (visita != null) {
-            em.getTransaction().begin();
-            em.remove(visita);
-            em.getTransaction().commit();
+        if (idVisita == null) return;
+        Visita visita = buscarPorId(idVisita);
+        if (visita == null) return;
+        try {
+            cancelar(visita);
+        } catch (Exception ex) {
+            throw new IllegalStateException("No se pudo cancelar la visita.", ex);
         }
-        em.close();
     }
 
     public boolean eliminar(Visita visita) throws Exception {
@@ -88,7 +90,7 @@ public class VisitaDAO {
                     em.merge(visitaManaged);
                     em.getTransaction().commit();
 
-                    auditoriaService.registrar("DELETE", "Visita", (visita != null ? Long.valueOf(visita.getIdVisita()) : null), "VisitaDAO", "Baja de visita", AuditoriaService.RESULT_OK, null, null, null);
+                    auditoriaService.registrar("CANCELAR", "Visita", (visita != null ? Long.valueOf(visita.getIdVisita()) : null), "VisitaDAO", "Cancelación lógica de visita", AuditoriaService.RESULT_OK, null, null, null);
                     state = true;
                 } else {
                     em.getTransaction().rollback();
