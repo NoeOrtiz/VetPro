@@ -1632,56 +1632,26 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
 
     private void btnAgregarMetodoPagoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarMetodoPagoActionPerformed
         MetodoPagoItem mpSeleccionado = (MetodoPagoItem) jcbMetodoDePago.getSelectedItem();
-        CuentaCorrienteControlador cuentaC = new CuentaCorrienteControlador();
-        Integer idCliente = obtenerIdClienteVentaSeleccionado();
-
         if (mpSeleccionado == null || mpSeleccionado.getIdMetodoPago() == null || mpSeleccionado.getIdMetodoPago() == 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un Método de Pago.");
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un método de pago.");
             return;
         }
-
-        if (idCliente == null) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente válido antes de agregar el pago.");
-            return;
-        }
-
-        if (MetodoPagoTipo.CUENTA_CORRIENTE == MetodoPagoTipo.fromEtiqueta(mpSeleccionado.toString())) {
-            if (!cuentaC.cuentaCorrienteActiva(idCliente)) {
-                JOptionPane.showMessageDialog(this, "La Cuenta Corriente del cliente está INACTIVA o no existe.");
-                return;
+        try {
+            BigDecimal monto = MoneyUtil.parse(txtMontoFormaDePago.getText());
+            BigDecimal pendiente = MoneyUtil.parse(txtSaldoPendiente.getText());
+            if (monto == null || monto.signum() <= 0) {
+                throw new IllegalArgumentException("El monto debe ser mayor a 0.");
             }
-
-            BigDecimal margen = cuentaC.obtenerMargenDisponible(idCliente);
-            BigDecimal montoSolicitado;
-            try {
-                montoSolicitado = MoneyUtil.parse(txtMontoFormaDePago.getText());
-            } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Monto inválido para Cuenta Corriente.");
-                return;
+            if (pendiente != null && monto.compareTo(pendiente) > 0) {
+                throw new IllegalArgumentException("El importe supera el saldo pendiente de la venta.");
             }
-
-            if (montoSolicitado.compareTo(BigDecimal.ZERO) <= 0) {
-                JOptionPane.showMessageDialog(this, "El monto debe ser mayor a 0.");
-                return;
-            }
-            if (montoSolicitado.compareTo(margen) > 0) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Margen insuficiente para Cuenta Corriente.\n"
-                        + "Margen disponible: " + MoneyUtil.formatStandard(margen) + "\n"
-                        + "Monto solicitado: " + MoneyUtil.formatStandard(montoSolicitado),
-                        "Cuenta Corriente",
-                        JOptionPane.WARNING_MESSAGE
-                );
-                return;
-            }
+            // Todos los medios activos parametrizados son válidos: efectivo, transferencia,
+            // débito, crédito, billetera virtual u otros configurados por el administrador.
             cargarMetodoPagoTabla(mpSeleccionado.toString());
+            calcularSaldoFormaDePago();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Método de pago", JOptionPane.WARNING_MESSAGE);
         }
-        if (MetodoPagoTipo.EFECTIVO == MetodoPagoTipo.fromEtiqueta(mpSeleccionado.toString())) {
-            cargarMetodoPagoTabla(mpSeleccionado.toString());
-        }
-
-        calcularSaldoFormaDePago();
     }//GEN-LAST:event_btnAgregarMetodoPagoActionPerformed
 
     private void btnRegistrarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarVentaActionPerformed
