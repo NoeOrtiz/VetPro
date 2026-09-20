@@ -10,6 +10,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnitUtil;
 import javax.persistence.TypedQuery;
 import veterinaria.entidad.CajaMovimiento;
+import veterinaria.entidad.CajaSesion;
 import veterinaria.entidad.CompraProveedor;
 import veterinaria.entidad.CompraProveedorPago;
 import veterinaria.entidad.CompraProveedorEstado;
@@ -251,6 +252,15 @@ public class CompraProveedorDAO {
         }
     }
 
+    private CajaSesion buscarCajaAbierta(EntityManager em) {
+        return em.createQuery(
+                "SELECT s FROM CajaSesion s WHERE s.estado = :estado ORDER BY s.fechaApertura DESC", CajaSesion.class)
+                .setParameter("estado", CajaSesion.Estado.ABIERTA)
+                .setMaxResults(1)
+                .getResultStream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("Debe abrir la caja antes de registrar un pago real de una compra."));
+    }
+
     public void crearCompraConPagos(
             CompraProveedor compra,
             List<CompraProveedorPago> pagos,
@@ -286,11 +296,16 @@ public class CompraProveedorDAO {
                 String cuentaKey = (nombreMetodoCuentaCorriente == null) ? "" : nombreMetodoCuentaCorriente.trim();
 
                 if (!efectivoKey.isEmpty() && efectivoKey.equalsIgnoreCase(nombreMp)) {
+                    CajaSesion sesion = buscarCajaAbierta(em);
                     CajaMovimiento mov = new CajaMovimiento();
+                    mov.setCajaSesion(sesion);
                     mov.setTipoMovimiento(CajaMovimiento.TipoMovimiento.DEBITO);
                     mov.setMonto(pago.getMonto());
-                    mov.setFecha(onlyDate(compraManaged.getFecha() != null ? compraManaged.getFecha() : new Date()));
+                    Date ahora = new Date();
+                    mov.setFecha(onlyDate(compraManaged.getFecha() != null ? compraManaged.getFecha() : ahora));
+                    mov.setFechaHora(ahora);
                     mov.setMetodoPago(mp);
+                    mov.setAfectaEfectivo(mp.isAfectaEfectivo());
                     mov.setDescripcion("Compra proveedor - Factura " + compraManaged.getNumeroFactura());
                     mov.setUsuario(em.getReference(Usuario.class, usuario.getIdUsuario()));
                     em.persist(mov);
