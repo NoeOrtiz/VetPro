@@ -1915,6 +1915,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(this, "Cuenta Corriente no es un medio de pago. El importe no pagado se registra automáticamente como deuda del proveedor.");
                 return;
             }
+        }
         if (sumaPagos.compareTo(totalFactura) > 0) {
             JOptionPane.showMessageDialog(this, "Los pagos no pueden superar el total de la factura.");
             return;
