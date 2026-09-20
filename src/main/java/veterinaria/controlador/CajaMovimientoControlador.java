@@ -116,6 +116,19 @@ public class CajaMovimientoControlador {
                 : cajaSesionService.calcularEfectivoEsperado(sesion.getIdCajaSesion());
     }
 
+    public boolean cerrarSesionAbierta(BigDecimal efectivoContado, String motivoDiferencia, Usuario usuario) {
+        try {
+            ultimoError = null;
+            CajaSesion sesion = cajaSesionService.obtenerSesionAbierta();
+            if (sesion == null) throw new IllegalStateException("No existe una sesión de caja abierta.");
+            cajaSesionService.cerrar(sesion.getIdCajaSesion(), efectivoContado, motivoDiferencia, usuario);
+            return true;
+        } catch (RuntimeException e) {
+            ultimoError = e.getMessage();
+            return false;
+        }
+    }
+
     public CajaMovimiento obtenerAperturaPendienteCierre() {
         return cajaDAO.obtenerAperturaPendienteCierre();
     }
