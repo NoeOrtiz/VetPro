@@ -1503,14 +1503,17 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         jpCierreCaja.setVisible(false);
         jpRegistrarCompras.setVisible(false);
 
-        if ("ABIERTA".equals(estadoCaja)) {
-            jpRegistrarVentas.setVisible(true);
-            jpFormaDePago.setVisible(false);
-            this.revalidate();
-            this.repaint();
-            txtCantidadVenta.setText("1");
-        } else {
-            JOptionPane.showMessageDialog(this, "No es posible acceder a Ventas. La caja aún está cerrada!");
+        jpRegistrarVentas.setVisible(true);
+        jpFormaDePago.setVisible(false);
+        this.revalidate();
+        this.repaint();
+        txtCantidadVenta.setText("1");
+
+        if (!"ABIERTA".equals(estadoCaja)) {
+            JOptionPane.showMessageDialog(this,
+                    "La caja está cerrada. Puede preparar una venta, pero solo podrá finalizarla si el total queda como deuda en la Cuenta Corriente del cliente. "
+                    + "Para registrar un pago real debe abrir la caja.",
+                    "Ventas", JOptionPane.INFORMATION_MESSAGE);
         }
 
 
