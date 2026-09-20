@@ -91,6 +91,7 @@ public class CobroService {
                 movimiento.setUsuario(usuarioManaged);
                 movimiento.setRecibo(recibo);
                 movimiento.setMetodoPago(metodo);
+                movimiento.setAfectaEfectivo(metodo.isAfectaEfectivo());
                 movimiento.setDescripcion("Cobro recibo N.º " + recibo.getIdRecibo());
                 movimiento.setClaveOperacion(claveBase == null ? null
                         : claveBase + "-P" + (++indicePago));
