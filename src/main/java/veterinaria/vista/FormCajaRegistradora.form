@@ -380,7 +380,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="lbMontoFinal">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Monto Final:"/>
+            <Property name="text" type="java.lang.String" value="Efectivo contado:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="lbSignoPeso">
@@ -390,7 +390,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="lbIngreso">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Ingresos:"/>
+            <Property name="text" type="java.lang.String" value="Efectivo esperado:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="lbSignoPeso1">
@@ -410,7 +410,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="lbEgreso">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Egreso:"/>
+            <Property name="text" type="java.lang.String" value="Diferencia:"/>
           </Properties>
         </Component>
         <Component class="javax.swing.JLabel" name="lbSignoPeso2">
