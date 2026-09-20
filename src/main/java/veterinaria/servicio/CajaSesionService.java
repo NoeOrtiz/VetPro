@@ -33,7 +33,7 @@ public class CajaSesionService {
             throw new IllegalArgumentException("Debe indicar el usuario que abre la caja.");
         }
 
-        return tx.runInTx(em -> {
+        CajaSesion sesionAbierta = tx.runInTx(em -> {
             Long abiertas = em.createQuery(
                     "SELECT COUNT(s) FROM CajaSesion s WHERE s.estado = :estado", Long.class)
                     .setParameter("estado", CajaSesion.Estado.ABIERTA)
@@ -54,12 +54,13 @@ public class CajaSesionService {
             sesion.setUsuarioApertura(managed);
             em.persist(sesion);
             em.flush();
-            auditoria.registrarConUsuario(managed, "APERTURA_CAJA", "CajaSesion",
-                    sesion.getIdCajaSesion(), "CAJA",
-                    "Apertura de caja. Efectivo inicial: " + montoInicial,
-                    AuditoriaService.RESULT_OK, null, null, null);
             return sesion;
         });
+        auditoria.registrarConUsuario(usuario, "APERTURA_CAJA", "CajaSesion",
+                sesionAbierta.getIdCajaSesion(), "CAJA",
+                "Apertura de caja. Efectivo inicial: " + montoInicial,
+                AuditoriaService.RESULT_OK, null, null, null);
+        return sesionAbierta;
     }
 
     public BigDecimal calcularEfectivoEsperado(Long idSesion) {
@@ -74,7 +75,7 @@ public class CajaSesionService {
             throw new IllegalArgumentException("Debe indicar el usuario que cierra la caja.");
         }
 
-        return tx.runInTx(em -> {
+        CajaSesion sesionCerrada = tx.runInTx(em -> {
             CajaSesion sesion = em.find(CajaSesion.class, idSesion, LockModeType.PESSIMISTIC_WRITE);
             if (sesion == null || sesion.getEstado() != CajaSesion.Estado.ABIERTA) {
                 throw new IllegalStateException("La sesión de caja no está abierta.");
@@ -100,14 +101,17 @@ public class CajaSesionService {
             sesion.setUsuarioCierre(managed);
             sesion.setEstado(CajaSesion.Estado.CERRADA);
             em.merge(sesion);
-            auditoria.registrarConUsuario(managed, "CIERRE_CAJA", "CajaSesion",
-                    sesion.getIdCajaSesion(), "CAJA",
-                    "Cierre de caja. Esperado: " + esperado + ", contado: " + efectivoContado
-                    + ", diferencia: " + diferencia
-                    + (diferencia.signum() == 0 ? "" : ", motivo: " + motivo),
-                    AuditoriaService.RESULT_OK, null, null, null);
             return sesion;
         });
+        BigDecimal esperado = sesionCerrada.getEfectivoEsperado();
+        BigDecimal diferencia = sesionCerrada.getDiferencia();
+        auditoria.registrarConUsuario(usuario, "CIERRE_CAJA", "CajaSesion",
+                sesionCerrada.getIdCajaSesion(), "CAJA",
+                "Cierre de caja. Esperado: " + esperado + ", contado: " + efectivoContado
+                + ", diferencia: " + diferencia
+                + (diferencia == null || diferencia.signum() == 0 ? "" : ", motivo: " + sesionCerrada.getMotivoDiferencia()),
+                AuditoriaService.RESULT_OK, null, null, null);
+        return sesionCerrada;
     }
 
     private BigDecimal calcularEfectivoEsperado(EntityManager em, Long idSesion) {
