@@ -246,6 +246,6 @@ public class CompraProveedorDAO {
             String nombreMetodoEfectivo,
             String nombreMetodoCuentaCorriente
     ) throws Exception {
-        throw new UnsupportedOperationException("crearCompraEfectivo heredado deshabilitado: use crearCompraConPagosReales.");
+        throw new UnsupportedOperationException("crearCompraConPagos heredado deshabilitado: use crearCompraConPagosReales.");
     }
 }
