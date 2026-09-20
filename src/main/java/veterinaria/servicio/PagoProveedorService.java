@@ -28,7 +28,10 @@ public class PagoProveedorService {
         Integer idMov = tx.runInTx(em -> {
             CajaMovimiento existente = em.createQuery("SELECT m FROM CajaMovimiento m WHERE m.claveOperacion = :c", CajaMovimiento.class)
                     .setParameter("c", clave).setMaxResults(1).getResultStream().findFirst().orElse(null);
-            if (existente != null) return null;
+            if (existente != null) {
+                // Reintento seguro: la operación ya fue aplicada, no vuelve a reducir la deuda.
+                return 0;
+            }
 
             CuentaCorrienteProveedor cc = em.find(CuentaCorrienteProveedor.class, idCuenta, LockModeType.PESSIMISTIC_WRITE);
             if (cc == null || !"ACTIVA".equalsIgnoreCase(cc.getEstado())) throw new IllegalStateException("La cuenta del proveedor no está activa.");
@@ -60,7 +63,10 @@ public class PagoProveedorService {
             em.persist(caja); em.flush();
             return movCC.getIdMovimiento();
         });
-        AuditoriaLogger.evento("PAGO_DEUDA_PROVEEDOR", "cuentaId="+idCuenta+" monto="+monto+" movimientoId="+idMov, usuario);
+        if (idMov != null && idMov > 0) {
+            AuditoriaLogger.evento("PAGO_DEUDA_PROVEEDOR",
+                    "cuentaId=" + idCuenta + " monto=" + monto + " movimientoId=" + idMov, usuario);
+        }
         return idMov;
     }
 
