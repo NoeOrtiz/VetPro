@@ -468,9 +468,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         configurarSpinnerHora(null);
         jdcFecha.setDate(new Date());
         txtTratamiento.setText("");
-        // Default: ATENDIENDO (evita estado null y mejora UX)
+        // Una visita nueva ingresa a la cola en EN_ESPERA.
         try {
-            jcbEstado.setSelectedItem(Constantes.EstadoVisita.ATENDIENDO);
+            jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
             jcbEstado.setSelectedItem(null);
@@ -481,6 +481,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         // Combo de estado (edición)
         DefaultComboBoxModel<Constantes.EstadoVisita> modelEstado = new DefaultComboBoxModel<>();
         modelEstado.addElement(null);
+        modelEstado.addElement(Constantes.EstadoVisita.EN_ESPERA);
         modelEstado.addElement(Constantes.EstadoVisita.ATENDIENDO);
         modelEstado.addElement(Constantes.EstadoVisita.FINALIZADO);
         jcbEstado.setModel(modelEstado);
@@ -488,6 +489,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         // Combo de filtro de estado
         DefaultComboBoxModel<Constantes.EstadoVisita> modelFiltro = new DefaultComboBoxModel<>();
         modelFiltro.addElement(null); // "Todos"
+        modelFiltro.addElement(Constantes.EstadoVisita.EN_ESPERA);
         modelFiltro.addElement(Constantes.EstadoVisita.ATENDIENDO);
         modelFiltro.addElement(Constantes.EstadoVisita.FINALIZADO);
         jcbEstadoFiltro.setModel(modelFiltro);
@@ -1621,7 +1623,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             visita.setHora(((Date) spinnerHora.getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalTime());
             // EstadoVisita ahora es un enum (no String)
             Constantes.EstadoVisita estadoSel = (Constantes.EstadoVisita) jcbEstado.getSelectedItem();
-            visita.setEstado(estadoSel != null ? estadoSel.name() : Constantes.EstadoVisita.ATENDIENDO.name());
+            visita.setEstado(estadoSel != null ? estadoSel.name() : Constantes.EstadoVisita.EN_ESPERA.name());
             visita.setUsuarioAtiende((String) jcbVeterinario.getSelectedItem());
 
             try {
