@@ -29,6 +29,7 @@ import veterinaria.controlador.ProveedorControlador;
 import veterinaria.controlador.RubroControlador;
 import veterinaria.servicio.ComprobantePdfService;
 import veterinaria.servicio.ConfiguracionService;
+import veterinaria.servicio.CobroService;
 import veterinaria.entidad.CajaMovimiento;
 import veterinaria.entidad.Cliente;
 import veterinaria.entidad.CuentaCorriente;
@@ -86,6 +87,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     private VentaProducto productoAVender = new VentaProducto();
     private Producto producto = new Producto();
     private final ComprobantePdfService comprobantePdf = new ComprobantePdfService();
+    private final CobroService cobroService = new CobroService();
 
     // Fecha de la caja que se está cerrando (puede ser de días anteriores si quedó abierta sin cierre)
     private Date fechaCajaEnCierre = null;
@@ -1779,96 +1781,51 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     }//GEN-LAST:event_btnCancelarRegistroVenta1ActionPerformed
 
     private void btnRegistrarCobroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarCobroActionPerformed
-        // Regla de negocio: Cobros CC solo con caja ABIERTA
         if (!"ABIERTA".equals(operarCaja.estadoCaja())) {
             JOptionPane.showMessageDialog(this, "Para registrar un cobro de Cuenta Corriente la caja debe estar ABIERTA.");
-            AuditoriaLogger.evento("COBRO_CC_BLOQUEADO", "caja=" + operarCaja.estadoCaja(), usuario);
             return;
         }
-
-        movimientoCuentaC = new CuentaCorrienteMovimiento();
-        BigDecimal monto;
-        try {
-            monto = MoneyUtil.parse(txtMontoPagoCC.getText());
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "El monto ingresado no es válido.");
-            return;
-        }
-
-        if (monto == null || monto.compareTo(BigDecimal.ZERO) <= 0) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar un monto mayor a 0!");
-            return;
-        }
-
-        CuentaCorrienteControlador operandoCC = new CuentaCorrienteControlador();
-        CuentaCorrienteMovimientoDAO operandoMovimientoCC = new CuentaCorrienteMovimientoDAO();
         ClienteItem clienteSeleccionado = (ClienteItem) jcbClienteCobro.getSelectedItem();
         if (clienteSeleccionado == null || clienteSeleccionado.getIdCliente() == null || clienteSeleccionado.getIdCliente() == 0) {
             JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente válido.");
             return;
         }
-
-        CuentaCorriente cuenta = operandoCC.buscarCuentaCorrientePorIdCliente(clienteSeleccionado.getIdCliente());
-        if (cuenta == null) {
-            JOptionPane.showMessageDialog(this, "El cliente seleccionado no posee una Cuenta Corriente activa.");
+        CuentaCorriente cuenta = new CuentaCorrienteControlador().buscarCuentaCorrientePorIdCliente(clienteSeleccionado.getIdCliente());
+        if (cuenta == null || "INACTIVO".equalsIgnoreCase(cuenta.getEstado())) {
+            JOptionPane.showMessageDialog(this, "El cliente no posee una Cuenta Corriente activa.");
             return;
         }
+        BigDecimal monto;
+        try { monto = MoneyUtil.parse(txtMontoPagoCC.getText()); }
+        catch (Exception ex) { JOptionPane.showMessageDialog(this, "El monto ingresado no es válido."); return; }
+        if (monto == null || monto.signum() <= 0) { JOptionPane.showMessageDialog(this, "Debe ingresar un monto mayor a 0."); return; }
 
-        String estadoCuenta = cuenta.getEstado();
-        if (estadoCuenta == null || !"Activa".equalsIgnoreCase(estadoCuenta)) {
-            JOptionPane.showMessageDialog(this, "La Cuenta Corriente del cliente está INACTIVA.");
+        List<MetodoPago> activos = operandoMetodoPago.obtenerMetodosPagoActivos();
+        if (activos == null || activos.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No hay medios de pago activos configurados.");
             return;
         }
-
-        movimientoCuentaC.setCuentaCorriente(cuenta);
-        movimientoCuentaC.setDescripcion("Pago Cuenta Corriente");
-        Date fecha = new Date();
-        LocalDate fechaMovimiento = fecha.toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDate();
-        movimientoCuentaC.setFechaMovimiento(fechaMovimiento);
-        movimientoCuentaC.setMonto(monto);
-        movimientoCuentaC.setTipoMovimiento(CuentaCorrienteMovimiento.TipoMovimiento.CREDITO);
-
-        if (!operandoMovimientoCC.crear(movimientoCuentaC)) {
-            JOptionPane.showMessageDialog(this, "No se pudo registrar el pago de Cuenta Corriente.");
-            return;
-        }
+        MetodoPago seleccionado = (MetodoPago) JOptionPane.showInputDialog(this,
+                "Seleccione cómo se recibió el pago:", "Cobro de Cuenta Corriente",
+                JOptionPane.QUESTION_MESSAGE, null, activos.toArray(), activos.get(0));
+        if (seleccionado == null) return;
 
         try {
-            AuditoriaLogger.evento(
-                    "COBRO_CC_REGISTRADO",
-                    "idMov=" + movimientoCuentaC.getIdMovimiento() + " clienteId=" + clienteSeleccionado.getIdCliente() + " monto=" + monto,
-                    usuario
-            );
-        } catch (Exception ignore) {
-        }
-
-        JOptionPane.showMessageDialog(this, "Pago a Cuenta Corriente registrado con éxito!");
-        txtMontoPagoCC.setText("");
-        onClienteCCSeleccionado();
-
-        int resp = JOptionPane.showConfirmDialog(
-                this,
-                "¿Desea imprimir el comprobante de cobro?",
-                "Comprobante de Cobro",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (resp == JOptionPane.YES_OPTION) {
-            try {
-                Integer idMov = movimientoCuentaC.getIdMovimiento();
-                if (idMov == null) {
-                    throw new IOException("No se obtuvo el ID del movimiento de cobro.");
-                }
+            String clave = "COBRO-CC-" + java.util.UUID.randomUUID();
+            Integer idMov = cobroService.registrarPagoCuentaCorriente(cuenta.getIdCuentaCorriente(),
+                    seleccionado.getIdMetodoPago(), monto, usuario, clave);
+            JOptionPane.showMessageDialog(this, "Pago registrado correctamente.");
+            txtMontoPagoCC.setText("");
+            onClienteCCSeleccionado();
+            int resp = JOptionPane.showConfirmDialog(this, "¿Desea imprimir el comprobante de cobro?",
+                    "Comprobante de Cobro", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            if (resp == JOptionPane.YES_OPTION && idMov != null) {
                 java.io.File pdf = comprobantePdf.generarComprobanteCobroCuentaCorrientePdf(idMov);
-                AuditoriaLogger.evento("COBRO_CC_IMPRESION", "idMovimiento=" + idMov + " file=" + pdf.getAbsolutePath(), usuario);
                 comprobantePdf.abrirArchivo(pdf);
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "No se pudo generar/abrir el comprobante PDF. " + ex.getMessage(),
-                        "Comprobante de Cobro",
-                        JOptionPane.ERROR_MESSAGE);
             }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo registrar el cobro: " + ex.getMessage(),
+                    "Cobro de Cuenta Corriente", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnRegistrarCobroActionPerformed
 
