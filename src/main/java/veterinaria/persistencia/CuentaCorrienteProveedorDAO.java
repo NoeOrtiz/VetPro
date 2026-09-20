@@ -38,7 +38,7 @@ public class CuentaCorrienteProveedorDAO {
             return em.createQuery(
                     "SELECT c FROM CuentaCorrienteProveedor c JOIN FETCH c.proveedor p "
                     + "WHERE UPPER(c.estado) = 'ACTIVA' AND COALESCE(c.saldoActual, 0) > 0 "
-                    + "ORDER BY p.razonSocial, c.idCuentaCorrienteProveedor",
+                    + "ORDER BY c.idCuentaCorrienteProveedor",
                     CuentaCorrienteProveedor.class)
                     .getResultList();
         } finally {
