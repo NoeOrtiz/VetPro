@@ -9,10 +9,13 @@ public class EmailUtil {
 
     private static final String HOST = "smtp.gmail.com";
     private static final String PUERTO = "587";
-    private static final String REMITENTE = "CONFIGURAR_EMAIL"; // Tu correo de la veterinaria
-    private static final String PASSWORD = "CONFIGURAR_PASSWORD"; // Contraseña de aplicación de Gmail
+    private static final String ENV_EMAIL = "VETPRO_EMAIL";
+    private static final String ENV_PASSWORD = "VETPRO_EMAIL_PASSWORD";
 
     public static void enviarCodigo(String destinatario, String codigo) {
+        String remitente = obtenerVariableObligatoria(ENV_EMAIL);
+        String password = obtenerVariableObligatoria(ENV_PASSWORD);
+
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -22,13 +25,13 @@ public class EmailUtil {
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(REMITENTE, PASSWORD);
+                return new PasswordAuthentication(remitente, password);
             }
         });
 
         try {
             Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(REMITENTE));
+            message.setFrom(new InternetAddress(remitente));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
             message.setSubject("Código de recuperación de contraseña - Veterinaria");
             message.setText("Hola,\n\nTu código de verificación para restablecer la contraseña es: " + codigo
@@ -39,5 +42,15 @@ public class EmailUtil {
         } catch (MessagingException e) {
             throw new RuntimeException("Error al enviar el correo: " + e.getMessage(), e);
         }
+    }
+
+    private static String obtenerVariableObligatoria(String nombre) {
+        String valor = System.getenv(nombre);
+        if (valor == null || valor.isBlank()) {
+            throw new IllegalStateException(
+                    "Falta configurar la variable de entorno " + nombre
+                    + ". La credencial no debe guardarse en el código fuente.");
+        }
+        return valor.trim();
     }
 }
