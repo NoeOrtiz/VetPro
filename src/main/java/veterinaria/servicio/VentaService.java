@@ -170,7 +170,7 @@ public class VentaService {
                         .orElseThrow(() -> new IllegalStateException(
                                 "El cliente no posee una cuenta corriente habilitada."));
 
-                if (!"Activo".equalsIgnoreCase(cuenta.getEstado())) {
+                if (!esCuentaCorrienteActiva(cuenta.getEstado())) {
                     throw new IllegalStateException("La cuenta corriente del cliente no esta activa.");
                 }
 
@@ -222,6 +222,12 @@ public class VentaService {
             throw new IllegalArgumentException("La clave de operacion contiene caracteres no permitidos.");
         }
         return clave;
+    }
+
+    private boolean esCuentaCorrienteActiva(String estado) {
+        if (estado == null) return false;
+        String e = estado.trim().toUpperCase(java.util.Locale.ROOT);
+        return e.equals("ACTIVO") || e.equals("ACTIVA");
     }
 
     private boolean esCuentaCorriente(String nombre) {
