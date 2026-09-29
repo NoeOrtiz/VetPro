@@ -111,6 +111,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         PermisoUI.aplicar(this);
         configurarAtajosReimpresion();
         configurarCamposMonetarios();
+        configurarCalculoDiferenciaCierre();
         actualizarForm();
         jpAperturaCaja.setVisible(false);
         jpCierreCaja.setVisible(false);
@@ -146,6 +147,57 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         normalizarEnFocusLost(txtEgresosCierreCaja);
         normalizarEnFocusLost(txtTotalFacturaCompra);
         normalizarEnFocusLost(txtMontoFacturaCompra);
+    }
+
+    /**
+     * Mantiene visible, en tiempo real, la diferencia entre el efectivo contado
+     * y el efectivo esperado. La diferencia puede ser positiva (sobrante) o
+     * negativa (faltante), por eso el campo calculado no usa MoneyDocumentFilter.
+     */
+    private void configurarCalculoDiferenciaCierre() {
+        if (txtMontoCierreCaja == null) {
+            return;
+        }
+        txtMontoCierreCaja.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                actualizarDiferenciaCierre();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                actualizarDiferenciaCierre();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                actualizarDiferenciaCierre();
+            }
+        });
+    }
+
+    private void actualizarDiferenciaCierre() {
+        if (txtEgresosCierreCaja == null || txtIngresoCierreCaja == null || txtMontoCierreCaja == null) {
+            return;
+        }
+        String rawContado = txtMontoCierreCaja.getText();
+        String rawEsperado = txtIngresoCierreCaja.getText();
+        if (rawContado == null || rawContado.trim().isEmpty()
+                || rawEsperado == null || rawEsperado.trim().isEmpty()) {
+            txtEgresosCierreCaja.setText(MoneyUtil.formatStandard(BigDecimal.ZERO));
+            return;
+        }
+        try {
+            BigDecimal contado = MoneyUtil.parse(rawContado);
+            BigDecimal esperado = MoneyUtil.parse(rawEsperado);
+            BigDecimal diferencia = contado.subtract(esperado);
+            txtEgresosCierreCaja.setText(MoneyUtil.formatStandard(diferencia));
+            lbEgreso.setText(diferencia.signum() > 0 ? "Diferencia (sobrante):"
+                    : diferencia.signum() < 0 ? "Diferencia (faltante):" : "Diferencia:");
+        } catch (Exception ex) {
+            txtEgresosCierreCaja.setText(MoneyUtil.formatStandard(BigDecimal.ZERO));
+            lbEgreso.setText("Diferencia:");
+        }
     }
 
     private void aplicarFiltroMonetario(javax.swing.JTextField field) {
@@ -2896,6 +2948,7 @@ private void generarReporte(Integer idRecibo) {
         BigDecimal esperado = operarCaja.obtenerEfectivoEsperadoSesionAbierta();
         txtIngresoCierreCaja.setText(MoneyUtil.formatStandard(esperado));
         txtEgresosCierreCaja.setText(MoneyUtil.formatStandard(BigDecimal.ZERO));
+        lbEgreso.setText("Diferencia:");
         txtMontoCierreCaja.setText("");
         txtIngresoCierreCaja.setEditable(false);
         txtEgresosCierreCaja.setEditable(false);
