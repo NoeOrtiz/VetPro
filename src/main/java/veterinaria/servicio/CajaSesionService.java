@@ -114,6 +114,57 @@ public class CajaSesionService {
         return sesionCerrada;
     }
 
+    /**
+     * Devuelve las sesiones cuya apertura o cierre cae dentro del rango indicado.
+     * Se usa para el informe de Caja: apertura/cierre son eventos de sesión y no
+     * movimientos contables artificiales.
+     */
+    public java.util.List<CajaSesion> listarSesiones(Date desde, Date hasta) {
+        return tx.runInTx(em -> {
+            Date inicio = inicioDia(desde);
+            Date fin = finDia(hasta);
+            String jpql = "SELECT DISTINCT s FROM CajaSesion s "
+                    + "LEFT JOIN FETCH s.usuarioApertura ua "
+                    + "LEFT JOIN FETCH ua.persona "
+                    + "LEFT JOIN FETCH s.usuarioCierre uc "
+                    + "LEFT JOIN FETCH uc.persona "
+                    + "WHERE 1=1 ";
+            if (inicio != null) {
+                jpql += "AND (s.fechaApertura >= :inicio OR s.fechaCierre >= :inicio) ";
+            }
+            if (fin != null) {
+                jpql += "AND (s.fechaApertura <= :fin OR s.fechaCierre <= :fin) ";
+            }
+            jpql += "ORDER BY s.fechaApertura DESC";
+            javax.persistence.TypedQuery<CajaSesion> q = em.createQuery(jpql, CajaSesion.class);
+            if (inicio != null) q.setParameter("inicio", inicio);
+            if (fin != null) q.setParameter("fin", fin);
+            return q.getResultList();
+        });
+    }
+
+    private Date inicioDia(Date d) {
+        if (d == null) return null;
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        c.setTime(d);
+        c.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        c.set(java.util.Calendar.MINUTE, 0);
+        c.set(java.util.Calendar.SECOND, 0);
+        c.set(java.util.Calendar.MILLISECOND, 0);
+        return c.getTime();
+    }
+
+    private Date finDia(Date d) {
+        if (d == null) return null;
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        c.setTime(d);
+        c.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        c.set(java.util.Calendar.MINUTE, 59);
+        c.set(java.util.Calendar.SECOND, 59);
+        c.set(java.util.Calendar.MILLISECOND, 999);
+        return c.getTime();
+    }
+
     private BigDecimal calcularEfectivoEsperado(EntityManager em, Long idSesion) {
         CajaSesion sesion = em.find(CajaSesion.class, idSesion);
         if (sesion == null) {
