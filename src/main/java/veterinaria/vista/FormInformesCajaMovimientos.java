@@ -12,6 +12,7 @@ import javax.swing.table.DefaultTableModel;
 import veterinaria.controlador.CajaMovimientoControlador;
 import veterinaria.entidad.CajaMovimiento;
 import veterinaria.entidad.CajaMovimiento.TipoMovimiento;
+import veterinaria.entidad.CajaSesion;
 import veterinaria.entidad.MetodoPago;
 import veterinaria.entidad.Persona;
 import veterinaria.entidad.Recibo;
@@ -19,6 +20,7 @@ import veterinaria.entidad.ReciboMetodoPago;
 import veterinaria.entidad.ReciboProductos;
 import veterinaria.entidad.Usuario;
 import veterinaria.persistencia.ReciboDAO;
+import veterinaria.servicio.CajaSesionService;
 import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteService;
 import veterinaria.reportes.core.ReporteTipo;
@@ -31,6 +33,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     // 🚀 REEMPLAZÁ TU LÍNEA POR ESTA:
     private final ReporteService reporteService = ReporteService.getInstance();
     private final ReciboDAO reciboDAO = new ReciboDAO();
+    private final CajaSesionService cajaSesionService = new CajaSesionService();
 
     private final DateTimeFormatter dtfFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -44,6 +47,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         btnImprimir.setText("Imprimir movimiento");
         btnImprimirLista.setText("Imprimir todos");
         btnBuscarMovimientos.setText("Buscar");
+        lbInformeDeCreditosyDebitos.setText("Informe de Movimientos de Caja");
 
         inicializarComboTipos();
         inicializarTabla();
@@ -96,6 +100,8 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         };
         tableCajaMovimientos.setModel(model);
         tableCajaMovimientos.getTableHeader().setReorderingAllowed(false);
+        // El ID sigue en el modelo para selección interna, pero no se muestra al usuario.
+        tableCajaMovimientos.removeColumn(tableCajaMovimientos.getColumnModel().getColumn(0));
         limpiarTabla();
     }
 
@@ -129,15 +135,64 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                 return;
             }
 
-            movimientosActuales = cajaMovimientoControlador.obtenerMovimientosFiltrados(tipo, desde, hasta);
+            movimientosActuales = new ArrayList<>(cajaMovimientoControlador.obtenerMovimientosFiltrados(tipo, desde, hasta));
+            agregarEventosSesion(movimientosActuales, tipo, desde, hasta);
+            movimientosActuales.sort((a, b) -> {
+                Date fa = a.getFechaHora() != null ? a.getFechaHora() : a.getFecha();
+                Date fb = b.getFechaHora() != null ? b.getFechaHora() : b.getFecha();
+                if (fa == null && fb == null) return 0;
+                if (fa == null) return 1;
+                if (fb == null) return -1;
+                return fb.compareTo(fa);
+            });
             cargarEnTabla(movimientosActuales);
 
-            if (movimientosActuales == null || movimientosActuales.isEmpty()) {
+            if (movimientosActuales.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No se encontraron movimientos con los filtros seleccionados.", "Resultados", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (Exception ex) {
             showException("Error al buscar movimientos", ex);
         }
+    }
+
+    private void agregarEventosSesion(List<CajaMovimiento> destino, TipoMovimiento filtro, Date desde, Date hasta) {
+        if (filtro != null && filtro != TipoMovimiento.APERTURA && filtro != TipoMovimiento.CIERRE) return;
+        for (CajaSesion s : cajaSesionService.listarSesiones(desde, hasta)) {
+            long base = s.getIdCajaSesion() != null ? s.getIdCajaSesion() : 0L;
+            if ((filtro == null || filtro == TipoMovimiento.APERTURA) && enRango(s.getFechaApertura(), desde, hasta)) {
+                CajaMovimiento m = new CajaMovimiento(-(base * 2L + 1L), s.getMontoInicial(), TipoMovimiento.APERTURA,
+                        s.getFechaApertura(), s.getUsuarioApertura(), "Apertura de caja", false);
+                m.setFechaHora(s.getFechaApertura());
+                destino.add(m);
+            }
+            if ((filtro == null || filtro == TipoMovimiento.CIERRE) && s.getFechaCierre() != null && enRango(s.getFechaCierre(), desde, hasta)) {
+                String desc = "Cierre de caja - Esperado: $ " + formatMoney(s.getEfectivoEsperado())
+                        + " - Contado: $ " + formatMoney(s.getEfectivoContado())
+                        + " - Diferencia: $ " + formatMoney(s.getDiferencia());
+                if (s.getMotivoDiferencia() != null && !s.getMotivoDiferencia().trim().isEmpty()) {
+                    desc += " - Motivo: " + s.getMotivoDiferencia().trim();
+                }
+                CajaMovimiento m = new CajaMovimiento(-(base * 2L + 2L), s.getEfectivoContado(), TipoMovimiento.CIERRE,
+                        s.getFechaCierre(), s.getUsuarioCierre(), desc, false);
+                m.setFechaHora(s.getFechaCierre());
+                destino.add(m);
+            }
+        }
+    }
+
+    private boolean enRango(Date fecha, Date desde, Date hasta) {
+        if (fecha == null) return false;
+        java.util.Calendar ini = java.util.Calendar.getInstance();
+        java.util.Calendar fin = java.util.Calendar.getInstance();
+        if (desde != null) {
+            ini.setTime(desde); ini.set(java.util.Calendar.HOUR_OF_DAY, 0); ini.set(java.util.Calendar.MINUTE, 0); ini.set(java.util.Calendar.SECOND, 0); ini.set(java.util.Calendar.MILLISECOND, 0);
+            if (fecha.before(ini.getTime())) return false;
+        }
+        if (hasta != null) {
+            fin.setTime(hasta); fin.set(java.util.Calendar.HOUR_OF_DAY, 23); fin.set(java.util.Calendar.MINUTE, 59); fin.set(java.util.Calendar.SECOND, 59); fin.set(java.util.Calendar.MILLISECOND, 999);
+            if (fecha.after(fin.getTime())) return false;
+        }
+        return true;
     }
 
     private TipoMovimiento getTipoSeleccionado() {
@@ -170,7 +225,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             String fecha = "-";
             fecha = formatFecha(m.getFecha());
             String tipo = m.getTipoMovimiento() != null ? m.getTipoMovimiento().name() : "-";
-            String monto = formatMoney(m.getMonto());
+            String monto = "$ " + formatMoney(m.getMonto());
 
             Usuario u = m.getUsuario();
             String usuario = nombreUsuario(u);
@@ -179,9 +234,9 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             String metodo = mp != null ? safe(mp.getNombre()) : "N/A";
 
             Recibo r = m.getRecibo();
-            String recibo = (r != null && r.getIdRecibo() != null) ? ("#" + r.getIdRecibo()) : "N/A";
+            String recibo = (r != null && r.getIdRecibo() != null) ? ("Recibo N.º " + r.getIdRecibo()) : "-";
 
-            String desc = safe(m.getDescripcion());
+            String desc = normalizarDescripcion(safe(m.getDescripcion()), r);
 
             model.addRow(new Object[]{m.getIdMovimiento(), fecha, tipo, monto, usuario, metodo, recibo, desc});
 
@@ -465,6 +520,14 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         String desde = formatFecha(jdcFechaDesdeFiltro.getDate());
         String hasta = formatFecha(jdcFechaHastaFiltro.getDate());
         return "Filtros: Tipo=" + tipo + " | Desde=" + desde + " | Hasta=" + hasta;
+    }
+
+    private static String normalizarDescripcion(String descripcion, Recibo recibo) {
+        if (recibo != null && recibo.getIdRecibo() != null && descripcion != null
+                && descripcion.toLowerCase(java.util.Locale.ROOT).contains("venta")) {
+            return "Venta - Recibo N.º " + recibo.getIdRecibo();
+        }
+        return descripcion != null ? descripcion : "";
     }
 
     private static String safe(String s) {
