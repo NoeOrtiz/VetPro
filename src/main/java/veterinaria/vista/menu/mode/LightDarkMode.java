@@ -16,6 +16,8 @@ import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 
 /**
@@ -82,6 +84,7 @@ public class LightDarkMode extends JPanel {
                     FlatAnimatedLafChange.showSnapshot();
                     FlatMacDarkLaf.setup();
                     FlatLaf.updateUI();
+                    aplicarColoresComponentesEspeciales();
                     checkStyle();
                     FlatAnimatedLafChange.hideSnapshotWithAnimation();
                 });
@@ -90,9 +93,41 @@ public class LightDarkMode extends JPanel {
                     FlatAnimatedLafChange.showSnapshot();
                     FlatMacLightLaf.setup();
                     FlatLaf.updateUI();
+                    aplicarColoresComponentesEspeciales();
                     checkStyle();
                     FlatAnimatedLafChange.hideSnapshotWithAnimation();
                 });
+            }
+        }
+    }
+
+    /**
+     * JDateChooser usa internamente un JFormattedTextField que no siempre
+     * refresca el foreground al alternar FlatLaf. Se normaliza aquí, junto
+     * con el cambio global de tema, para que todos los calendarios de VetPRO
+     * respeten Light/Dark sin correcciones formulario por formulario.
+     */
+    private void aplicarColoresComponentesEspeciales() {
+        java.awt.Color foreground = UIManager.getColor("TextField.foreground");
+        if (foreground == null) foreground = UIManager.getColor("Label.foreground");
+        if (foreground == null) return;
+
+        for (java.awt.Window window : java.awt.Window.getWindows()) {
+            aplicarForegroundDateChooser(window, foreground);
+            SwingUtilities.updateComponentTreeUI(window);
+        }
+    }
+
+    private void aplicarForegroundDateChooser(Component component, java.awt.Color foreground) {
+        if (component instanceof com.toedter.calendar.JDateChooser) {
+            com.toedter.calendar.JDateChooser chooser = (com.toedter.calendar.JDateChooser) component;
+            if (chooser.getDateEditor() != null && chooser.getDateEditor().getUiComponent() != null) {
+                chooser.getDateEditor().getUiComponent().setForeground(foreground);
+            }
+        }
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                aplicarForegroundDateChooser(child, foreground);
             }
         }
     }
