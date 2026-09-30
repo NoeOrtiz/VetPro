@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
 import veterinaria.controlador.CajaMovimientoControlador;
@@ -26,6 +28,7 @@ import veterinaria.reportes.core.ReporteService;
 import veterinaria.reportes.core.ReporteTipo;
 import veterinaria.util.AppLog;
 import veterinaria.util.PermisoUI;
+import veterinaria.vista.table.TableColumnAdjuster;
 
 public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
@@ -51,6 +54,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
         inicializarComboTipos();
         inicializarTabla();
+        configurarFechasSegunTema();
         initListeners();
 
         // defaults: hoy
@@ -100,9 +104,30 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         };
         tableCajaMovimientos.setModel(model);
         tableCajaMovimientos.getTableHeader().setReorderingAllowed(false);
+        // No comprimir columnas: cada columna conserva el ancho necesario y,
+        // si no entra en pantalla, el JScrollPane habilita desplazamiento horizontal.
+        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         // El ID sigue en el modelo para selección interna, pero no se muestra al usuario.
         tableCajaMovimientos.removeColumn(tableCajaMovimientos.getColumnModel().getColumn(0));
         limpiarTabla();
+    }
+
+    private void configurarFechasSegunTema() {
+        java.awt.Color foreground = UIManager.getColor("TextField.foreground");
+        if (foreground == null) foreground = getForeground();
+        configurarFecha(jdcFechaDesdeFiltro, foreground);
+        configurarFecha(jdcFechaHastaFiltro, foreground);
+    }
+
+    private void configurarFecha(com.toedter.calendar.JDateChooser chooser, java.awt.Color foreground) {
+        if (chooser == null || chooser.getDateEditor() == null) return;
+        java.awt.Component editor = chooser.getDateEditor().getUiComponent();
+        if (editor != null) {
+            editor.setForeground(foreground);
+            if (editor instanceof javax.swing.JComponent) {
+                ((javax.swing.JComponent) editor).setOpaque(true);
+            }
+        }
     }
 
     private void limpiarTabla() {
@@ -255,6 +280,9 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         }
 
         setTotales(totalCreditos, totalDebitos);
+        // AutoTable reajusta por cambios del modelo; reforzamos el cálculo al
+        // terminar la carga para que textos largos (p. ej. cierre/motivo) no se corten.
+        javax.swing.SwingUtilities.invokeLater(() -> TableColumnAdjuster.ajustarAnchoColumnas(tableCajaMovimientos));
     }
 
     /**
