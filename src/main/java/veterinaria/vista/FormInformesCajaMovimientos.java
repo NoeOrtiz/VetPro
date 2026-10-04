@@ -8,7 +8,8 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.UIManager;
+import javax.swing.JTextArea;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
 import veterinaria.controlador.CajaMovimientoControlador;
@@ -28,7 +29,6 @@ import veterinaria.reportes.core.ReporteService;
 import veterinaria.reportes.core.ReporteTipo;
 import veterinaria.util.AppLog;
 import veterinaria.util.PermisoUI;
-import veterinaria.vista.table.TableColumnAdjuster;
 
 public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
@@ -104,29 +104,50 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         };
         tableCajaMovimientos.setModel(model);
         tableCajaMovimientos.getTableHeader().setReorderingAllowed(false);
-        // No comprimir columnas: cada columna conserva el ancho necesario y,
-        // si no entra en pantalla, el JScrollPane habilita desplazamiento horizontal.
-        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        // El informe debe adaptarse al ancho disponible. La descripción ocupa
+        // el espacio restante y se envuelve en varias líneas cuando es extensa.
+        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         // El ID sigue en el modelo para selección interna, pero no se muestra al usuario.
         tableCajaMovimientos.removeColumn(tableCajaMovimientos.getColumnModel().getColumn(0));
+        configurarColumnasInforme();
         limpiarTabla();
     }
 
-    private void configurarFechasSegunTema() {
-        java.awt.Color foreground = UIManager.getColor("TextField.foreground");
-        if (foreground == null) foreground = getForeground();
-        configurarFecha(jdcFechaDesdeFiltro, foreground);
-        configurarFecha(jdcFechaHastaFiltro, foreground);
+    private void configurarColumnasInforme() {
+        int[] anchos = {105, 85, 100, 125, 165, 120};
+        for (int i = 0; i < anchos.length && i < tableCajaMovimientos.getColumnCount() - 1; i++) {
+            tableCajaMovimientos.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+        }
+        int descripcion = tableCajaMovimientos.getColumnCount() - 1;
+        tableCajaMovimientos.getColumnModel().getColumn(descripcion)
+                .setCellRenderer(new DescripcionMultilineaRenderer());
+        tableCajaMovimientos.getColumnModel().getColumn(descripcion).setPreferredWidth(420);
     }
 
-    private void configurarFecha(com.toedter.calendar.JDateChooser chooser, java.awt.Color foreground) {
-        if (chooser == null || chooser.getDateEditor() == null) return;
-        java.awt.Component editor = chooser.getDateEditor().getUiComponent();
-        if (editor != null) {
-            editor.setForeground(foreground);
-            if (editor instanceof javax.swing.JComponent) {
-                ((javax.swing.JComponent) editor).setOpaque(true);
+    private static final class DescripcionMultilineaRenderer extends JTextArea implements TableCellRenderer {
+
+        private DescripcionMultilineaRenderer() {
+            setLineWrap(true);
+            setWrapStyleWord(true);
+            setOpaque(true);
+            setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 6, 4, 6));
+        }
+
+        @Override
+        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            setText(value == null ? "" : value.toString());
+            setFont(table.getFont());
+            setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
+            setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+
+            int width = table.getColumnModel().getColumn(column).getWidth();
+            setSize(Math.max(width, 1), Short.MAX_VALUE);
+            int requiredHeight = Math.max(table.getRowHeight(), getPreferredSize().height);
+            if (table.getRowHeight(row) != requiredHeight) {
+                table.setRowHeight(row, requiredHeight);
             }
+            return this;
         }
     }
 
@@ -280,9 +301,12 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         }
 
         setTotales(totalCreditos, totalDebitos);
-        // AutoTable reajusta por cambios del modelo; reforzamos el cálculo al
-        // terminar la carga para que textos largos (p. ej. cierre/motivo) no se corten.
-        javax.swing.SwingUtilities.invokeLater(() -> TableColumnAdjuster.ajustarAnchoColumnas(tableCajaMovimientos));
+        // El renderer multilínea ajusta la altura según el ancho real disponible.
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            configurarColumnasInforme();
+            tableCajaMovimientos.revalidate();
+            tableCajaMovimientos.repaint();
+        });
     }
 
     /**
