@@ -29,6 +29,7 @@ import veterinaria.config.PersistenceConfig;
 import veterinaria.servicio.AuditoriaService;
 import veterinaria.vista.application.UiActionAuditor;
 import veterinaria.vista.table.TableGradientCell;
+import veterinaria.util.ui.DateChooserThemeSupport;
 
 public class Application extends javax.swing.JFrame {
 
@@ -177,6 +178,7 @@ public class Application extends javax.swing.JFrame {
 
         configurarTextosDialogosEnEspañol();
         FlatMacDarkLaf.setup();
+        DateChooserThemeSupport.instalar();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             JPAUtil.close();
