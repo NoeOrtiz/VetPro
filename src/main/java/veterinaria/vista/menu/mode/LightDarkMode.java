@@ -19,6 +19,7 @@ import javax.swing.JPanel;
 import javax.swing.JFormattedTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import veterinaria.util.ui.DateChooserThemeSupport;
 import javax.swing.border.EmptyBorder;
 
 /**
@@ -102,42 +103,8 @@ public class LightDarkMode extends JPanel {
         }
     }
 
-    /**
-     * JCalendar 1.4 mantiene su editor de fecha con colores propios y puede
-     * conservar el foreground del tema anterior. Esta normalización se hace
-     * globalmente al cambiar Light/Dark para todos los JDateChooser abiertos.
-     */
     private void aplicarColoresComponentesEspeciales() {
-        final boolean dark = FlatLaf.isLafDark();
-        final java.awt.Color foreground = dark
-                ? new java.awt.Color(240, 240, 240)
-                : new java.awt.Color(60, 60, 60);
-
-        for (java.awt.Window window : java.awt.Window.getWindows()) {
-            aplicarForegroundDateChooser(window, foreground);
-            window.repaint();
-        }
-    }
-
-    private void aplicarForegroundDateChooser(Component component, java.awt.Color foreground) {
-        if (component instanceof com.toedter.calendar.JDateChooser chooser) {
-            java.awt.Component editor = chooser.getDateEditor().getUiComponent();
-            if (editor != null) {
-                editor.setForeground(foreground);
-                if (editor instanceof JFormattedTextField field) {
-                    field.setDisabledTextColor(foreground);
-                    field.setSelectedTextColor(foreground);
-                    field.setCaretColor(foreground);
-                }
-            }
-            chooser.setForeground(foreground);
-            chooser.repaint();
-        }
-        if (component instanceof Container container) {
-            for (Component child : container.getComponents()) {
-                aplicarForegroundDateChooser(child, foreground);
-            }
-        }
+        DateChooserThemeSupport.aplicarEnVentanasAbiertas();
     }
 
     private void checkStyle() {
