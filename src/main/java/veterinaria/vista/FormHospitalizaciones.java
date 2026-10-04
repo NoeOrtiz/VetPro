@@ -679,7 +679,7 @@ public class FormHospitalizaciones extends javax.swing.JPanel implements Histori
         mascotaSeleccionada = null;
         jcbMotivo.setSelectedIndex(0);
         configurarSpinnerHora(null);
-        jdcFechaDeIngreso.setDate(new Date());
+        jdcFechaDeIngreso.setDate(null);
         spFechaHoraAlta.setValue(new Date());
         taDiagnosticoHospitalizacion.setText("");
         taTratamiento.setText("");
@@ -2293,6 +2293,8 @@ public class FormHospitalizaciones extends javax.swing.JPanel implements Histori
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         hospitalizacion = new Hospitalizacion();
+        limpiarCamposFormulario();
+        jdcFechaTurnoHospitalizacion.setDate(null);
         mostrarSoloListado();
 
         modoUrgencia = false;
