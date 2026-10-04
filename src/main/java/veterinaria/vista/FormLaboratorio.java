@@ -698,18 +698,10 @@ public class FormLaboratorio extends javax.swing.JPanel implements HistoriaEvent
 
         fechaExtraccionOriginal = null;
         actualizandoFormulario = true;
-        jdcFechaDeExtraccion.setDate(new Date());
+        jdcFechaDeExtraccion.setDate(null);
         actualizandoFormulario = false;
 
-        try {
-            LocalDate f = jdcFechaDeExtraccion.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            if (esDiaHabilitadoLaboratorio(f) && getVeterinarioSeleccionado() != null) {
-                cargarTurnosComboParaFechaLaboratorio(f);
-            }
-        } catch (Exception ignore) {
-        }
-
-    }
+     }
 
     private void configurarSelectorFechaYTurnoLaboratorio() {
         try {
