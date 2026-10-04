@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Toolkit;
 import java.awt.event.ContainerEvent;
+import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.SwingUtilities;
 
@@ -56,7 +57,12 @@ public final class DateChooserThemeSupport {
         }
     }
 
+    private static final String LISTENER_INSTALADO =
+            "vetpro.dateChooser.themeListenerInstalled";
+
     private static void aplicarChooser(JDateChooser chooser) {
+        instalarListenerDeFecha(chooser);
+
         Color foreground = FlatLaf.isLafDark()
                 ? new Color(240, 240, 240)
                 : new Color(60, 60, 60);
@@ -74,5 +80,25 @@ public final class DateChooserThemeSupport {
             editor.repaint();
         }
         chooser.repaint();
+    }
+
+    /*
+     * JTextFieldDateEditor de JCalendar vuelve a asignar su propio foreground
+     * cuando cambia la fecha. Por eso no alcanza con tematizar el componente
+     * una sola vez al crearlo. Escuchamos el cambio de "date" y restauramos
+     * el color del tema después de que JCalendar termina de actualizarlo.
+     */
+    private static void instalarListenerDeFecha(JDateChooser chooser) {
+        Component editor = chooser.getDateEditor().getUiComponent();
+        if (!(editor instanceof JComponent jc)) {
+            return;
+        }
+        if (Boolean.TRUE.equals(jc.getClientProperty(LISTENER_INSTALADO))) {
+            return;
+        }
+
+        jc.putClientProperty(LISTENER_INSTALADO, Boolean.TRUE);
+        chooser.getDateEditor().addPropertyChangeListener("date", evt ->
+                SwingUtilities.invokeLater(() -> aplicarChooser(chooser)));
     }
 }
