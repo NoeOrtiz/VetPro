@@ -54,7 +54,6 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
         inicializarComboTipos();
         inicializarTabla();
-        configurarFechasSegunTema();
         initListeners();
 
         // defaults: hoy
