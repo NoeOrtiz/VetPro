@@ -128,9 +128,9 @@ public class PanelConfigPeluqueria extends JPanel {
         contenido.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
         contenido.add(buildPeluqueriaSection());
-        contenido.add(Box.createVerticalStrut(10));
+        contenido.add(Box.createVerticalStrut(4));
         contenido.add(buildLaboratorioSection());
-        contenido.add(Box.createVerticalStrut(10));
+        contenido.add(Box.createVerticalStrut(4));
         contenido.add(buildHospitalizacionSection());
 
         JScrollPane scroll = new JScrollPane(contenido);
