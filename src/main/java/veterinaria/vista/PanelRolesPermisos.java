@@ -125,7 +125,11 @@ public class PanelRolesPermisos extends JPanel {
     private JPanel buildCenter() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.add(buildTopFilters(), BorderLayout.NORTH);
-        panel.add(new JScrollPane(tablePermisos), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(tablePermisos);
+        scroll.setPreferredSize(new Dimension(800, 260));
+        JPanel tableArea = new JPanel(new BorderLayout());
+        tableArea.add(scroll, BorderLayout.NORTH);
+        panel.add(tableArea, BorderLayout.CENTER);
         return panel;
     }
 
@@ -133,7 +137,7 @@ public class PanelRolesPermisos extends JPanel {
         JPanel p = new JPanel();
         p.setLayout(new java.awt.GridBagLayout());
         java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-        c.insets = new java.awt.Insets(4, 4, 4, 4);
+        c.insets = new java.awt.Insets(2, 4, 2, 4);
         c.fill = java.awt.GridBagConstraints.HORIZONTAL;
         c.weightx = 0;
 
@@ -186,7 +190,7 @@ public class PanelRolesPermisos extends JPanel {
         JPanel box = new JPanel(new java.awt.GridBagLayout());
         box.setBorder(BorderFactory.createTitledBorder("Crear permiso y asignarlo al rol seleccionado"));
         java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-        c.insets = new java.awt.Insets(4, 4, 4, 4);
+        c.insets = new java.awt.Insets(2, 4, 2, 4);
         c.fill = java.awt.GridBagConstraints.HORIZONTAL;
 
         c.gridx = 0; c.gridy = 0; c.weightx = 0;
