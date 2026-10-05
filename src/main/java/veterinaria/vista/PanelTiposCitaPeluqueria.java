@@ -2,6 +2,7 @@ package veterinaria.vista;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.math.BigDecimal;
 import java.util.List;
 import javax.swing.BorderFactory;
@@ -62,7 +63,11 @@ public class PanelTiposCitaPeluqueria extends JPanel {
         top.add(btnRefrescar);
 
         add(top, BorderLayout.SOUTH);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setPreferredSize(new Dimension(800, 330));
+        JPanel tableArea = new JPanel(new BorderLayout());
+        tableArea.add(scroll, BorderLayout.NORTH);
+        add(tableArea, BorderLayout.CENTER);
 
         btnNuevo.addActionListener(e -> onNuevo());
         btnEditar.addActionListener(e -> onEditar());
