@@ -1,25 +1,14 @@
-
 package veterinaria.vista;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingConstants;
 
 public class ClassConfig extends JPanel {
 
-    private final JButton btnRolesPermisos = new JButton("Roles - Permisos");
-    private final JButton btnMetodosPago = new JButton("Métodos de Pago");
-    private final JButton btnConfigVentas = new JButton("Configurar Ventas");
-    private final JButton btnPeluqueria = new JButton("Turnos - Horarios");
-    private final JButton btnTiposCitaPeluqueria = new JButton("Tipos de Cita (Peluquería)");
-    private final JButton btnRubros = new JButton("Rubros (Stock)");
-    private final CardLayout cardLayout = new CardLayout();
-    private final JPanel cardPanel = new JPanel(cardLayout);
-
+    private final JTabbedPane tabs = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 
     private final PanelRolesPermisos panelRolesPermisos = new PanelRolesPermisos();
     private final PanelMetodosPago panelMetodosPago = new PanelMetodosPago();
@@ -27,60 +16,43 @@ public class ClassConfig extends JPanel {
     private final PanelConfigPeluqueria panelConfigPeluqueria = new PanelConfigPeluqueria();
     private final PanelTiposCitaPeluqueria panelTiposCitaPeluqueria = new PanelTiposCitaPeluqueria();
     private final PanelRubros panelRubros = new PanelRubros();
+
     public ClassConfig() {
-        setLayout(new BorderLayout(12, 12));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        setLayout(new BorderLayout());
+        setBorder(BorderFactory.createEmptyBorder(10, 12, 12, 12));
 
-        // Top bar
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        btnRolesPermisos.setPreferredSize(new Dimension(170, 32));
-        btnMetodosPago.setPreferredSize(new Dimension(170, 32));
-        btnConfigVentas.setPreferredSize(new Dimension(170, 32));
-        btnPeluqueria.setPreferredSize(new Dimension(170, 32));
-        top.add(btnRolesPermisos);
-        top.add(btnMetodosPago);
-        top.add(btnConfigVentas);
-        top.add(btnPeluqueria);
-        top.add(btnTiposCitaPeluqueria);
-        top.add(btnRubros);
-// Cards
-        cardPanel.add(panelRolesPermisos, "ROLES");
-        cardPanel.add(panelMetodosPago, "PAGOS");
-        cardPanel.add(panelConfigVentas, "VENTAS");
-        cardPanel.add(panelConfigPeluqueria, "TURNOS_HORARIOS");
-        cardPanel.add(panelTiposCitaPeluqueria, "TIPOS_CITA_PELUQUERIA");
-        cardPanel.add(panelRubros, "RUBROS");
-add(top, BorderLayout.NORTH);
-        add(cardPanel, BorderLayout.CENTER);
+        tabs.setTabPlacement(JTabbedPane.TOP);
+        tabs.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 
-        wireEvents();
+        tabs.addTab("Roles y Permisos", panelRolesPermisos);
+        tabs.addTab("Métodos de Pago", panelMetodosPago);
+        tabs.addTab("Ventas", panelConfigVentas);
+        tabs.addTab("Turnos y Horarios", panelConfigPeluqueria);
+        tabs.addTab("Tipos de Cita", panelTiposCitaPeluqueria);
+        tabs.addTab("Rubros / Stock", panelRubros);
 
-        // default
-        cardLayout.show(cardPanel, "ROLES");
+        tabs.addChangeListener(e -> cargarSolapaSeleccionada());
+        add(tabs, BorderLayout.CENTER);
+
+        tabs.setSelectedIndex(0);
     }
 
-    private void wireEvents() {
-        btnRolesPermisos.addActionListener(e -> cardLayout.show(cardPanel, "ROLES"));
-        btnMetodosPago.addActionListener(e -> {
-            panelMetodosPago.refrescarTabla();
-            cardLayout.show(cardPanel, "PAGOS");
-        });
-        btnConfigVentas.addActionListener(e -> {
-            cardLayout.show(cardPanel, "VENTAS");
-            panelConfigVentas.cargar();
-        });
-        btnPeluqueria.addActionListener(e -> {
-            panelConfigPeluqueria.cargar();
-            cardLayout.show(cardPanel, "TURNOS_HORARIOS");
-        });
-        btnTiposCitaPeluqueria.addActionListener(e -> {
-            cardLayout.show(cardPanel, "TIPOS_CITA_PELUQUERIA");
-        });
-
-        btnRubros.addActionListener(e -> {
-            panelRubros.refrescarTabla();
-            cardLayout.show(cardPanel, "RUBROS");
-        });
+    private void cargarSolapaSeleccionada() {
+        switch (tabs.getSelectedIndex()) {
+            case 1:
+                panelMetodosPago.refrescarTabla();
+                break;
+            case 2:
+                panelConfigVentas.cargar();
+                break;
+            case 3:
+                panelConfigPeluqueria.cargar();
+                break;
+            case 5:
+                panelRubros.refrescarTabla();
+                break;
+            default:
+                break;
+        }
     }
 }
-
