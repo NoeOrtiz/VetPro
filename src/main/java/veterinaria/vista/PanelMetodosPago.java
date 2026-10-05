@@ -2,6 +2,7 @@ package veterinaria.vista;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Dimension;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -57,7 +58,11 @@ public class PanelMetodosPago extends JPanel {
         acciones.add(btnRefrescar);
 
         add(top, BorderLayout.NORTH);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setPreferredSize(new Dimension(800, 300));
+        JPanel tableArea = new JPanel(new BorderLayout());
+        tableArea.add(scroll, BorderLayout.NORTH);
+        add(tableArea, BorderLayout.CENTER);
         add(acciones, BorderLayout.SOUTH);
 
         wireEvents();
