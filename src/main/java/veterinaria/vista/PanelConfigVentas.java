@@ -131,7 +131,7 @@ public class PanelConfigVentas extends JPanel {
         g.fill = GridBagConstraints.BOTH;
         g.weighty = 1;
         JScrollPane sp = new JScrollPane(tblRubros);
-        sp.setPreferredSize(new Dimension(800, 260));
+        sp.setPreferredSize(new Dimension(800, 190));
         center.add(sp, g);
 
         add(center, BorderLayout.CENTER);
