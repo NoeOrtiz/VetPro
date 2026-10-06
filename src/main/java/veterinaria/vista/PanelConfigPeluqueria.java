@@ -118,7 +118,7 @@ public class PanelConfigPeluqueria extends JPanel {
 
     public PanelConfigPeluqueria() {
         setLayout(new BorderLayout(12, 12));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         lbTitulo.setFont(lbTitulo.getFont().deriveFont(java.awt.Font.BOLD, 14f));
 
@@ -141,6 +141,7 @@ public class PanelConfigPeluqueria extends JPanel {
         acciones.add(btnGuardar);
 
         add(lbTitulo, BorderLayout.NORTH);
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         add(scroll, BorderLayout.CENTER);
         add(acciones, BorderLayout.SOUTH);
 
