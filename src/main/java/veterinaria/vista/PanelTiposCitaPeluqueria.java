@@ -50,7 +50,7 @@ public class PanelTiposCitaPeluqueria extends JPanel {
 
     public PanelTiposCitaPeluqueria() {
         setLayout(new BorderLayout(12, 12));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         JPanel top = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         top.add(btnNuevo);
@@ -62,12 +62,15 @@ public class PanelTiposCitaPeluqueria extends JPanel {
         top.add(btnOrden);
         top.add(btnRefrescar);
 
-        add(top, BorderLayout.SOUTH);
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setPreferredSize(new Dimension(800, 330));
+        scroll.setPreferredSize(new Dimension(800, 240));
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         JPanel tableArea = new JPanel(new BorderLayout());
         tableArea.add(scroll, BorderLayout.NORTH);
-        add(tableArea, BorderLayout.CENTER);
+        JPanel content = new JPanel(new BorderLayout(8, 8));
+        content.add(tableArea, BorderLayout.CENTER);
+        content.add(top, BorderLayout.SOUTH);
+        add(content, BorderLayout.NORTH);
 
         btnNuevo.addActionListener(e -> onNuevo());
         btnEditar.addActionListener(e -> onEditar());
