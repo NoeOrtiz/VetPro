@@ -54,7 +54,7 @@ public class PanelRubros extends JPanel {
 
     public PanelRubros() {
         setLayout(new BorderLayout(12, 12));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         JLabel titulo = new JLabel("Configuración - Rubros");
         titulo.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD, 14f));
@@ -71,11 +71,14 @@ public class PanelRubros extends JPanel {
 
         add(top, BorderLayout.NORTH);
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setPreferredSize(new Dimension(800, 300));
+        scroll.setPreferredSize(new Dimension(800, 220));
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         JPanel tableArea = new JPanel(new BorderLayout());
         tableArea.add(scroll, BorderLayout.NORTH);
-        add(tableArea, BorderLayout.CENTER);
-        add(acciones, BorderLayout.SOUTH);
+        JPanel content = new JPanel(new BorderLayout(8, 8));
+        content.add(tableArea, BorderLayout.CENTER);
+        content.add(acciones, BorderLayout.SOUTH);
+        add(content, BorderLayout.NORTH);
 
         wireEvents();
         refrescarTabla();
