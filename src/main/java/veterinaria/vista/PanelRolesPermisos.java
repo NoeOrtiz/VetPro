@@ -58,7 +58,7 @@ public class PanelRolesPermisos extends JPanel {
 
     public PanelRolesPermisos() {
         setLayout(new BorderLayout(12, 12));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         lbTitulo.setFont(lbTitulo.getFont().deriveFont(java.awt.Font.BOLD, 14f));
 
@@ -92,8 +92,10 @@ public class PanelRolesPermisos extends JPanel {
 
         // Armado UI
         add(buildHeader(), BorderLayout.NORTH);
-        add(buildCenter(), BorderLayout.CENTER);
-        add(buildBottom(), BorderLayout.SOUTH);
+        JPanel content = new JPanel(new BorderLayout(8, 8));
+        content.add(buildCenter(), BorderLayout.CENTER);
+        content.add(buildBottom(), BorderLayout.SOUTH);
+        add(content, BorderLayout.NORTH);
 
         wireEvents();
         cargarCombos();
@@ -126,7 +128,8 @@ public class PanelRolesPermisos extends JPanel {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.add(buildTopFilters(), BorderLayout.NORTH);
         JScrollPane scroll = new JScrollPane(tablePermisos);
-        scroll.setPreferredSize(new Dimension(800, 260));
+        scroll.setPreferredSize(new Dimension(800, 190));
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         JPanel tableArea = new JPanel(new BorderLayout());
         tableArea.add(scroll, BorderLayout.NORTH);
         panel.add(tableArea, BorderLayout.CENTER);
