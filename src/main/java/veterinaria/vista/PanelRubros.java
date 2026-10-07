@@ -71,7 +71,7 @@ public class PanelRubros extends JPanel {
 
         add(top, BorderLayout.NORTH);
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setPreferredSize(new Dimension(800, 220));
+        scroll.setPreferredSize(new Dimension(800, 420));
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         JPanel tableArea = new JPanel(new BorderLayout());
         tableArea.add(scroll, BorderLayout.NORTH);
