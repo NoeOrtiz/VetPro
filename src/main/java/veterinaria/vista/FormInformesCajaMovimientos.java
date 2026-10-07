@@ -52,6 +52,17 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         btnBuscarMovimientos.setText("Buscar");
         lbInformeDeCreditosyDebitos.setText("Informe de Movimientos de Caja");
 
+        // Distribución adaptable: evita que los botones se recorten y elimina
+        // el desplazamiento horizontal cuando la ventana es angosta.
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+            tableCajaMovimientos.setFillsViewportHeight(true);
+            if (tableCajaMovimientos.getParent() instanceof javax.swing.JViewport) {
+                javax.swing.JScrollPane panel = (javax.swing.JScrollPane) tableCajaMovimientos.getParent().getParent();
+                panel.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            }
+        });
+
         inicializarComboTipos();
         inicializarTabla();
         initListeners();
