@@ -63,7 +63,7 @@ public class PanelTiposCitaPeluqueria extends JPanel {
         top.add(btnRefrescar);
 
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setPreferredSize(new Dimension(800, 240));
+        scroll.setPreferredSize(new Dimension(800, 430));
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         JPanel tableArea = new JPanel(new BorderLayout());
         tableArea.add(scroll, BorderLayout.NORTH);
