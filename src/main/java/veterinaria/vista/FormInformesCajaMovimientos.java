@@ -63,6 +63,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             }
         });
 
+        organizarPantalla();
         inicializarComboTipos();
         inicializarTabla();
         initListeners();
@@ -74,6 +75,44 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
         // totales
         resetTotales();
+    }
+
+    /** Sustituye las restricciones fijas del diseñador por una composición adaptable. */
+    private void organizarPantalla() {
+        jpHeader.removeAll();
+        jpHeader.setLayout(new java.awt.BorderLayout(8, 8));
+        jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 12, 10, 12));
+        jpHeader.add(lbInformeDeCreditosyDebitos, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 4));
+        filtros.add(lbTipoMovimiento);
+        filtros.add(jcbTipoMovimiento);
+        filtros.add(lbFechaDesde);
+        filtros.add(jdcFechaDesdeFiltro);
+        filtros.add(lbFechaHasta);
+        filtros.add(jdcFechaHastaFiltro);
+        filtros.add(btnBuscarMovimientos);
+        jpHeader.add(filtros, java.awt.BorderLayout.CENTER);
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        acciones.add(btnVer);
+        acciones.add(btnImprimir);
+        jpHeader.add(acciones, java.awt.BorderLayout.SOUTH);
+
+        jpListaOperaciones.removeAll();
+        jpListaOperaciones.setLayout(new java.awt.BorderLayout(6, 6));
+        jpListaOperaciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
+        javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout());
+        titulo.add(lbListaDeOperaciones, java.awt.BorderLayout.WEST);
+        titulo.add(btnImprimirLista, java.awt.BorderLayout.EAST);
+        jpListaOperaciones.add(titulo, java.awt.BorderLayout.NORTH);
+        jpListaOperaciones.add(scroll1, java.awt.BorderLayout.CENTER);
+        scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+
+        setLayout(new java.awt.BorderLayout(0, 4));
+        removeAll();
+        add(jpHeader, java.awt.BorderLayout.NORTH);
+        add(jpListaOperaciones, java.awt.BorderLayout.CENTER);
+        add(jpBotonesTotalesInferior, java.awt.BorderLayout.SOUTH);
     }
 
     private void initListeners() {
