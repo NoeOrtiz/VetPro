@@ -48,6 +48,12 @@ public class PagoProveedorService {
                     .setParameter("e", CajaSesion.Estado.ABIERTA).setMaxResults(1).getResultStream().findFirst()
                     .orElseThrow(() -> new IllegalStateException("Debe abrir la caja antes de pagar una deuda a proveedor."));
 
+            // Bloquea la sesión durante el pago: un cierre concurrente no puede
+            // confirmar mientras se registra el egreso.
+            em.lock(sesion, LockModeType.PESSIMISTIC_WRITE);
+            if (sesion.getEstado() != CajaSesion.Estado.ABIERTA)
+                throw new IllegalStateException("La caja se cerró antes de confirmar el pago.");
+
             BigDecimal nuevoSaldo = deuda.subtract(monto);
             CuentaCorrienteProveedorMovimiento movCC = new CuentaCorrienteProveedorMovimiento();
             movCC.setCuentaCorrienteProveedor(cc); movCC.setFechaMovimiento(LocalDate.now());
