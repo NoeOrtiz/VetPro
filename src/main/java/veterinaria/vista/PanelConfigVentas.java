@@ -68,7 +68,9 @@ public class PanelConfigVentas extends JPanel {
 
         JLabel title = new JLabel("Configuraciones de Ventas");
         title.setFont(title.getFont().deriveFont(java.awt.Font.BOLD, 14f));
-        add(title, BorderLayout.NORTH);
+        JPanel header = new JPanel(new BorderLayout());
+        header.add(title, BorderLayout.WEST);
+        add(header, BorderLayout.NORTH);
 
         JPanel center = new JPanel(new GridBagLayout());
         GridBagConstraints g = new GridBagConstraints();
@@ -135,7 +137,9 @@ public class PanelConfigVentas extends JPanel {
         sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         center.add(sp, g);
 
-        add(center, BorderLayout.NORTH);
+        JPanel body = new JPanel(new BorderLayout());
+        body.add(center, BorderLayout.NORTH);
+        add(body, BorderLayout.CENTER);
 
         JPanel south = new JPanel();
         south.add(btnRecargar);
