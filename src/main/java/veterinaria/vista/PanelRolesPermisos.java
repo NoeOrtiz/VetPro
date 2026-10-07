@@ -128,7 +128,7 @@ public class PanelRolesPermisos extends JPanel {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         panel.add(buildTopFilters(), BorderLayout.NORTH);
         JScrollPane scroll = new JScrollPane(tablePermisos);
-        scroll.setPreferredSize(new Dimension(800, 190));
+        scroll.setPreferredSize(new Dimension(800, 330));
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         JPanel tableArea = new JPanel(new BorderLayout());
         tableArea.add(scroll, BorderLayout.NORTH);
