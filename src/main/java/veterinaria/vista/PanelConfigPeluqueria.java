@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTabbedPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
@@ -122,27 +123,18 @@ public class PanelConfigPeluqueria extends JPanel {
 
         lbTitulo.setFont(lbTitulo.getFont().deriveFont(java.awt.Font.BOLD, 14f));
 
-        // Mejoras visuales: scroll + secciones con borde titulado
-        JPanel contenido = new JPanel();
-        contenido.setLayout(new BoxLayout(contenido, BoxLayout.Y_AXIS));
-        contenido.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
-
-        contenido.add(buildPeluqueriaSection());
-        contenido.add(Box.createVerticalStrut(4));
-        contenido.add(buildLaboratorioSection());
-        contenido.add(Box.createVerticalStrut(4));
-        contenido.add(buildHospitalizacionSection());
-
-        JScrollPane scroll = new JScrollPane(contenido);
-        scroll.setBorder(BorderFactory.createEmptyBorder());
+        // Cada servicio tiene su propio espacio. Evitamos un scroll principal innecesario.
+        JTabbedPane servicios = new JTabbedPane();
+        servicios.addTab("Peluquería", buildPeluqueriaSection());
+        servicios.addTab("Laboratorio", buildLaboratorioSection());
+        servicios.addTab("Hospitalización", buildHospitalizacionSection());
 
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         acciones.add(btnRestaurar);
         acciones.add(btnGuardar);
 
         add(lbTitulo, BorderLayout.NORTH);
-        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        add(scroll, BorderLayout.CENTER);
+        add(servicios, BorderLayout.CENTER);
         add(acciones, BorderLayout.SOUTH);
 
         // Tamaños consistentes
