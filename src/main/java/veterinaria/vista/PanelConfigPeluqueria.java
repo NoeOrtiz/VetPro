@@ -125,9 +125,9 @@ public class PanelConfigPeluqueria extends JPanel {
 
         // Cada servicio tiene su propio espacio. Evitamos un scroll principal innecesario.
         JTabbedPane servicios = new JTabbedPane();
-        servicios.addTab("Peluquería", buildPeluqueriaSection());
-        servicios.addTab("Laboratorio", buildLaboratorioSection());
-        servicios.addTab("Hospitalización", buildHospitalizacionSection());
+        servicios.addTab("Peluquería", anclarSeccionArriba(buildPeluqueriaSection()));
+        servicios.addTab("Laboratorio", anclarSeccionArriba(buildLaboratorioSection()));
+        servicios.addTab("Hospitalización", anclarSeccionArriba(buildHospitalizacionSection()));
 
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         acciones.add(btnRestaurar);
@@ -151,6 +151,13 @@ public class PanelConfigPeluqueria extends JPanel {
 
         wireEvents();
         cargar();
+    }
+
+    /** Mantiene los formularios compactos y alineados arriba, sin estirarlos verticalmente. */
+    private JPanel anclarSeccionArriba(JPanel seccion) {
+        JPanel contenedor = new JPanel(new BorderLayout());
+        contenedor.add(seccion, BorderLayout.NORTH);
+        return contenedor;
     }
 
     // ---------------- UI Builders ----------------
