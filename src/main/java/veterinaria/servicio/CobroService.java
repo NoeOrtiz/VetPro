@@ -49,6 +49,10 @@ public class CobroService {
                     .setMaxResults(1)
                     .getResultStream().findFirst()
                     .orElseThrow(() -> new IllegalStateException("Debe abrir la caja antes de registrar un cobro."));
+            em.lock(sesion, LockModeType.PESSIMISTIC_WRITE);
+            if (sesion.getEstado() != CajaSesion.Estado.ABIERTA) {
+                throw new IllegalStateException("La caja se cerró antes de confirmar el cobro.");
+            }
 
             // Un mismo recibo puede recibir varios pagos parciales en fechas distintas.
             // La proteccion contra doble clic/reintento se hace por claveOperacion,
