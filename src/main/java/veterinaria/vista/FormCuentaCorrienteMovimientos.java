@@ -927,7 +927,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         } else {
             // Sin selección: dejamos el saldo en cero
             txtSaldoCC.setText(formatearMoneda(BigDecimal.ZERO));
-            txtSaldoCC.setForeground(table.getForeground());
+            txtSaldoCC.setForeground(colorSaldoTema());
             txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
             txtLimiteCC.setForeground(new Color(80, 80, 80));
 
@@ -945,7 +945,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         if (filaSeleccionada == -1) {
             // Sin selección: dejamos el saldo en cero
             txtSaldoCC.setText(formatearMoneda(BigDecimal.ZERO));
-            txtSaldoCC.setForeground(table.getForeground());
+            txtSaldoCC.setForeground(colorSaldoTema());
             txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
             txtLimiteCC.setForeground(new Color(80, 80, 80));
             ultimaCuentaAlertada = null;
