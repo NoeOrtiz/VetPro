@@ -78,12 +78,23 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     }
 
     /** Sustituye las restricciones fijas del diseñador por una composición adaptable. */
+    /** Layout flexible sin perder las fechas completas ni los separadores. */
     private void organizarPantalla() {
+        jdcFechaDesdeFiltro.setPreferredSize(new java.awt.Dimension(152, 28));
+        jdcFechaHastaFiltro.setPreferredSize(new java.awt.Dimension(152, 28));
+        jdcFechaDesdeFiltro.setMinimumSize(new java.awt.Dimension(152, 28));
+        jdcFechaHastaFiltro.setMinimumSize(new java.awt.Dimension(152, 28));
+        jcbTipoMovimiento.setPreferredSize(new java.awt.Dimension(150, 28));
+
         jpHeader.removeAll();
-        jpHeader.setLayout(new java.awt.BorderLayout(8, 8));
-        jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 12, 10, 12));
-        jpHeader.add(lbInformeDeCreditosyDebitos, java.awt.BorderLayout.NORTH);
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 4));
+        jpHeader.setLayout(new java.awt.BorderLayout(4, 6));
+        jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 12, 4, 12));
+        javax.swing.JPanel cabecera = new javax.swing.JPanel(new java.awt.BorderLayout(0, 7));
+        cabecera.add(lbInformeDeCreditosyDebitos, java.awt.BorderLayout.NORTH);
+        cabecera.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        jpHeader.add(cabecera, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 4));
         filtros.add(lbTipoMovimiento);
         filtros.add(jcbTipoMovimiento);
         filtros.add(lbFechaDesde);
@@ -92,17 +103,21 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         filtros.add(jdcFechaHastaFiltro);
         filtros.add(btnBuscarMovimientos);
         jpHeader.add(filtros, java.awt.BorderLayout.CENTER);
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 2));
         acciones.add(btnVer);
         acciones.add(btnImprimir);
         jpHeader.add(acciones, java.awt.BorderLayout.SOUTH);
 
         jpListaOperaciones.removeAll();
         jpListaOperaciones.setLayout(new java.awt.BorderLayout(6, 6));
-        jpListaOperaciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8));
-        javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout());
-        titulo.add(lbListaDeOperaciones, java.awt.BorderLayout.WEST);
-        titulo.add(btnImprimirLista, java.awt.BorderLayout.EAST);
+        jpListaOperaciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 8, 4, 8));
+        javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        titulo.add(jSeparator2, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel encabezadoLista = new javax.swing.JPanel(new java.awt.BorderLayout());
+        encabezadoLista.add(lbListaDeOperaciones, java.awt.BorderLayout.WEST);
+        encabezadoLista.add(btnImprimirLista, java.awt.BorderLayout.EAST);
+        titulo.add(encabezadoLista, java.awt.BorderLayout.CENTER);
+        titulo.add(jSeparator3, java.awt.BorderLayout.SOUTH);
         jpListaOperaciones.add(titulo, java.awt.BorderLayout.NORTH);
         jpListaOperaciones.add(scroll1, java.awt.BorderLayout.CENTER);
         scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
