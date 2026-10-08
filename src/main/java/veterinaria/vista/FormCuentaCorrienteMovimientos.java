@@ -154,12 +154,18 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
      * Configura el campo de saldo total de la cuenta corriente. Se muestra en
      * verde si está a favor (>= 0) o rojo si está en deuda (< 0).
      */
+    /** Usa el color del tema activo (FlatLaf claro/oscuro) para el saldo. */
+    private Color colorSaldoTema() {
+        Color color = javax.swing.UIManager.getColor("TextField.foreground");
+        return color != null ? color : txtSaldoCC.getForeground();
+    }
+
     private void configurarCampoSaldo() {
         txtSaldoCC.setEditable(false);
         txtSaldoCC.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         txtSaldoCC.setFont(txtSaldoCC.getFont().deriveFont(java.awt.Font.BOLD, 14f));
         txtSaldoCC.setText(formatearMoneda(BigDecimal.ZERO));
-        txtSaldoCC.setForeground(new Color(0, 140, 0));
+        txtSaldoCC.setForeground(colorSaldoTema());
     }
 
     /**
@@ -219,9 +225,9 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         }
         txtSaldoCC.setText(formatearMoneda(saldo));
         if (saldo.signum() < 0) {
-            txtSaldoCC.setForeground(new Color(180, 0, 0)); // deuda -> rojo
+            txtSaldoCC.setForeground(colorSaldoTema()); // deuda -> rojo
         } else {
-            txtSaldoCC.setForeground(new Color(0, 140, 0)); // a favor -> verde
+            txtSaldoCC.setForeground(colorSaldoTema()); // a favor -> verde
         }
         return saldo;
     }
@@ -323,9 +329,9 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
             } else {
                 setBackground(table.getBackground());
                 if (esDebito) {
-                    setForeground(new Color(180, 0, 0));
+                    setForeground(table.getForeground());
                 } else if (esCredito) {
-                    setForeground(new Color(0, 140, 0));
+                    setForeground(table.getForeground());
                     setFont(table.getFont().deriveFont(Font.BOLD));
                 } else {
                     setForeground(table.getForeground());
@@ -921,7 +927,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         } else {
             // Sin selección: dejamos el saldo en cero
             txtSaldoCC.setText(formatearMoneda(BigDecimal.ZERO));
-            txtSaldoCC.setForeground(new Color(0, 140, 0));
+            txtSaldoCC.setForeground(table.getForeground());
             txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
             txtLimiteCC.setForeground(new Color(80, 80, 80));
 
@@ -939,7 +945,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         if (filaSeleccionada == -1) {
             // Sin selección: dejamos el saldo en cero
             txtSaldoCC.setText(formatearMoneda(BigDecimal.ZERO));
-            txtSaldoCC.setForeground(new Color(0, 140, 0));
+            txtSaldoCC.setForeground(table.getForeground());
             txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
             txtLimiteCC.setForeground(new Color(80, 80, 80));
             ultimaCuentaAlertada = null;
@@ -1002,7 +1008,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
                             ? "Deuda pendiente: " + formatearMoneda(saldoTotal.abs())
                             : (saldoTotal.signum() > 0 ? "Saldo a favor: " + formatearMoneda(saldoTotal)
                                     : "Sin deuda"));
-                    txtSaldoCC.setForeground(saldoTotal.signum() < 0 ? new Color(180, 0, 0) : new Color(0, 140, 0));
+                    txtSaldoCC.setForeground(saldoTotal.signum() < 0 ? colorSaldoTema() : colorSaldoTema());
 
                     if (limite == null) {
                         limite = BigDecimal.ZERO;
