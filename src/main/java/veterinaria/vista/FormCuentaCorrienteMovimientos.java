@@ -187,6 +187,15 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         }
     }
 
+    /** Historial descendente: primero el movimiento más reciente. */
+    private void ordenarMovimientosRecientesPrimero(List<CuentaCorrienteMovimiento> movimientos) {
+        movimientos.sort(java.util.Comparator
+                .comparing(CuentaCorrienteMovimiento::getFechaMovimiento,
+                        java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
+                .thenComparing(CuentaCorrienteMovimiento::getIdMovimiento,
+                        java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())));
+    }
+
     private String formatearMoneda(BigDecimal valor) {
         NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
         return nf.format(valor);
@@ -879,6 +888,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
             // Obtener los movimientos del cliente en el rango de fechas
             String tipo = (String) jcbTipoMovimiento.getSelectedItem();
             List<CuentaCorrienteMovimiento> movimientos = operarCCMovimientos.obtenerMovimientosEnRango(idCuentaCorriente, sqlFechaDesde, sqlFechaHasta, tipo);
+                ordenarMovimientosRecientesPrimero(movimientos);
 
             // Actualizar la tabla de movimientos
             DefaultTableModel modeloMovimientos = (DefaultTableModel) tableMovimientosCC.getModel();
@@ -942,6 +952,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
             @Override
             protected Object[] doInBackground() {
                 List<CuentaCorrienteMovimiento> movimientos = operarCCMovimientos.obtenerMovimientosEnRango(idCuentaCorriente, sqlFechaDesde, sqlFechaHasta, tipo);
+                ordenarMovimientosRecientesPrimero(movimientos);
                 BigDecimal saldoTotal = operarCCMovimientos.obtenerSaldoActualSumando(idCuentaCorriente);
                 BigDecimal limite = obtenerLimiteCredito(idCuentaCorriente);
                 return new Object[]{movimientos, saldoTotal, limite};
