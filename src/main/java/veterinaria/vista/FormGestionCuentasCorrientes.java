@@ -123,7 +123,8 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
 
         lbBuscar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/veterinaria/icon/png/search.png"))); // NOI18N
 
-        btnEliminar.setText("Eliminar");
+        btnEliminar.setText("Desactivar");
+        btnEliminar.setToolTipText("Desactiva la cuenta sin borrar su historial ni sus movimientos");
         btnEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEliminarActionPerformed(evt);
@@ -385,34 +386,15 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     }
     
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
+        // Conservamos el permiso existente para no alterar el mapeo RBAC.
         String perm = "FormGestionCuentasCorrientes.ELIMINAR";
         if (sesion == null || !sesion.puede(perm)) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "No tienes permisos suficientes para eliminar cuentas corrientes.",
-                    "Acceso restringido",
-                    JOptionPane.WARNING_MESSAGE
-            );
+            JOptionPane.showMessageDialog(this,
+                    "No tiene permisos suficientes para desactivar cuentas corrientes.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        Application.actualizarEstadoUsuario("EliminandoCuentaCorriente");
-        int respuesta = JOptionPane.showConfirmDialog(
-            this, "¿Estás seguro de que deseas eliminar esta Cuenta Corriente?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-
-        if (respuesta == JOptionPane.YES_OPTION) {
-            Application.actualizarEstadoUsuario("Eliminanda");
-            eliminarCuentaCorrienteSeleccionada();
-            limpiarCamposFormulario();
-            jpDatosCuentaCorriente.setVisible(false);
-            cargarCuentasCorrientesEnTablaAsync();
-        } else {
-            Application.actualizarEstadoUsuario("Eliminación cancelada");
-        }
+        eliminarCuentaCorrienteSeleccionada();
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
