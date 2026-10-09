@@ -123,8 +123,8 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
 
         lbBuscar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/veterinaria/icon/png/search.png"))); // NOI18N
 
-        btnEliminar.setText("Desactivar");
-        btnEliminar.setToolTipText("Desactiva la cuenta sin borrar su historial ni sus movimientos");
+        btnEliminar.setText("Eliminar");
+        btnEliminar.setToolTipText("Quitar la cuenta de uso, conservando el historial");
         btnEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEliminarActionPerformed(evt);
