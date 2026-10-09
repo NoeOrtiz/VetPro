@@ -45,8 +45,44 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             // Mantener el comportamiento actual, pero el recálculo se hace fuera del EDT.
             jpDatosCuentaCorriente.setVisible(false);
         }
+        configurarPresentacionSaldos();
         initListeners();
         cargarInicialAsync();
+    }
+
+    /** Presentación clara del saldo, sin modificar el valor contable almacenado. */
+    private void configurarPresentacionSaldos() {
+        tableCCClientes.getColumnModel().getColumn(3).setHeaderValue("Estado de cuenta");
+        tableCCClientes.getColumnModel().getColumn(3).setPreferredWidth(210);
+        tableCCClientes.getColumnModel().getColumn(3).setCellRenderer(
+                new javax.swing.table.DefaultTableCellRenderer() {
+            private final java.text.NumberFormat moneda = java.text.NumberFormat.getCurrencyInstance(
+                    new java.util.Locale("es", "AR"));
+
+            @Override
+            public java.awt.Component getTableCellRendererComponent(javax.swing.JTable tabla,
+                    Object valor, boolean seleccionado, boolean foco, int fila, int columna) {
+                super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
+                setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+                setFont(tabla.getFont());
+                if (valor instanceof BigDecimal) {
+                    BigDecimal saldo = (BigDecimal) valor;
+                    if (saldo.signum() < 0) {
+                        setText("Deuda: " + moneda.format(saldo.abs()));
+                    } else if (saldo.signum() > 0) {
+                        setText("A favor: " + moneda.format(saldo));
+                    } else {
+                        setText("Sin deuda");
+                    }
+                } else {
+                    setText(valor == null ? "Sin datos" : valor.toString());
+                }
+                // Los colores de selección y texto los administra FlatLaf.
+                setForeground(seleccionado ? tabla.getSelectionForeground() : tabla.getForeground());
+                setBackground(seleccionado ? tabla.getSelectionBackground() : tabla.getBackground());
+                return this;
+            }
+        });
     }
 
     private void setBusy(boolean busy) {
