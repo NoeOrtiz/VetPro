@@ -32,6 +32,8 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     private CuentaCorriente cuentaCorriente = new CuentaCorriente();
     private Cliente cliente = new Cliente();
     private ManejoTablas operarTablas = new ManejoTablas();
+    private final javax.swing.JComboBox<String> filtroEstado = new javax.swing.JComboBox<>(
+            new String[]{"Activas", "Inactivas", "Todas"});
     private boolean listenerClienteInstalado = false;
     private boolean permitirRecalculoMasivo = false;
     
@@ -46,43 +48,53 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             jpDatosCuentaCorriente.setVisible(false);
         }
         configurarPresentacionSaldos();
+        configurarFiltroEstado();
         initListeners();
         cargarInicialAsync();
     }
 
-    /** Presentación clara del saldo, sin modificar el valor contable almacenado. */
+    private void configurarFiltroEstado() {
+        filtroEstado.setToolTipText("Filtrar cuentas por estado");
+        filtroEstado.addActionListener(e -> cargarCuentasCorrientesEnTablaAsync());
+        // Se agrega al encabezado sin modificar el formulario generado por NetBeans.
+        javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(
+                java.awt.FlowLayout.RIGHT, 8, 0));
+        barra.setOpaque(false);
+        barra.add(new javax.swing.JLabel("Mostrar:"));
+        barra.add(filtroEstado);
+        // El filtro queda visible sobre la tabla, dentro del contenedor existente.
+        java.awt.Container padre = tableCCClientes.getParent();
+        if (padre instanceof javax.swing.JViewport) {
+            javax.swing.JScrollPane scroll = (javax.swing.JScrollPane) padre.getParent();
+            scroll.setColumnHeaderView(tableCCClientes.getTableHeader());
+            scroll.setCorner(javax.swing.JScrollPane.UPPER_RIGHT_CORNER, barra);
+        }
+    }
+
+    /** Saldos numéricos, sin descripciones dentro de las celdas. */
     private void configurarPresentacionSaldos() {
-        tableCCClientes.getColumnModel().getColumn(3).setHeaderValue("Estado de cuenta");
-        tableCCClientes.getColumnModel().getColumn(3).setPreferredWidth(210);
-        tableCCClientes.getColumnModel().getColumn(3).setCellRenderer(
+        tableCCClientes.getColumnModel().getColumn(3).setHeaderValue("Saldo");
+        tableCCClientes.getColumnModel().getColumn(3).setPreferredWidth(135);
+        javax.swing.table.DefaultTableCellRenderer monedaRenderer =
                 new javax.swing.table.DefaultTableCellRenderer() {
             private final java.text.NumberFormat moneda = java.text.NumberFormat.getCurrencyInstance(
                     new java.util.Locale("es", "AR"));
-
             @Override
             public java.awt.Component getTableCellRendererComponent(javax.swing.JTable tabla,
                     Object valor, boolean seleccionado, boolean foco, int fila, int columna) {
                 super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
                 setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-                setFont(tabla.getFont());
                 if (valor instanceof BigDecimal) {
-                    BigDecimal saldo = (BigDecimal) valor;
-                    if (saldo.signum() < 0) {
-                        setText("Deuda: " + moneda.format(saldo.abs()));
-                    } else if (saldo.signum() > 0) {
-                        setText("A favor: " + moneda.format(saldo));
-                    } else {
-                        setText("Sin deuda");
-                    }
-                } else {
-                    setText(valor == null ? "Sin datos" : valor.toString());
+                    BigDecimal importe = (BigDecimal) valor;
+                    setText((importe.signum() > 0 ? "+" : importe.signum() < 0 ? "−" : "")
+                            + moneda.format(importe.abs()));
                 }
-                // Los colores de selección y texto los administra FlatLaf.
-                setForeground(seleccionado ? tabla.getSelectionForeground() : tabla.getForeground());
-                setBackground(seleccionado ? tabla.getSelectionBackground() : tabla.getBackground());
                 return this;
             }
-        });
+        };
+        tableCCClientes.getColumnModel().getColumn(3).setCellRenderer(monedaRenderer);
+        tableCCClientes.getColumnModel().getColumn(4).setCellRenderer(monedaRenderer);
+        tableCCClientes.getColumnModel().getColumn(4).setPreferredWidth(130);
     }
 
     private void setBusy(boolean busy) {
@@ -159,8 +171,8 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
 
         lbBuscar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/veterinaria/icon/png/search.png"))); // NOI18N
 
-        btnEliminar.setText("Eliminar");
-        btnEliminar.setToolTipText("Quitar la cuenta de uso, conservando el historial");
+        btnEliminar.setText("Desactivar");
+        btnEliminar.setToolTipText("Desactivar o reactivar la cuenta, conservando el historial");
         btnEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEliminarActionPerformed(evt);
@@ -430,7 +442,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
                     "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        eliminarCuentaCorrienteSeleccionada();
+        cambiarEstadoCuentaSeleccionada();
     }//GEN-LAST:event_btnEliminarActionPerformed
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
@@ -542,29 +554,33 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         cargarCombosBoxs();        
     }
 
-    private void eliminarCuentaCorrienteSeleccionada(){
-        int selectedRow = operarTabla.comprobarElementoSeleccionado(tableCCClientes);
-        if (selectedRow != -1) {
-            var idCuentaCorriente = (Integer) tableCCClientes.getValueAt(selectedRow, 1);
-            cuentaCorriente = operarCuentaCorriente.buscarCuentaCorrientePorId(idCuentaCorriente);
-
-            int r = JOptionPane.showConfirmDialog(
-                    this,
-                    "¿Querés eliminar la cuenta corriente seleccionada?",
-                    "Confirmar eliminación",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-            if (r == JOptionPane.YES_OPTION) {
-                if (operarCuentaCorriente.desactivarCuentaCorriente(cuentaCorriente)) {
-                    JOptionPane.showMessageDialog(null, "Cuenta corriente eliminada correctamente", "Información", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(null, "No se pudo eliminar la cuenta corriente", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-                cargarCuentasCorrientesEnTablaAsync();
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Por favor seleccione una Cuenta Corriente", "Advertencia", JOptionPane.WARNING_MESSAGE);
+    private void cambiarEstadoCuentaSeleccionada() {
+        int fila = operarTabla.comprobarElementoSeleccionado(tableCCClientes);
+        if (fila < 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione una cuenta corriente.");
+            return;
+        }
+        Integer id = (Integer) tableCCClientes.getValueAt(fila, 1);
+        CuentaCorriente cc = operarCuentaCorriente.buscarCuentaCorrientePorId(id);
+        boolean inactiva = "INACTIVO".equalsIgnoreCase(cc.getEstado())
+                || "INACTIVA".equalsIgnoreCase(cc.getEstado());
+        String accion = inactiva ? "reactivar" : "desactivar";
+        if (JOptionPane.showConfirmDialog(this,
+                "¿Querés " + accion + " la cuenta seleccionada?",
+                "Confirmar " + accion, JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            boolean ok = inactiva
+                    ? new veterinaria.servicio.CuentaCorrienteService().reactivarCuentaCorriente(id)
+                    : new veterinaria.servicio.CuentaCorrienteService().desactivarCuentaCorriente(id);
+            JOptionPane.showMessageDialog(this, ok
+                    ? "Cuenta " + (inactiva ? "reactivada" : "desactivada") + " correctamente."
+                    : "No se pudo cambiar el estado de la cuenta.");
+            cargarCuentasCorrientesEnTablaAsync();
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Operación no permitida", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -595,7 +611,14 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             protected List<Object[]> doInBackground() {
                 List<CuentaCorriente> cuentasCorrientes = operarCuentaCorriente.buscarTodasLasCuentasCorrientes();
                 ArrayList<Object[]> filas = new ArrayList<>();
+                String filtro = (String) filtroEstado.getSelectedItem();
                 for (CuentaCorriente cc : cuentasCorrientes) {
+                    boolean inactiva = "INACTIVO".equalsIgnoreCase(cc.getEstado())
+                            || "INACTIVA".equalsIgnoreCase(cc.getEstado());
+                    if (("Activas".equals(filtro) && inactiva)
+                            || ("Inactivas".equals(filtro) && !inactiva)) {
+                        continue;
+                    }
                     Cliente c = operarClientes.buscarPorId(cc.getCliente().getIdCliente());
                     Object nombreCliente = (c != null && c.getPersona() != null)
                             ? (c.getPersona().getNombre() + " " + c.getPersona().getApellido())
