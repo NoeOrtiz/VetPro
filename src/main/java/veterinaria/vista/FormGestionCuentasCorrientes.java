@@ -426,7 +426,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         String perm = "FormGestionCuentasCorrientes.ELIMINAR";
         if (sesion == null || !sesion.puede(perm)) {
             JOptionPane.showMessageDialog(this,
-                    "No tiene permisos suficientes para desactivar cuentas corrientes.",
+                    "No tiene permisos suficientes para eliminar cuentas corrientes.",
                     "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -550,19 +550,16 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
 
             int r = JOptionPane.showConfirmDialog(
                     this,
-                    "Las Cuentas Corrientes NO se eliminan.\n\n" +
-                    "Se marcará como INACTIVA para impedir su uso desde Caja.\n" +
-                    "El historial y movimientos se conservarán.\n\n" +
-                    "¿Desea desactivar la cuenta seleccionada?",
-                    "Confirmar desactivación",
+                    "¿Querés eliminar la cuenta corriente seleccionada?",
+                    "Confirmar eliminación",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
             );
             if (r == JOptionPane.YES_OPTION) {
                 if (operarCuentaCorriente.desactivarCuentaCorriente(cuentaCorriente)) {
-                    JOptionPane.showMessageDialog(null, "Cuenta Corriente desactivada con éxito", "Información", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "Cuenta corriente eliminada correctamente", "Información", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(null, "No se pudo desactivar la Cuenta Corriente", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, "No se pudo eliminar la cuenta corriente", "Error", JOptionPane.ERROR_MESSAGE);
                 }
                 cargarCuentasCorrientesEnTablaAsync();
             }
