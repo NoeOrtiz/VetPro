@@ -174,7 +174,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
     private void configurarCampoLimite() {
         txtLimiteCC.setEditable(false);
         txtLimiteCC.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
-        txtLimiteCC.setFont(txtLimiteCC.getFont().deriveFont(java.awt.Font.BOLD, 12f));
+        txtLimiteCC.setFont(txtSaldoCC.getFont());
         txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
         txtLimiteCC.setForeground(colorSaldoTema());
     }
