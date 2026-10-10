@@ -53,6 +53,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         tableMovimientosCC.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         tableMovimientosCC.setFillsViewportHeight(true);
         configurarRendererMonto();
+        configurarRendererSaldoCuentas();
         PermisoUI.aplicar(this);
         configurarCampoSaldo();
         configurarCampoLimite();
@@ -207,6 +208,30 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
                         java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
                 .thenComparing(CuentaCorrienteMovimiento::getIdMovimiento,
                         java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())));
+    }
+
+    /** Formato argentino para saldos de cuentas: signo, pesos y dos decimales. */
+    private void configurarRendererSaldoCuentas() {
+        javax.swing.table.DefaultTableCellRenderer renderer =
+                new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public java.awt.Component getTableCellRendererComponent(
+                    javax.swing.JTable tabla, Object valor, boolean seleccionada,
+                    boolean foco, int fila, int columna) {
+                super.getTableCellRendererComponent(tabla, valor, seleccionada, foco, fila, columna);
+                setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+                if (valor instanceof BigDecimal) {
+                    BigDecimal saldo = (BigDecimal) valor;
+                    setText((saldo.signum() > 0 ? "+" : saldo.signum() < 0 ? "−" : "")
+                            + formatearMoneda(saldo.abs()));
+                } else if (valor == null) {
+                    setText("");
+                }
+                return this;
+            }
+        };
+        tableCCClientes.getColumnModel().getColumn(3).setCellRenderer(renderer);
+        tableCCClientes.getColumnModel().getColumn(3).setPreferredWidth(145);
     }
 
     private String formatearMoneda(BigDecimal valor) {
