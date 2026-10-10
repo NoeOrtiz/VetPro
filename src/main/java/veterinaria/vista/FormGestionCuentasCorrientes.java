@@ -56,6 +56,18 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     private void configurarFiltroEstado() {
         filtroEstado.setToolTipText("Filtrar cuentas por estado");
         filtroEstado.addActionListener(e -> cargarCuentasCorrientesEnTablaAsync());
+        tableCCClientes.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int fila = tableCCClientes.getSelectedRow();
+                if (fila >= 0) {
+                    Object estado = tableCCClientes.getValueAt(fila, 7);
+                    boolean inactiva = estado != null
+                            && ("INACTIVO".equalsIgnoreCase(estado.toString())
+                            || "INACTIVA".equalsIgnoreCase(estado.toString()));
+                    btnEliminar.setText(inactiva ? "Reactivar" : "Desactivar");
+                }
+            }
+        });
         // Se agrega al encabezado sin modificar el formulario generado por NetBeans.
         javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(
                 java.awt.FlowLayout.RIGHT, 8, 0));
@@ -66,8 +78,10 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         java.awt.Container padre = tableCCClientes.getParent();
         if (padre instanceof javax.swing.JViewport) {
             javax.swing.JScrollPane scroll = (javax.swing.JScrollPane) padre.getParent();
-            scroll.setColumnHeaderView(tableCCClientes.getTableHeader());
-            scroll.setCorner(javax.swing.JScrollPane.UPPER_RIGHT_CORNER, barra);
+            javax.swing.JPanel encabezado = new javax.swing.JPanel(new java.awt.BorderLayout());
+            encabezado.add(barra, java.awt.BorderLayout.NORTH);
+            encabezado.add(tableCCClientes.getTableHeader(), java.awt.BorderLayout.SOUTH);
+            scroll.setColumnHeaderView(encabezado);
         }
     }
 
