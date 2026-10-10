@@ -176,7 +176,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         txtLimiteCC.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         txtLimiteCC.setFont(txtLimiteCC.getFont().deriveFont(java.awt.Font.BOLD, 12f));
         txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
-        txtLimiteCC.setForeground(new Color(80, 80, 80));
+        txtLimiteCC.setForeground(colorSaldoTema());
     }
 
     /**
@@ -929,7 +929,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
             txtSaldoCC.setText(formatearMoneda(BigDecimal.ZERO));
             txtSaldoCC.setForeground(colorSaldoTema());
             txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
-            txtLimiteCC.setForeground(new Color(80, 80, 80));
+            txtLimiteCC.setForeground(colorSaldoTema());
 
             // Reset del estado de alerta
             ultimaCuentaAlertada = null;
@@ -947,7 +947,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
             txtSaldoCC.setText(formatearMoneda(BigDecimal.ZERO));
             txtSaldoCC.setForeground(colorSaldoTema());
             txtLimiteCC.setText(formatearMoneda(BigDecimal.ZERO));
-            txtLimiteCC.setForeground(new Color(80, 80, 80));
+            txtLimiteCC.setForeground(colorSaldoTema());
             ultimaCuentaAlertada = null;
             ultimoEstadoExcedeLimite = false;
             return;
@@ -1014,7 +1014,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
                         limite = BigDecimal.ZERO;
                     }
                     txtLimiteCC.setText(formatearMoneda(limite));
-                    txtLimiteCC.setForeground(new Color(80, 80, 80));
+                    txtLimiteCC.setForeground(colorSaldoTema());
 
                     verificarYAlertarLimite(idCuentaCorriente, saldoTotal);
                 } finally {
