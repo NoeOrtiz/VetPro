@@ -58,6 +58,27 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         txtBusqueda.setFont(jcbCliente.getFont());
         lbUsuarioBusqueda.setFont(lbCliente.getFont());
         filtroEstado.addActionListener(e -> cargarCuentasCorrientesEnTablaAsync());
+        // Al pulsar cualquier celda se selecciona esa cuenta; no es necesario
+        // acertar en el pequeño checkbox para poder editarla.
+        tableCCClientes.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tableCCClientes.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                int filaVista = tableCCClientes.rowAtPoint(e.getPoint());
+                if (filaVista < 0) {
+                    return;
+                }
+                int filaModelo = tableCCClientes.convertRowIndexToModel(filaVista);
+                javax.swing.table.TableModel modelo = tableCCClientes.getModel();
+                for (int i = 0; i < modelo.getRowCount(); i++) {
+                    if (Boolean.TRUE.equals(modelo.getValueAt(i, 0)) && i != filaModelo) {
+                        modelo.setValueAt(false, i, 0);
+                    }
+                }
+                modelo.setValueAt(true, filaModelo, 0);
+                tableCCClientes.setRowSelectionInterval(filaVista, filaVista);
+            }
+        });
         tableCCClientes.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int fila = tableCCClientes.getSelectedRow();
@@ -543,7 +564,6 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             btnNuevo.setEnabled(true);
             btnEditar.setEnabled(true);
             btnEliminar.setEnabled(true);
-            initListeners();
             cargarComboClientesTodosAsync();
             cargarCuentasCorrientesEnTablaAsync();
         }
