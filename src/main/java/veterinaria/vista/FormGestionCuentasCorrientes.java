@@ -568,6 +568,26 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         }
     }
 
+    /** Resumen visual calculado con los saldos ya cargados, sin consultas adicionales. */
+    private void actualizarResumenCuentas(List<Object[]> filas) {
+        int conDeuda = 0;
+        int conSaldoAFavor = 0;
+        for (Object[] fila : filas) {
+            if (fila.length > 3 && fila[3] instanceof BigDecimal) {
+                int signo = ((BigDecimal) fila[3]).signum();
+                if (signo < 0) {
+                    conDeuda++;
+                } else if (signo > 0) {
+                    conSaldoAFavor++;
+                }
+            }
+        }
+        jLabel2.setText("Cuentas: " + filas.size()
+                + "   |   Con deuda: " + conDeuda
+                + "   |   Con saldo a favor: " + conSaldoAFavor);
+        jLabel2.setToolTipText("Resumen de las cuentas cargadas, sin modificar los saldos");
+    }
+
     private void cargarCuentasCorrientesEnTablaAsync() {
         setBusy(true);
         new SwingWorker<List<Object[]>, Void>() {
@@ -604,6 +624,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
                         modelo.addRow(f);
                     }
                     operarTabla.asegurarSeleccionUnica(tableCCClientes);
+                    actualizarResumenCuentas(filas);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(FormGestionCuentasCorrientes.this, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 } finally {
