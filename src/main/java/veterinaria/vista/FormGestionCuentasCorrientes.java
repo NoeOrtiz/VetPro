@@ -70,23 +70,52 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
                 }
             }
         });
-        // Se agrega al encabezado sin modificar el formulario generado por NetBeans.
-        javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(
-                java.awt.FlowLayout.RIGHT, 8, 0));
-        barra.setOpaque(false);
-        javax.swing.JLabel etiquetaEstado = new javax.swing.JLabel("Estado:");
-        etiquetaEstado.setFont(lbCliente.getFont());
-        barra.add(etiquetaEstado);
-        barra.add(filtroEstado);
-        // El filtro queda visible sobre la tabla, dentro del contenedor existente.
-        java.awt.Container padre = tableCCClientes.getParent();
-        if (padre instanceof javax.swing.JViewport) {
-            javax.swing.JScrollPane scroll = (javax.swing.JScrollPane) padre.getParent();
-            javax.swing.JPanel encabezado = new javax.swing.JPanel(new java.awt.BorderLayout());
-            encabezado.add(barra, java.awt.BorderLayout.NORTH);
-            encabezado.add(tableCCClientes.getTableHeader(), java.awt.BorderLayout.SOUTH);
-            scroll.setColumnHeaderView(encabezado);
-        }
+        // Ubicar el selector junto al buscador existente, sin editar el bloque generado.
+        // GroupLayout admite reemplazar el layout en tiempo de ejecución.
+        panelHeader.removeAll();
+        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.BorderLayout(6, 3));
+        busqueda.setOpaque(false);
+        javax.swing.JLabel tituloBusqueda = new javax.swing.JLabel("BUSCAR CUENTA");
+        tituloBusqueda.setFont(lbUsuarioBusqueda.getFont());
+        busqueda.add(tituloBusqueda, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(6, 0));
+        campo.setOpaque(false);
+        campo.add(lbBuscar, java.awt.BorderLayout.WEST);
+        campo.add(txtBusqueda, java.awt.BorderLayout.CENTER);
+        busqueda.add(campo, java.awt.BorderLayout.CENTER);
+
+        javax.swing.JPanel estado = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
+        estado.setOpaque(false);
+        javax.swing.JLabel tituloEstado = new javax.swing.JLabel("Estado:");
+        tituloEstado.setFont(tituloBusqueda.getFont());
+        estado.add(tituloEstado, java.awt.BorderLayout.NORTH);
+        estado.add(filtroEstado, java.awt.BorderLayout.CENTER);
+
+        javax.swing.JPanel controles = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        controles.setOpaque(false);
+        controles.add(btnNuevo);
+        controles.add(btnEditar);
+        controles.add(btnEliminar);
+
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(
+                java.awt.FlowLayout.LEFT, 10, 4));
+        filtros.setOpaque(false);
+        busqueda.setPreferredSize(new java.awt.Dimension(300, 53));
+        estado.setPreferredSize(new java.awt.Dimension(145, 53));
+        filtros.add(busqueda);
+        filtros.add(estado);
+
+        panelHeader.setLayout(new java.awt.BorderLayout(8, 7));
+        panelHeader.add(jLabel1, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel centro = new javax.swing.JPanel(new java.awt.BorderLayout());
+        centro.setOpaque(false);
+        centro.add(jSeparator1, java.awt.BorderLayout.NORTH);
+        centro.add(filtros, java.awt.BorderLayout.CENTER);
+        centro.add(controles, java.awt.BorderLayout.SOUTH);
+        panelHeader.add(centro, java.awt.BorderLayout.CENTER);
+        panelHeader.revalidate();
+        panelHeader.repaint();
     }
 
     /** Saldos numéricos, sin descripciones dentro de las celdas. */
@@ -522,7 +551,6 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         limpiarCamposFormulario();
-        initListeners();
         cargarComboClientesTodosAsync();
         cargarCuentasCorrientesEnTablaAsync();
         jpDatosCuentaCorriente.setVisible(false);
