@@ -46,7 +46,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
     public FormCuentaCorrienteMovimientos() {
         initComponents();
         // Lectura directa de saldos y filtros, sin alterar el modelo contable.
-        lbSaldoCC.setText("Estado de cuenta:");
+        lbSaldoCC.setText("Saldo:");
         lbLimiteCC.setText("Límite de crédito:");
         jdcDesde.setPreferredSize(new java.awt.Dimension(145, 28));
         jdcHasta.setPreferredSize(new java.awt.Dimension(145, 28));
@@ -1005,8 +1005,8 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
                         saldoTotal = BigDecimal.ZERO;
                     }
                     txtSaldoCC.setText(saldoTotal.signum() < 0
-                            ? "Deuda pendiente: " + formatearMoneda(saldoTotal.abs())
-                            : (saldoTotal.signum() > 0 ? "Saldo a favor: " + formatearMoneda(saldoTotal)
+                            ? formatearMoneda(saldoTotal)
+                            : (saldoTotal.signum() > 0 ? formatearMoneda(saldoTotal)
                                     : "Sin deuda"));
                     txtSaldoCC.setForeground(saldoTotal.signum() < 0 ? colorSaldoTema() : colorSaldoTema());
 
