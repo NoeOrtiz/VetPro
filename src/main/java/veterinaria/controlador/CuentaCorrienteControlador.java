@@ -7,10 +7,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import veterinaria.entidad.CuentaCorriente;
 import veterinaria.persistencia.CuentaCorrienteDAO;
-import veterinaria.persistencia.CuentaCorrienteMovimientoDAO;
+import veterinaria.servicio.CuentaCorrienteService;
 
 public class CuentaCorrienteControlador {
     CuentaCorrienteDAO cuentaCorrienteDAO = new CuentaCorrienteDAO();
+    private final CuentaCorrienteService cuentaCorrienteService = new CuentaCorrienteService();
     
     public boolean crearCuentaCorriente(CuentaCorriente cuentaCorriente){
         try {
@@ -51,26 +52,23 @@ public class CuentaCorrienteControlador {
         return cuentaCorrienteDAO.buscarPorIdCliente(idCliente);
     }   
     
-    public boolean actualizarSaldoActualCC(CuentaCorriente cuenta){
-        CuentaCorrienteMovimientoDAO operarMovimientosCC = new CuentaCorrienteMovimientoDAO();
-        BigDecimal debitos = operarMovimientosCC.sumarDebitos(cuenta.getIdCuentaCorriente());
-        BigDecimal creditos = operarMovimientosCC.sumarCreditos(cuenta.getIdCuentaCorriente());
-        BigDecimal saldo = creditos.subtract(debitos);
-        cuenta.setSaldoActual(saldo);
-        return cuentaCorrienteDAO.actualizar(cuenta);
+    /** Sincroniza el saldo incluyendo el saldo inicial, sin alterar el historial. */
+    public boolean actualizarSaldoActualCC(CuentaCorriente cuenta) {
+        if (cuenta == null || cuenta.getIdCuentaCorriente() == null) {
+            return false;
+        }
+        return cuentaCorrienteService.sincronizarSaldo(cuenta.getIdCuentaCorriente());
     }
-    
+
     public boolean actualizarTodosLosSaldosCC() {
-        List<CuentaCorriente> cuentasCorrientes = cuentaCorrienteDAO.buscarTodas();
-        for (CuentaCorriente cuentaCorrienteBucle : cuentasCorrientes) {
-            boolean retornar = actualizarSaldoActualCC(cuentaCorrienteBucle);
-            if (!retornar) {
-                return false; 
+        for (CuentaCorriente cuenta : cuentaCorrienteDAO.buscarTodas()) {
+            if (!actualizarSaldoActualCC(cuenta)) {
+                return false;
             }
         }
         return true;
     }
-    
+
     public Boolean cuentaCorrienteActiva(Integer idCliente){
         CuentaCorriente cuentaC = cuentaCorrienteDAO.buscarPorIdCliente(idCliente);
         if (cuentaC == null || cuentaC.getEstado() == null) return false;
@@ -78,11 +76,8 @@ public class CuentaCorrienteControlador {
         return est.equals("ACTIVO") || est.equals("ACTIVA");
     }
 
-    public BigDecimal obtenerSaldoReal(Integer idCuentaCorriente){
-        CuentaCorrienteMovimientoDAO operarMovimientosCC = new CuentaCorrienteMovimientoDAO();
-        BigDecimal debitos = operarMovimientosCC.sumarDebitos(idCuentaCorriente);
-        BigDecimal creditos = operarMovimientosCC.sumarCreditos(idCuentaCorriente);
-        return creditos.subtract(debitos);
+    public BigDecimal obtenerSaldoReal(Integer idCuentaCorriente) {
+        return cuentaCorrienteService.recalcularSaldo(idCuentaCorriente);
     }
 
     public BigDecimal obtenerMargenDisponible(Integer idCliente){
