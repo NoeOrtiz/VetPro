@@ -173,6 +173,27 @@ public class CuentaCorrienteService {
                 "Los movimientos confirmados no pueden editarse. Use revertirMovimiento().");
     }
 
+    /**
+     * Sincroniza el saldo almacenado con el saldo inicial y los movimientos.
+     * No modifica ni elimina movimientos históricos.
+     */
+    public boolean sincronizarSaldo(Integer idCuentaCorriente) {
+        if (idCuentaCorriente == null) {
+            return false;
+        }
+        return tx.runInTx(em -> {
+            CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente,
+                    LockModeType.PESSIMISTIC_WRITE);
+            if (cc == null) {
+                return false;
+            }
+            BigDecimal saldo = recalcularSaldoDesdeMovimientos(em, idCuentaCorriente);
+            cc.setSaldoActual(saldo);
+            cc.setUltimaEdicion(LocalDate.now());
+            return true;
+        });
+    }
+
     public BigDecimal recalcularSaldo(Integer idCuentaCorriente) {
         return tx.runInTx(em -> recalcularSaldoDesdeMovimientos(em, idCuentaCorriente));
     }
