@@ -30,8 +30,38 @@ public class CuentaCorrienteService {
     }
 
     public boolean actualizarCuentaCorriente(CuentaCorriente cuentaCorriente) {
+        if (cuentaCorriente == null || cuentaCorriente.getIdCuentaCorriente() == null) {
+            throw new IllegalArgumentException("Debe indicar una cuenta corriente existente.");
+        }
         return tx.runInTx(em -> {
-            em.merge(cuentaCorriente);
+            CuentaCorriente actual = em.find(CuentaCorriente.class,
+                    cuentaCorriente.getIdCuentaCorriente(), LockModeType.PESSIMISTIC_WRITE);
+            if (actual == null) {
+                return false;
+            }
+            // La edición general no puede cambiar el estado ni el saldo inicial:
+            // ambos afectan el historial y las reglas de desactivación.
+            BigDecimal nuevoSaldoInicial = cuentaCorriente.getSaldoInicial();
+            BigDecimal saldoInicialActual = actual.getSaldoInicial();
+            if (nuevoSaldoInicial == null || saldoInicialActual == null
+                    || nuevoSaldoInicial.compareTo(saldoInicialActual) != 0) {
+                throw new IllegalStateException("El saldo inicial no puede modificarse desde la edición.");
+            }
+            if (cuentaCorriente.getEstado() == null
+                    || !cuentaCorriente.getEstado().equalsIgnoreCase(actual.getEstado())) {
+                throw new IllegalStateException("Para cambiar el estado use Desactivar o Reactivar.");
+            }
+            if (cuentaCorriente.getCliente() == null
+                    || !actual.getCliente().getIdCliente().equals(
+                            cuentaCorriente.getCliente().getIdCliente())) {
+                throw new IllegalStateException("No se puede cambiar el cliente de una cuenta existente.");
+            }
+            BigDecimal limite = cuentaCorriente.getLimiteCredito();
+            if (limite == null || limite.signum() < 0) {
+                throw new IllegalArgumentException("El límite de crédito debe ser mayor o igual a cero.");
+            }
+            actual.setLimiteCredito(limite);
+            actual.setUltimaEdicion(LocalDate.now());
             return true;
         });
     }
