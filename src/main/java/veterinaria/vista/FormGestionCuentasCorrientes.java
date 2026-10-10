@@ -43,10 +43,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         // Permisos por RBAC (sin hardcodear rol)
         String permActualizar = "FormGestionCuentasCorrientes.ACTUALIZAR_SALDOS";
         permitirRecalculoMasivo = (sesion != null && sesion.puede(permActualizar));
-        if (permitirRecalculoMasivo) {
-            // Mantener el comportamiento actual, pero el recálculo se hace fuera del EDT.
-            jpDatosCuentaCorriente.setVisible(false);
-        }
+        jpDatosCuentaCorriente.setVisible(false);
         configurarPresentacionSaldos();
         configurarFiltroEstado();
         initListeners();
@@ -55,6 +52,11 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
 
     private void configurarFiltroEstado() {
         filtroEstado.setToolTipText("Filtrar cuentas por estado");
+        filtroEstado.setFont(txtBusqueda.getFont());
+        filtroEstado.setPreferredSize(new java.awt.Dimension(145, 28));
+        txtBusqueda.setToolTipText("Buscar por cliente o número de cuenta");
+        txtBusqueda.setFont(jcbCliente.getFont());
+        lbUsuarioBusqueda.setFont(lbCliente.getFont());
         filtroEstado.addActionListener(e -> cargarCuentasCorrientesEnTablaAsync());
         tableCCClientes.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -72,7 +74,9 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(
                 java.awt.FlowLayout.RIGHT, 8, 0));
         barra.setOpaque(false);
-        barra.add(new javax.swing.JLabel("Mostrar:"));
+        javax.swing.JLabel etiquetaEstado = new javax.swing.JLabel("Estado:");
+        etiquetaEstado.setFont(lbCliente.getFont());
+        barra.add(etiquetaEstado);
         barra.add(filtroEstado);
         // El filtro queda visible sobre la tabla, dentro del contenedor existente.
         java.awt.Container padre = tableCCClientes.getParent();
