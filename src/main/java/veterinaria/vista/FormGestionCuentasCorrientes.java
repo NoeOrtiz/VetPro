@@ -33,7 +33,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     private Cliente cliente = new Cliente();
     private ManejoTablas operarTablas = new ManejoTablas();
     private final javax.swing.JComboBox<String> filtroEstado = new javax.swing.JComboBox<>(
-            new String[]{"Activas", "Inactivas", "Todas"});
+            new String[]{"Todas", "Activas", "Inactivas"});
     private boolean listenerClienteInstalado = false;
     private boolean permitirRecalculoMasivo = false;
     
@@ -516,6 +516,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
         jcbCliente.setEnabled(false);
         txtSaldoInicial.setEnabled(false);
+        jcbEstado.setEnabled(false);
         String perm = "FormGestionCuentasCorrientes.EDITAR";
         if (sesion != null && sesion.puede(perm)) {
             if (editarCuentaCorrienteSeleccionada()){
@@ -631,6 +632,24 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         CuentaCorriente cc = operarCuentaCorriente.buscarCuentaCorrientePorId(id);
         boolean inactiva = "INACTIVO".equalsIgnoreCase(cc.getEstado())
                 || "INACTIVA".equalsIgnoreCase(cc.getEstado());
+        if (!inactiva) {
+            try {
+                BigDecimal saldoReal = new veterinaria.servicio.CuentaCorrienteService()
+                        .recalcularSaldo(id);
+                if (saldoReal.compareTo(BigDecimal.ZERO) != 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "No se puede desactivar la cuenta porque su saldo es "
+                            + (saldoReal.signum() < 0 ? "negativo" : "positivo")
+                            + ". Solo se permite desactivar con saldo $ 0,00.",
+                            "Desactivación no permitida", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(),
+                        "No se pudo verificar el saldo", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
         String accion = inactiva ? "reactivar" : "desactivar";
         if (JOptionPane.showConfirmDialog(this,
                 "¿Querés " + accion + " la cuenta seleccionada?",
