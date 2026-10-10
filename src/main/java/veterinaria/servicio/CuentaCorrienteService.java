@@ -15,6 +15,15 @@ public class CuentaCorrienteService {
 
     public boolean crearCuentaCorriente(CuentaCorriente cuentaCorriente) {
         return tx.runInTx(em -> {
+            if (cuentaCorriente == null || cuentaCorriente.getCliente() == null
+                    || cuentaCorriente.getCliente().getIdCliente() == null) {
+                throw new IllegalArgumentException("Debe seleccionar un cliente.");
+            }
+            veterinaria.entidad.Cliente cliente = em.find(veterinaria.entidad.Cliente.class,
+                    cuentaCorriente.getCliente().getIdCliente());
+            if (cliente == null || !cliente.isActivo()) {
+                throw new IllegalStateException("No se puede abrir una cuenta corriente para un cliente inactivo.");
+            }
             em.persist(cuentaCorriente);
             return true;
         });
@@ -31,6 +40,11 @@ public class CuentaCorrienteService {
         return tx.runInTx(em -> {
             CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente);
             if (cc == null) return false;
+            cc = em.find(CuentaCorriente.class, idCuentaCorriente, LockModeType.PESSIMISTIC_WRITE);
+            BigDecimal saldo = recalcularSaldoDesdeMovimientos(em, idCuentaCorriente);
+            if (saldo.compareTo(BigDecimal.ZERO) != 0) {
+                throw new IllegalStateException("No se puede desactivar: la cuenta tiene saldo pendiente o a favor.");
+            }
             cc.setEstado("INACTIVO");
             cc.setUltimaEdicion(LocalDate.now());
             em.merge(cc);
@@ -42,6 +56,11 @@ public class CuentaCorrienteService {
         return tx.runInTx(em -> {
             CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente);
             if (cc == null) return false;
+            veterinaria.entidad.Cliente cliente = em.find(veterinaria.entidad.Cliente.class,
+                    cc.getCliente().getIdCliente());
+            if (cliente == null || !cliente.isActivo()) {
+                throw new IllegalStateException("No se puede reactivar una cuenta de un cliente inactivo.");
+            }
             cc.setEstado("ACTIVO");
             cc.setUltimaEdicion(LocalDate.now());
             em.merge(cc);
