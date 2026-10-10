@@ -210,8 +210,10 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
     }
 
     private String formatearMoneda(BigDecimal valor) {
-        NumberFormat nf = NumberFormat.getCurrencyInstance(new Locale("es", "AR"));
-        return nf.format(valor);
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("es", "AR"));
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        return (valor.signum() < 0 ? "-$ " : "$ ") + nf.format(valor.abs());
     }
 
     /**
@@ -219,11 +221,11 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
      * verdad: SUM(CREDITO) - SUM(DEBITO)
      */
     private BigDecimal actualizarSaldoCC(Integer idCuentaCorriente) {
-        BigDecimal saldo = operarCCMovimientos.obtenerSaldoActualSumando(idCuentaCorriente);
+        BigDecimal saldo = operarCuentaCorriente.obtenerSaldoReal(idCuentaCorriente);
         if (saldo == null) {
             saldo = BigDecimal.ZERO;
         }
-        txtSaldoCC.setText(formatearMoneda(saldo));
+        txtSaldoCC.setText(formatearMoneda(saldo.abs()));
         if (saldo.signum() < 0) {
             txtSaldoCC.setForeground(colorSaldoTema()); // deuda -> rojo
         } else {
@@ -318,9 +320,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
             boolean esDebito = tipo.contains("DEBIT");
             boolean esCredito = tipo.contains("CREDIT");
 
-            String signo = esCredito ? "+" : (esDebito ? "-" : "");
-            String montoTxt = formatearMoneda(monto.abs());
-            setText((signo.isEmpty() ? "" : (signo + " ")) + montoTxt);
+            setText(formatearMoneda(monto.abs()));
 
             if (isSelected) {
                 // Mantener colores del Look&Feel cuando está seleccionado
