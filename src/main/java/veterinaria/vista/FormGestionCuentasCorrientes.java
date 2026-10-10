@@ -467,6 +467,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             if (editarCuentaCorrienteSeleccionada()){
                 Application.actualizarEstadoUsuario("EditandoCuentaCorriente");
                 jpDatosCuentaCorriente.setVisible(true);
+                panelLista.setVisible(false);
                 btnNuevo.setEnabled(false);
                 btnEditar.setEnabled(false);
                 btnEliminar.setEnabled(false);
@@ -484,7 +485,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     private void btnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNuevoActionPerformed
         Application.actualizarEstadoUsuario("CreandoCuentaCorriente");
         jpDatosCuentaCorriente.setVisible(true);
-        panelLista.setEnabled(false);
+        panelLista.setVisible(false);
         txtSaldoInicial.setText("0");
         txtLimiteDeCredito.setText("100000");
         cargarComboClientesParaCrearCC();
@@ -835,6 +836,11 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         boolean bRetorno = false;
         int selectedRow = operarTabla.comprobarElementoSeleccionado(tableCCClientes);
 
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this,
+                    "Seleccioná una cuenta de la tabla para editarla.",
+                    "Seleccionar cuenta", JOptionPane.INFORMATION_MESSAGE);
+        }
         if (selectedRow != -1) {
             Integer cuentaSelec = (Integer) tableCCClientes.getValueAt(selectedRow, 1);
 
