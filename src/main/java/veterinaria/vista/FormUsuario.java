@@ -59,6 +59,7 @@ public class FormUsuario extends javax.swing.JPanel {
        // lbFotoPerfil.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         //lbFotoPerfil.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
         inicializarTooltips();
+        configurarVisibilidadContrasena();
 
         PermisoUI.aplicar(
                 this);
@@ -90,6 +91,54 @@ public class FormUsuario extends javax.swing.JPanel {
 
         Application.actualizarEstadoUsuario(
                 "InicioFormularioUsuario");
+    }
+
+
+    /** Permite revisar la contraseña escrita sin mostrarla por defecto. */
+    private void configurarVisibilidadContrasena() {
+        final char caracterOculto = txtContraseña.getEchoChar();
+        final javax.swing.JToggleButton ver = new javax.swing.JToggleButton();
+        ver.setFocusable(false);
+        ver.setToolTipText("Mostrar contraseña");
+        ver.setText("Ver");
+        ver.setMargin(new java.awt.Insets(0, 5, 0, 5));
+        ver.setFont(txtContraseña.getFont());
+        ver.addActionListener(e -> {
+            boolean visible = ver.isSelected();
+            txtContraseña.setEchoChar(visible ? (char) 0 : caracterOculto);
+            ver.setText(visible ? "Ocultar" : "Ver");
+            ver.setToolTipText(visible ? "Ocultar contraseña" : "Mostrar contraseña");
+        });
+        // No modificamos el código generado por NetBeans ni la lógica de guardado.
+        javax.swing.JPanel contenedor = new javax.swing.JPanel(new java.awt.BorderLayout(0, 0));
+        contenedor.setOpaque(false);
+        java.awt.Container padre = txtContraseña.getParent();
+        if (padre instanceof javax.swing.JPanel
+                && padre.getLayout() instanceof javax.swing.GroupLayout) {
+            // El campo permanece en su posición original; el botón se coloca
+            // dentro del borde derecho del campo mediante una capa superpuesta.
+            javax.swing.JLayeredPane capa = new javax.swing.JLayeredPane() {
+                @Override public void doLayout() {
+                    txtContraseña.setBounds(0, 0, getWidth(), getHeight());
+                    int ancho = Math.min(72, Math.max(55, getWidth() / 3));
+                    ver.setBounds(Math.max(0, getWidth() - ancho - 2), 2,
+                            ancho, Math.max(18, getHeight() - 4));
+                }
+            };
+            java.awt.Dimension tam = txtContraseña.getPreferredSize();
+            capa.setPreferredSize(tam);
+            capa.setMinimumSize(txtContraseña.getMinimumSize());
+            // Se instala después de que el GroupLayout generado terminó de crear
+            // sus restricciones: no reemplazamos el componente referenciado.
+            txtContraseña.addPropertyChangeListener("bounds", e -> {
+                int ancho = Math.min(72, Math.max(55, txtContraseña.getWidth() / 3));
+                ver.setBounds(Math.max(0, txtContraseña.getWidth() - ancho - 2),
+                        2, ancho, Math.max(18, txtContraseña.getHeight() - 4));
+            });
+            txtContraseña.setLayout(null);
+            txtContraseña.add(ver);
+            txtContraseña.setMargin(new java.awt.Insets(2, 5, 2, 75));
+        }
     }
 
     @SuppressWarnings("unchecked")
