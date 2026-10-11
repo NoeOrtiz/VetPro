@@ -865,7 +865,8 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             return false;
         }
 
-        if (jcbEstado.getSelectedIndex() == 0) {
+        if (!"EditandoCuentaCorriente".equals(Application.consultarEstadoUsuario())
+                && jcbEstado.getSelectedIndex() == 0) {
             JOptionPane.showMessageDialog(this, "Debe seleccionar el estado de Cuenta Corriente!");
             return false;
         }
@@ -903,7 +904,9 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         cuentaCorriente.setSaldoInicial(saldoInicial);
         cuentaCorriente.setLimiteCredito(limiteCredito);
         cuentaCorriente.setUltimaEdicion(LocalDate.now());
-        cuentaCorriente.setEstado(jcbEstado.getSelectedItem().toString());
+        if (creando) {
+            cuentaCorriente.setEstado(jcbEstado.getSelectedItem().toString());
+        } // Al editar el límite, el estado persistido permanece intacto.
 
         // En edición NO tocar saldoActual ni fechaCreacion (se preservan)
         if (creando) {
@@ -1032,7 +1035,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
 
             txtSaldoInicial.setText(String.valueOf(cuentaCorriente.getSaldoInicial()));
             txtLimiteDeCredito.setText(String.valueOf(cuentaCorriente.getLimiteCredito()));
-            jcbEstado.setSelectedItem(cuentaCorriente.getEstado());
+            jcbEstado.setSelectedItem(estadoVisibleCuenta(cuentaCorriente.getEstado()));
 
             bRetorno = true;
         }
