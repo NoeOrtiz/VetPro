@@ -100,15 +100,54 @@ public class FormUsuario extends javax.swing.JPanel {
     /** Botón externo al campo, junto a Contraseña. */
     private void configurarVisibilidadContrasena() {
         caracterOcultoContrasena = txtContraseña.getEchoChar();
-        btnVerContrasena.setText("\u25C9");
+        // Ícono de ojo dibujado: evita el carácter Unicode que aparece como cuadrado.
+        // Botón independiente, sin fondo ni borde, visualmente como el del Login.
+        btnVerContrasena.setText("");
+        btnVerContrasena.setIcon(crearIconoOjo(false));
         btnVerContrasena.setFocusable(false);
+        btnVerContrasena.setContentAreaFilled(false);
+        btnVerContrasena.setBorderPainted(false);
+        btnVerContrasena.setOpaque(false);
+        btnVerContrasena.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
         btnVerContrasena.setMargin(new java.awt.Insets(0, 0, 0, 0));
         btnVerContrasena.setToolTipText("Mostrar contraseña");
         btnVerContrasena.addActionListener(e -> {
             boolean visible = txtContraseña.getEchoChar() != 0;
             txtContraseña.setEchoChar(visible ? (char) 0 : caracterOcultoContrasena);
+            btnVerContrasena.setIcon(crearIconoOjo(visible));
             btnVerContrasena.setToolTipText(visible ? "Ocultar contraseña" : "Mostrar contraseña");
         });
+    }
+
+    /** Ojo vectorial pequeño, legible en FlatLaf oscuro y claro. */
+    private javax.swing.Icon crearIconoOjo(boolean ocultar) {
+        return new javax.swing.Icon() {
+            @Override public int getIconWidth() { return 18; }
+            @Override public int getIconHeight() { return 18; }
+            @Override public void paintIcon(java.awt.Component c, java.awt.Graphics graphics,
+                    int x, int y) {
+                java.awt.Graphics2D g = (java.awt.Graphics2D) graphics.create();
+                try {
+                    g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                            java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                    java.awt.Color color = javax.swing.UIManager.getColor("Label.foreground");
+                    g.setColor(color != null ? color : java.awt.Color.GRAY);
+                    g.setStroke(new java.awt.BasicStroke(1.5f, java.awt.BasicStroke.CAP_ROUND,
+                            java.awt.BasicStroke.JOIN_ROUND));
+                    java.awt.geom.Path2D ojo = new java.awt.geom.Path2D.Float();
+                    ojo.moveTo(x + 1, y + 9);
+                    ojo.curveTo(x + 5, y + 2, x + 13, y + 2, x + 17, y + 9);
+                    ojo.curveTo(x + 13, y + 16, x + 5, y + 16, x + 1, y + 9);
+                    g.draw(ojo);
+                    g.drawOval(x + 7, y + 7, 4, 4);
+                    if (ocultar) {
+                        g.drawLine(x + 2, y + 16, x + 16, y + 2);
+                    }
+                } finally {
+                    g.dispose();
+                }
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")
@@ -457,8 +496,8 @@ public class FormUsuario extends javax.swing.JPanel {
                             .addComponent(lbDireccion1)
                             .addGroup(jpDatosCuentaLayout.createSequentialGroup()
                                 .addComponent(txtContraseña, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnVerContrasena, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addGap(2, 2, 2)
+                                .addComponent(btnVerContrasena, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(jpDatosCuentaLayout.createSequentialGroup()
                 .addContainerGap()
@@ -491,7 +530,7 @@ public class FormUsuario extends javax.swing.JPanel {
                         .addGroup(jpDatosCuentaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtContraseña, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnVerContrasena, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(btnVerContrasena, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpDatosCuentaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnGuardar)
