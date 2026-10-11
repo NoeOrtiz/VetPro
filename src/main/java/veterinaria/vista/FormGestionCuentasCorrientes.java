@@ -531,7 +531,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
         jcbCliente.setEnabled(false);
         txtSaldoInicial.setEnabled(false);
-        txtLimiteDeCredito.setEnabled(false);
+        txtLimiteDeCredito.setEnabled(true);
         jcbEstado.setEnabled(false);
         String perm = "FormGestionCuentasCorrientes.EDITAR";
         if (sesion != null && sesion.puede(perm)) {
@@ -949,6 +949,14 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             } catch (RuntimeException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage(),
                         "No se pudo verificar el saldo", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+
+            if (!"ACTIVO".equalsIgnoreCase(cuentaCorriente.getEstado())
+                    && !"ACTIVA".equalsIgnoreCase(cuentaCorriente.getEstado())) {
+                JOptionPane.showMessageDialog(this,
+                        "Para editar el límite de crédito, primero debe reactivar la cuenta.",
+                        "Edición no permitida", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
 
