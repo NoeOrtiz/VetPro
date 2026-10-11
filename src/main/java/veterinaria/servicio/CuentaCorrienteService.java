@@ -100,6 +100,28 @@ public class CuentaCorrienteService {
         });
     }
 
+    /** Registra cambios de estado en la misma transacción que la cuenta. */
+    private void auditarCambioEstado(jakarta.persistence.EntityManager em,
+            CuentaCorriente cuenta, String anterior, String nuevo) {
+        veterinaria.util.SesionUsuario sesion = veterinaria.util.SesionUsuario.getInstancia();
+        veterinaria.entidad.Usuario usuario = sesion.getUsuario();
+        if (usuario == null) {
+            throw new SecurityException("Se requiere una sesión activa para cambiar el estado.");
+        }
+        veterinaria.entidad.Auditoria auditoria = new veterinaria.entidad.Auditoria();
+        auditoria.setFechaHora(java.time.LocalDateTime.now());
+        auditoria.setUsuario(em.getReference(veterinaria.entidad.Usuario.class, usuario.getIdUsuario()));
+        auditoria.setAccion("INACTIVO".equalsIgnoreCase(nuevo) ? "DESACTIVAR_CC" : "REACTIVAR_CC");
+        auditoria.setEntidad("CuentaCorriente");
+        auditoria.setEntidadId(cuenta.getIdCuentaCorriente().longValue());
+        auditoria.setModulo("Cuenta Corriente");
+        auditoria.setDescripcion("Cambio de estado de cuenta N° " + cuenta.getIdCuentaCorriente());
+        auditoria.setResultado("OK");
+        auditoria.setDatosAntes("estado=" + anterior);
+        auditoria.setDatosDespues("estado=" + nuevo);
+        em.persist(auditoria);
+    }
+
     public boolean desactivarCuentaCorriente(Integer idCuentaCorriente) {
         return tx.runInTx(em -> {
             CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente);
@@ -109,7 +131,10 @@ public class CuentaCorrienteService {
             if (saldo.compareTo(BigDecimal.ZERO) != 0) {
                 throw new IllegalStateException("No se puede desactivar: la cuenta tiene saldo pendiente o a favor.");
             }
+            String estadoAnterior = cc.getEstado();
+            if ("INACTIVO".equalsIgnoreCase(estadoAnterior) || "INACTIVA".equalsIgnoreCase(estadoAnterior)) return true;
             cc.setEstado("INACTIVO");
+            auditarCambioEstado(em, cc, estadoAnterior, "INACTIVO");
             cc.setUltimaEdicion(LocalDate.now());
             em.merge(cc);
             return true;
@@ -125,7 +150,10 @@ public class CuentaCorrienteService {
             if (cliente == null || !cliente.isActivo()) {
                 throw new IllegalStateException("No se puede reactivar una cuenta de un cliente inactivo.");
             }
+            String estadoAnterior = cc.getEstado();
+            if ("ACTIVO".equalsIgnoreCase(estadoAnterior) || "ACTIVA".equalsIgnoreCase(estadoAnterior)) return true;
             cc.setEstado("ACTIVO");
+            auditarCambioEstado(em, cc, estadoAnterior, "ACTIVO");
             cc.setUltimaEdicion(LocalDate.now());
             em.merge(cc);
             return true;
