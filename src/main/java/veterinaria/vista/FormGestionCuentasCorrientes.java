@@ -585,7 +585,13 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
                 return;
             }
 
-            persistirCuentaCorriente();
+            try {
+                persistirCuentaCorriente();
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(),
+                        "No se pudo guardar la cuenta", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             limpiarCamposFormulario();
             jpDatosCuentaCorriente.setVisible(false);
             panelLista.setVisible(true);
@@ -885,6 +891,8 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
                 JOptionPane.showMessageDialog(this, "Cuenta Corriente editada exitosamente.");
             } catch (Exception ex) {
                 Logger.getLogger(FormGestionCuentasCorrientes.class.getName()).log(Level.SEVERE, null, ex);
+                throw (ex instanceof RuntimeException)
+                        ? (RuntimeException) ex : new RuntimeException(ex);
             }
         }
     }
