@@ -526,13 +526,14 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     }
     
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        // Conservamos el permiso existente para no alterar el mapeo RBAC.
-        // Desactivar conserva el historial; no es una eliminación física.
-        // El permiso ELIMINAR se mantiene como clave RBAC heredada.
-        String perm = "FormGestionCuentasCorrientes.ELIMINAR";
-        if (sesion == null || !sesion.puede(perm)) {
+        // Desactivar/reactivar es una operación administrativa, no ELIMINAR.
+        // No depender de la clave heredada ELIMINAR del mapa de permisos.
+        veterinaria.entidad.Usuario actual = sesion != null ? sesion.getUsuario() : null;
+        if (actual == null || actual.getRol() == null
+                || !("Administrador".equalsIgnoreCase(actual.getRol().getNombreRol())
+                || Integer.valueOf(1).equals(actual.getRol().getIdRol()))) {
             JOptionPane.showMessageDialog(this,
-                    "No tiene permisos suficientes para desactivar o reactivar cuentas corrientes.",
+                    "Solo el Administrador puede desactivar o reactivar cuentas corrientes.",
                     "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -667,7 +668,16 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     }
 
     private void cambiarEstadoCuentaSeleccionada() {
-        int fila = operarTabla.comprobarElementoSeleccionado(tableCCClientes);
+        // Aceptar tanto la selección de fila como la casilla de selección.
+        int fila = tableCCClientes.getSelectedRow();
+        if (fila < 0) {
+            for (int i = 0; i < tableCCClientes.getRowCount(); i++) {
+                if (Boolean.TRUE.equals(tableCCClientes.getValueAt(i, 0))) {
+                    fila = i;
+                    break;
+                }
+            }
+        }
         if (fila < 0) {
             JOptionPane.showMessageDialog(this, "Seleccione una cuenta corriente.");
             return;
