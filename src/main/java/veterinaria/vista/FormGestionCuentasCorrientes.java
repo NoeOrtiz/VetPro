@@ -531,6 +531,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
         jcbCliente.setEnabled(false);
         txtSaldoInicial.setEnabled(false);
+        txtLimiteDeCredito.setEnabled(false);
         jcbEstado.setEnabled(false);
         String perm = "FormGestionCuentasCorrientes.EDITAR";
         if (sesion != null && sesion.puede(perm)) {
@@ -557,6 +558,8 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         jpDatosCuentaCorriente.setVisible(true);
         panelLista.setVisible(false);
         txtSaldoInicial.setText("0");
+        txtLimiteDeCredito.setEnabled(true);
+        jcbEstado.setEnabled(true);
         txtLimiteDeCredito.setText("100000");
         cargarComboClientesParaCrearCC();
         
@@ -931,6 +934,23 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             Integer cuentaSelec = (Integer) tableCCClientes.getValueAt(selectedRow, 1);
 
             cuentaCorriente = operarCuentaCorriente.buscarCuentaCorrientePorId(cuentaSelec);
+
+            try {
+                BigDecimal saldoReal = new veterinaria.servicio.CuentaCorrienteService()
+                        .recalcularSaldo(cuentaSelec);
+                if (saldoReal.signum() != 0) {
+                    JOptionPane.showMessageDialog(this,
+                            saldoReal.signum() < 0
+                                    ? "No se puede editar la cuenta seleccionada porque posee deuda pendiente."
+                                    : "No se puede editar la cuenta seleccionada porque tiene saldo a favor.",
+                            "Edición no permitida", JOptionPane.WARNING_MESSAGE);
+                    return false;
+                }
+            } catch (RuntimeException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(),
+                        "No se pudo verificar el saldo", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
 
             Integer idCliente = cuentaCorriente.getCliente().getIdCliente();
 
