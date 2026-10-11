@@ -161,7 +161,22 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
             }
         };
         tableCCClientes.getColumnModel().getColumn(3).setCellRenderer(monedaRenderer);
-        tableCCClientes.getColumnModel().getColumn(4).setCellRenderer(monedaRenderer);
+        javax.swing.table.DefaultTableCellRenderer limiteRenderer =
+                new javax.swing.table.DefaultTableCellRenderer() {
+            private final java.text.NumberFormat moneda = java.text.NumberFormat.getCurrencyInstance(
+                    new java.util.Locale("es", "AR"));
+            @Override
+            public java.awt.Component getTableCellRendererComponent(javax.swing.JTable tabla,
+                    Object valor, boolean seleccionado, boolean foco, int fila, int columna) {
+                super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
+                setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+                if (valor instanceof BigDecimal) {
+                    setText(moneda.format((BigDecimal) valor));
+                }
+                return this;
+            }
+        };
+        tableCCClientes.getColumnModel().getColumn(4).setCellRenderer(limiteRenderer);
         tableCCClientes.getColumnModel().getColumn(4).setPreferredWidth(130);
     }
 
