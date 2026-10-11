@@ -56,6 +56,13 @@ public class CuentaCorrienteService {
                             cuentaCorriente.getCliente().getIdCliente())) {
                 throw new IllegalStateException("No se puede cambiar el cliente de una cuenta existente.");
             }
+            veterinaria.util.SesionUsuario sesion = veterinaria.util.SesionUsuario.getInstancia();
+            veterinaria.entidad.Usuario usuario = sesion.getUsuario();
+            if (usuario == null || usuario.getRol() == null
+                    || !("Administrador".equalsIgnoreCase(usuario.getRol().getNombreRol())
+                    || Integer.valueOf(1).equals(usuario.getRol().getIdRol()))) {
+                throw new SecurityException("Solo un usuario con rol Administrador puede modificar el límite de crédito.");
+            }
             BigDecimal saldo = recalcularSaldoDesdeMovimientos(em, actual.getIdCuentaCorriente());
             if (saldo.signum() < 0) {
                 throw new IllegalStateException("No se puede editar la cuenta seleccionada porque posee deuda pendiente.");
@@ -70,6 +77,22 @@ public class CuentaCorrienteService {
             if (!"ACTIVO".equalsIgnoreCase(actual.getEstado())
                     && !"ACTIVA".equalsIgnoreCase(actual.getEstado())) {
                 throw new IllegalStateException("Debe reactivar la cuenta antes de modificar su límite.");
+            }
+            BigDecimal limiteAnterior = actual.getLimiteCredito();
+            if (limiteAnterior == null || limiteAnterior.compareTo(limite) != 0) {
+                veterinaria.entidad.Auditoria auditoria = new veterinaria.entidad.Auditoria();
+                auditoria.setFechaHora(java.time.LocalDateTime.now());
+                auditoria.setUsuario(em.getReference(veterinaria.entidad.Usuario.class, usuario.getIdUsuario()));
+                auditoria.setAccion("MODIFICAR_LIMITE_CC");
+                auditoria.setEntidad("CuentaCorriente");
+                auditoria.setEntidadId(actual.getIdCuentaCorriente().longValue());
+                auditoria.setModulo("Cuenta Corriente");
+                auditoria.setDescripcion("Modificación del límite de crédito de la cuenta N° "
+                        + actual.getIdCuentaCorriente());
+                auditoria.setResultado("OK");
+                auditoria.setDatosAntes("limiteCredito=" + limiteAnterior);
+                auditoria.setDatosDespues("limiteCredito=" + limite);
+                em.persist(auditoria);
             }
             actual.setLimiteCredito(limite);
             actual.setUltimaEdicion(LocalDate.now());
