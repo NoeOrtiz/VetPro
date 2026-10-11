@@ -101,7 +101,7 @@ public class CuentaCorrienteService {
     }
 
     /** Registra cambios de estado en la misma transacción que la cuenta. */
-    private void auditarCambioEstado(jakarta.persistence.EntityManager em,
+    private void auditarCambioEstado(javax.persistence.EntityManager em,
             CuentaCorriente cuenta, String anterior, String nuevo) {
         veterinaria.util.SesionUsuario sesion = veterinaria.util.SesionUsuario.getInstancia();
         veterinaria.entidad.Usuario usuario = sesion.getUsuario();
