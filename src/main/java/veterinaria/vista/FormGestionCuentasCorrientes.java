@@ -133,8 +133,17 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         centro.setOpaque(false);
         centro.add(jSeparator1, java.awt.BorderLayout.NORTH);
         centro.add(filtros, java.awt.BorderLayout.CENTER);
-        centro.add(controles, java.awt.BorderLayout.SOUTH);
+        centro.add(controles, java.awt.BorderLayout.EAST);
         panelHeader.add(centro, java.awt.BorderLayout.CENTER);
+        // La opción debe estar disponible para el Administrador, incluso si
+        // el mapeo heredado de ELIMINAR fue ocultado por PermisoUI.
+        boolean puedeCambiarEstado = sesion != null
+                && sesion.getUsuario() != null
+                && sesion.getUsuario().getRol() != null
+                && ("Administrador".equalsIgnoreCase(sesion.getUsuario().getRol().getNombreRol())
+                || Integer.valueOf(1).equals(sesion.getUsuario().getRol().getIdRol()));
+        btnEliminar.setVisible(puedeCambiarEstado);
+        btnEliminar.setEnabled(puedeCambiarEstado);
         panelHeader.revalidate();
         panelHeader.repaint();
     }
@@ -518,10 +527,12 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
     
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         // Conservamos el permiso existente para no alterar el mapeo RBAC.
+        // Desactivar conserva el historial; no es una eliminación física.
+        // El permiso ELIMINAR se mantiene como clave RBAC heredada.
         String perm = "FormGestionCuentasCorrientes.ELIMINAR";
         if (sesion == null || !sesion.puede(perm)) {
             JOptionPane.showMessageDialog(this,
-                    "No tiene permisos suficientes para eliminar cuentas corrientes.",
+                    "No tiene permisos suficientes para desactivar o reactivar cuentas corrientes.",
                     "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
