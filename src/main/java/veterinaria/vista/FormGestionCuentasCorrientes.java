@@ -744,6 +744,18 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         jLabel2.setToolTipText("Resumen de las cuentas cargadas, sin modificar los saldos");
     }
 
+    /** Presentación uniforme; los estados persistidos no se modifican. */
+    private String estadoVisibleCuenta(String estado) {
+        if (estado == null) return "";
+        if ("INACTIVO".equalsIgnoreCase(estado) || "INACTIVA".equalsIgnoreCase(estado)) {
+            return "Inactiva";
+        }
+        if ("ACTIVO".equalsIgnoreCase(estado) || "ACTIVA".equalsIgnoreCase(estado)) {
+            return "Activa";
+        }
+        return estado;
+    }
+
     private void cargarCuentasCorrientesEnTablaAsync() {
         setBusy(true);
         new SwingWorker<List<Object[]>, Void>() {
@@ -771,7 +783,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
                         cc.getLimiteCredito(),
                         cc.getFechaCreacion(),
                         cc.getUltimaEdicion(),
-                        cc.getEstado(),
+                        estadoVisibleCuenta(cc.getEstado()),
                     });
                 }
                 return filas;
@@ -813,7 +825,7 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
                 cuentaCorrienteBucle.getLimiteCredito(), // ✅ NUEVO: columna "Limite"
                 cuentaCorrienteBucle.getFechaCreacion(),
                 cuentaCorrienteBucle.getUltimaEdicion(),
-                cuentaCorrienteBucle.getEstado(),
+                estadoVisibleCuenta(cuentaCorrienteBucle.getEstado()),
             };
             modelo.addRow(fila);
         }
