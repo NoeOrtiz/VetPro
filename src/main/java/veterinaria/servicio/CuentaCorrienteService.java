@@ -67,10 +67,11 @@ public class CuentaCorrienteService {
             if (limite == null || limite.signum() < 0) {
                 throw new IllegalArgumentException("El límite de crédito debe ser mayor o igual a cero.");
             }
-            if (actual.getLimiteCredito() == null
-                    || limite.compareTo(actual.getLimiteCredito()) != 0) {
-                throw new IllegalStateException("El límite de crédito no puede modificarse desde la edición.");
+            if (!"ACTIVO".equalsIgnoreCase(actual.getEstado())
+                    && !"ACTIVA".equalsIgnoreCase(actual.getEstado())) {
+                throw new IllegalStateException("Debe reactivar la cuenta antes de modificar su límite.");
             }
+            actual.setLimiteCredito(limite);
             actual.setUltimaEdicion(LocalDate.now());
             return true;
         });
