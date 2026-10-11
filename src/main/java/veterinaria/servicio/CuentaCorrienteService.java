@@ -56,11 +56,21 @@ public class CuentaCorrienteService {
                             cuentaCorriente.getCliente().getIdCliente())) {
                 throw new IllegalStateException("No se puede cambiar el cliente de una cuenta existente.");
             }
+            BigDecimal saldo = recalcularSaldoDesdeMovimientos(em, actual.getIdCuentaCorriente());
+            if (saldo.signum() < 0) {
+                throw new IllegalStateException("No se puede editar la cuenta seleccionada porque posee deuda pendiente.");
+            }
+            if (saldo.signum() > 0) {
+                throw new IllegalStateException("No se puede editar la cuenta seleccionada porque tiene saldo a favor.");
+            }
             BigDecimal limite = cuentaCorriente.getLimiteCredito();
             if (limite == null || limite.signum() < 0) {
                 throw new IllegalArgumentException("El límite de crédito debe ser mayor o igual a cero.");
             }
-            actual.setLimiteCredito(limite);
+            if (actual.getLimiteCredito() == null
+                    || limite.compareTo(actual.getLimiteCredito()) != 0) {
+                throw new IllegalStateException("El límite de crédito no puede modificarse desde la edición.");
+            }
             actual.setUltimaEdicion(LocalDate.now());
             return true;
         });
