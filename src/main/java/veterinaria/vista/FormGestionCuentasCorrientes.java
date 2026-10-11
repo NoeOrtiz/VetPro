@@ -533,6 +533,15 @@ public class FormGestionCuentasCorrientes extends javax.swing.JPanel {
         txtSaldoInicial.setEnabled(false);
         txtLimiteDeCredito.setEnabled(true);
         jcbEstado.setEnabled(false);
+        veterinaria.entidad.Usuario usuarioActual = sesion != null ? sesion.getUsuario() : null;
+        if (usuarioActual == null || usuarioActual.getRol() == null
+                || !("Administrador".equalsIgnoreCase(usuarioActual.getRol().getNombreRol())
+                || Integer.valueOf(1).equals(usuarioActual.getRol().getIdRol()))) {
+            JOptionPane.showMessageDialog(this,
+                    "Solo un usuario con rol Administrador puede modificar el límite de crédito.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         String perm = "FormGestionCuentasCorrientes.EDITAR";
         if (sesion != null && sesion.puede(perm)) {
             if (editarCuentaCorrienteSeleccionada()){
