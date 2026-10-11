@@ -28,6 +28,9 @@ import veterinaria.reportes.core.ReporteTipo;
 
 public class FormUsuario extends javax.swing.JPanel {
 
+    private javax.swing.JButton btnVerContrasena;
+    private char caracterOcultoContrasena;
+
     private java.io.File archivoSeleccionado; // Guardará temporalmente el archivo elegido de la PC
     private final Map<Integer, String> rolesMap = new HashMap<>();
     private final RolDAO rolDAO = new RolDAO();
@@ -94,11 +97,18 @@ public class FormUsuario extends javax.swing.JPanel {
     }
 
 
-    /** Mismo control de revelar contraseña integrado de FlatLaf usado en Login. */
+    /** Botón externo al campo, junto a Contraseña. */
     private void configurarVisibilidadContrasena() {
-        txtContraseña.putClientProperty("FlatLaf.style",
-                "showRevealButton: true");
-        txtContraseña.setToolTipText("Escribí la contraseña; usá el ojo para mostrarla u ocultarla.");
+        caracterOcultoContrasena = txtContraseña.getEchoChar();
+        btnVerContrasena.setText("\u25C9");
+        btnVerContrasena.setFocusable(false);
+        btnVerContrasena.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnVerContrasena.setToolTipText("Mostrar contraseña");
+        btnVerContrasena.addActionListener(e -> {
+            boolean visible = txtContraseña.getEchoChar() != 0;
+            txtContraseña.setEchoChar(visible ? (char) 0 : caracterOcultoContrasena);
+            btnVerContrasena.setToolTipText(visible ? "Ocultar contraseña" : "Mostrar contraseña");
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -143,6 +153,7 @@ public class FormUsuario extends javax.swing.JPanel {
         lbEmail = new javax.swing.JLabel();
         lbDireccion1 = new javax.swing.JLabel();
         txtContraseña = new javax.swing.JPasswordField();
+        btnVerContrasena = new javax.swing.JButton();
         btnGuardar = new javax.swing.JButton();
         jSeparator6 = new javax.swing.JSeparator();
         btnCancelar = new javax.swing.JButton();
@@ -444,7 +455,10 @@ public class FormUsuario extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jpDatosCuentaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lbDireccion1)
-                            .addComponent(txtContraseña, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(jpDatosCuentaLayout.createSequentialGroup()
+                                .addComponent(txtContraseña, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnVerContrasena, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(jpDatosCuentaLayout.createSequentialGroup()
                 .addContainerGap()
@@ -476,7 +490,8 @@ public class FormUsuario extends javax.swing.JPanel {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jpDatosCuentaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtContraseña, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(txtContraseña, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnVerContrasena, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jpDatosCuentaLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnGuardar)
