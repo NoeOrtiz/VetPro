@@ -1646,7 +1646,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     private void btnConfirmarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarVentaActionPerformed
         Integer idClienteSelec = obtenerIdClienteVentaSeleccionado();
 
-        if (idClienteSelec != null) {
+        {
             if (operandoTablas.isTableNotEmpty(tableVentas)) {
                 jpFormaDePago.setVisible(true);
                 btnLimpiarVenta.setEnabled(false);
@@ -1709,10 +1709,6 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
 
     private void btnRegistrarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarVentaActionPerformed
         Integer idCliente = obtenerIdClienteVentaSeleccionado();
-        if (idCliente == null) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente válido para registrar la venta.");
-            return;
-        }
         BigDecimal pendiente;
         try { pendiente = MoneyUtil.parse(txtSaldoPendiente.getText()); }
         catch (Exception ex) { JOptionPane.showMessageDialog(this, "El saldo pendiente de la venta no es válido."); return; }
@@ -1722,6 +1718,10 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         }
         BigDecimal montoACuenta = BigDecimal.ZERO;
         if (pendiente.signum() > 0) {
+            if (idCliente == null) {
+                JOptionPane.showMessageDialog(this, "Consumidor Final debe abonar la totalidad de la venta. No puede utilizar Cuenta Corriente.", "Venta", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             CuentaCorrienteControlador cuentaC = new CuentaCorrienteControlador();
             if (!cuentaC.cuentaCorrienteActiva(idCliente)) {
                 JOptionPane.showMessageDialog(this, "Queda un saldo pendiente de $" + MoneyUtil.formatStandard(pendiente)
@@ -2336,12 +2336,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         recibo.setFecha(new Date());
         recibo.setTipo("Venta");
         Integer idCliente = obtenerIdClienteVentaSeleccionado();
-        if (idCliente == null) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente válido.", "Venta", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        Cliente cliente = operandoCliente.buscarPorId(idCliente);
-        if (cliente == null) {
+        Cliente cliente = idCliente == null ? null : operandoCliente.buscarPorId(idCliente);
+        if (idCliente != null && cliente == null) {
             JOptionPane.showMessageDialog(this, "No se encontró el cliente seleccionado.", "Venta", JOptionPane.WARNING_MESSAGE);
             return false;
         }
@@ -2599,7 +2595,7 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
     private void cargarDatosComboBoxes() {
         List<Cliente> listaClientes = operandoCliente.buscarTodosLosClientes();
         List<Producto> listaProductos = operandoProducto.buscarProductosDisponiblesParaVenta();
-        ClienteItem clienteItem = new ClienteItem(0, "Seleccionar Cliente");
+        ClienteItem clienteItem = new ClienteItem(0, "Consumidor Final");
         jcbClienteVenta.addItem(clienteItem);
         jcbClienteCobro.addItem(clienteItem);
         ProductoItem productoItem = new ProductoItem(0, "Seleccionar Producto");
