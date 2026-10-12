@@ -1715,6 +1715,28 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
 
     private void btnRegistrarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarVentaActionPerformed
         Integer idCliente = obtenerIdClienteVentaSeleccionado();
+        // Si no se distribuyó el cobro en varios medios, tomar el medio
+        // seleccionado directamente sin exigir pulsar "Agregar".
+        DefaultTableModel pagosRegistrados = (DefaultTableModel) tableFormaDePago.getModel();
+        if (pagosRegistrados.getRowCount() == 0) {
+            MetodoPagoItem seleccionado = (MetodoPagoItem) jcbMetodoDePago.getSelectedItem();
+            BigDecimal importeIngresado;
+            try {
+                importeIngresado = MoneyUtil.parse(txtMontoFormaDePago.getText());
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Ingrese un importe de pago válido.", "Venta", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (seleccionado != null && seleccionado.getIdMetodoPago() != null
+                    && seleccionado.getIdMetodoPago() != 0 && importeIngresado != null
+                    && importeIngresado.signum() > 0) {
+                btnAgregarMetodoPagoActionPerformed(evt);
+                if (pagosRegistrados.getRowCount() == 0) return;
+            }
+        }
+        // El pendiente siempre se calcula a partir del total y los pagos,
+        // nunca a partir de un valor escrito manualmente en el campo Saldo.
+        calcularSaldoFormaDePago();
         BigDecimal pendiente;
         try { pendiente = MoneyUtil.parse(txtSaldoPendiente.getText()); }
         catch (Exception ex) { JOptionPane.showMessageDialog(this, "El saldo pendiente de la venta no es válido."); return; }
