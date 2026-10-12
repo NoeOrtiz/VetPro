@@ -269,7 +269,10 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
 
     // 🌟 MÉTODO CORREGIDO: Acceso seguro a getPersona() respetando el principio de encapsulamiento
     private static String clienteTexto(Cliente cli) {
-        if (cli == null || cli.getPersona() == null) {
+        if (cli == null) {
+            return "Consumidor Final";
+        }
+        if (cli.getPersona() == null) {
             return "";
         }
         String nombre = cli.getPersona().getNombre();
