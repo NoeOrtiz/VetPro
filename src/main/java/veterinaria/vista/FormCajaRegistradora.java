@@ -1625,9 +1625,9 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             String motivo = null;
             if (diferencia.signum() != 0) {
                 motivo = JOptionPane.showInputDialog(this,
-                        "Efectivo esperado: $" + MoneyUtil.formatStandard(esperado) + "\n"
-                        + "Efectivo contado: $" + MoneyUtil.formatStandard(contado) + "\n"
-                        + "Diferencia: $" + MoneyUtil.formatStandard(diferencia) + "\n\n"
+                        "Efectivo esperado: $" + MoneyUtil.formatStandard(esperado) + "\\n"
+                        + "Efectivo contado: $" + MoneyUtil.formatStandard(contado) + "\\n"
+                        + "Diferencia: $" + MoneyUtil.formatStandard(diferencia) + "\\n\n"
                         + "Indique el motivo del sobrante/faltante:", "Diferencia de caja", JOptionPane.WARNING_MESSAGE);
                 if (motivo == null) return;
                 if (motivo.trim().isEmpty()) throw new IllegalArgumentException("El motivo de la diferencia es obligatorio.");
@@ -1636,7 +1636,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 throw new IllegalStateException(operarCaja.getUltimoError() == null ? "No se pudo cerrar la caja." : operarCaja.getUltimoError());
             }
             JOptionPane.showMessageDialog(this, "Caja cerrada correctamente.\nEfectivo esperado: $"
-                    + MoneyUtil.formatStandard(esperado) + "\nEfectivo contado: $" + MoneyUtil.formatStandard(contado));
+                    + MoneyUtil.formatStandard(esperado) + "\\nEfectivo contado: $" + MoneyUtil.formatStandard(contado));
             jpCierreCaja.setVisible(false); actualizarForm();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "No se puede cerrar caja", JOptionPane.WARNING_MESSAGE);
@@ -1698,9 +1698,9 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 BigDecimal vuelto = monto.subtract(pendiente);
                 int confirmarVuelto = JOptionPane.showConfirmDialog(this,
                         "Efectivo recibido: $ " + MoneyUtil.formatStandard(monto)
-                        + "\nImporte de la venta pendiente: $ " + MoneyUtil.formatStandard(pendiente)
-                        + "\nVuelto a entregar: $ " + MoneyUtil.formatStandard(vuelto)
-                        + "\n\n¿Confirmar el cobro?",
+                        + "\\nImporte de la venta pendiente: $ " + MoneyUtil.formatStandard(pendiente)
+                        + "\\nVuelto a entregar: $ " + MoneyUtil.formatStandard(vuelto)
+                        + "\\n\n¿Confirmar el cobro?",
                         "Calcular vuelto", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if (confirmarVuelto != JOptionPane.YES_OPTION) return;
                 // Registrar solo el importe aplicado a la venta, nunca el efectivo bruto recibido.
@@ -2036,9 +2036,9 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             int confirm = JOptionPane.showOptionDialog(
                     this,
                     "¿Confirmar registro de compra?\n\n"
-                    + "Proveedor: " + String.valueOf(proveedorSel) + "\n"
-                    + "Factura: " + numeroFactura + "\n"
-                    + "Fecha: " + fechaStr + "\n"
+                    + "Proveedor: " + String.valueOf(proveedorSel) + "\\n"
+                    + "Factura: " + numeroFactura + "\\n"
+                    + "Fecha: " + fechaStr + "\\n"
                     + "Total: " + totalStr,
                     "Confirmar compra",
                     JOptionPane.YES_NO_OPTION,
@@ -2219,7 +2219,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         CuentaCorrienteProveedor cc = deudas.get(idx);
 
         String montoTxt = JOptionPane.showInputDialog(this,
-                "Saldo adeudado: $" + MoneyUtil.formatStandard(cc.getSaldoActual()) + "\nIngrese el importe que VetPRO pagará al proveedor:");
+                "Saldo adeudado: $" + MoneyUtil.formatStandard(cc.getSaldoActual()) + "\\nIngrese el importe que VetPRO pagará al proveedor:");
         if (montoTxt == null) return;
         BigDecimal monto;
         try { monto = MoneyUtil.parse(montoTxt); } catch (Exception ex) { monto = null; }
