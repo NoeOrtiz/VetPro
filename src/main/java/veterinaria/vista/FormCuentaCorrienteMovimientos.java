@@ -123,7 +123,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
                         cc.getSaldoActual(),
                         fechaUltimoDebito,
                         fechaUltimoCredito,
-                        cc.getEstado(),});
+                        estadoVisibleCuenta(cc.getEstado()),});
                 }
                 return filas;
             }
@@ -211,6 +211,18 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
     }
 
     /** Formato argentino para saldos de cuentas: signo, pesos y dos decimales. */
+    /** Presentación uniforme del estado, sin modificar su valor en la base. */
+    private String estadoVisibleCuenta(String estado) {
+        if (estado == null) return "";
+        if ("INACTIVO".equalsIgnoreCase(estado) || "INACTIVA".equalsIgnoreCase(estado)) {
+            return "Inactiva";
+        }
+        if ("ACTIVO".equalsIgnoreCase(estado) || "ACTIVA".equalsIgnoreCase(estado)) {
+            return "Activa";
+        }
+        return estado;
+    }
+
     private void configurarRendererSaldoCuentas() {
         javax.swing.table.DefaultTableCellRenderer renderer =
                 new javax.swing.table.DefaultTableCellRenderer() {
@@ -904,7 +916,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
                 cuentaCorrienteBucle.getSaldoActual(),
                 fechaUltimoDebito,
                 fechaUltimoCredito,
-                cuentaCorrienteBucle.getEstado(),};
+                estadoVisibleCuenta(cuentaCorrienteBucle.getEstado()),};
             modelo.addRow(fila);
         }
         operarTabla.asegurarSeleccionUnica(tableCCClientes);
