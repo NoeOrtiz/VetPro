@@ -66,9 +66,15 @@ public class VentaService {
                 throw new IllegalStateException("El usuario no esta activo.");
             }
 
-            Cliente cliente = em.find(Cliente.class, recibo.getCliente().getIdCliente());
-            if (cliente == null || !cliente.isActivo()) {
-                throw new IllegalStateException("El cliente no esta activo.");
+            Cliente cliente = null;
+            if (recibo.getCliente() != null && recibo.getCliente().getIdCliente() != null) {
+                cliente = em.find(Cliente.class, recibo.getCliente().getIdCliente());
+                if (cliente == null || !cliente.isActivo()) {
+                    throw new IllegalStateException("El cliente no esta activo.");
+                }
+            }
+            if (cliente == null && montoACuenta.signum() > 0) {
+                throw new IllegalStateException("Consumidor Final no puede financiar compras en Cuenta Corriente.");
             }
             recibo.setCliente(cliente);
 
@@ -256,8 +262,9 @@ public class VentaService {
         if (recibo.getUsuario() == null || recibo.getUsuario().getIdUsuario() == null) {
             throw new IllegalArgumentException("El usuario es obligatorio.");
         }
-        if (recibo.getCliente() == null || recibo.getCliente().getIdCliente() == null) {
-            throw new IllegalArgumentException("El cliente es obligatorio.");
+        if ((recibo.getCliente() == null || recibo.getCliente().getIdCliente() == null)
+                && montoACuenta.signum() > 0) {
+            throw new IllegalArgumentException("Para financiar una venta debe seleccionar un cliente registrado.");
         }
         if (items == null || items.isEmpty()) {
             throw new IllegalArgumentException("La venta debe contener al menos un producto.");
