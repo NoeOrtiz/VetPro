@@ -46,7 +46,7 @@ public class ReciboDAO {
         try {
             Recibo recibo = em.createQuery(
                     "SELECT r FROM Recibo r "
-                    + "JOIN FETCH r.cliente c "
+                    + "LEFT JOIN FETCH r.cliente c "
                     + "JOIN FETCH r.usuario u "
                     + "LEFT JOIN FETCH u.persona up "
                     + "WHERE r.idRecibo = :id", Recibo.class)
