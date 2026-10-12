@@ -22,7 +22,7 @@ public class Recibo {
     private Date fecha;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "idCliente", nullable = false)
+    @JoinColumn(name = "idCliente", nullable = true)
     private Cliente cliente;
 
     @ManyToOne(fetch = FetchType.LAZY)
