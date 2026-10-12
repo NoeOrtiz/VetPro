@@ -133,7 +133,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         aplicarFiltroMonetario(txtMontoInicialCaja);
         aplicarFiltroMonetario(txtMontoCierreCaja);
         // Este campo acepta formato argentino (7.602,00); el filtro antiguo lo corrompía.
-        normalizarEnFocusLost(txtMontoFormaDePago);
+        configurarMontoVentaConFormatoAutomatico();
         aplicarFiltroMonetario(txtMontoPagoCC);
         aplicarFiltroMonetario(txtTotalFacturaCompra);
         aplicarFiltroMonetario(txtMontoFacturaCompra);
@@ -220,6 +220,60 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         } catch (Exception ex) {
             txtEgresosCierreCaja.setText(MoneyUtil.formatStandard(BigDecimal.ZERO));
             lbEgreso.setText("Diferencia:");
+        }
+    }
+
+    /**
+     * Ingreso de efectivo en pesos enteros: 9, 90, 900, 9.000,00.
+     * Se conserva la precisión decimal para los importes precargados
+     * y para los pagos calculados por el sistema.
+     */
+    private void configurarMontoVentaConFormatoAutomatico() {
+        txtMontoFormaDePago.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                javax.swing.SwingUtilities.invokeLater(() -> txtMontoFormaDePago.selectAll());
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                try {
+                    txtMontoFormaDePago.setText(MoneyUtil.format(MoneyUtil.parse(txtMontoFormaDePago.getText())));
+                } catch (Exception ignore) {
+                    // El flujo de cobro valida los importes no numéricos.
+                }
+            }
+        });
+        if (txtMontoFormaDePago.getDocument() instanceof AbstractDocument) {
+            ((AbstractDocument) txtMontoFormaDePago.getDocument()).setDocumentFilter(new DocumentFilter() {
+                @Override
+                public void insertString(FilterBypass fb, int offset, String text, AttributeSet attrs)
+                        throws BadLocationException {
+                    replace(fb, offset, 0, text, attrs);
+                }
+                @Override
+                public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs)
+                        throws BadLocationException {
+                    if (!txtMontoFormaDePago.isFocusOwner()) {
+                        super.replace(fb, offset, length, text, attrs);
+                        return;
+                    }
+                    String current = fb.getDocument().getText(0, fb.getDocument().getLength());
+                    String candidate = current.substring(0, offset) + (text == null ? "" : text)
+                            + current.substring(offset + length);
+                    // Solo los dígitos ingresados representan pesos; centavos fijos ,00.
+                    String digits = candidate.replaceAll("[^0-9]", "").replaceFirst("^0+(?!$)", "");
+                    if (digits.isEmpty()) digits = "0";
+                    BigDecimal pesos = new BigDecimal(digits);
+                    String formatted = MoneyUtil.format(pesos);
+                    fb.replace(0, fb.getDocument().getLength(), formatted, attrs);
+                    javax.swing.SwingUtilities.invokeLater(() ->
+                            txtMontoFormaDePago.setCaretPosition(txtMontoFormaDePago.getText().length()));
+                }
+                @Override
+                public void remove(FilterBypass fb, int offset, int length) throws BadLocationException {
+                    replace(fb, offset, length, "", null);
+                }
+            });
         }
     }
 
