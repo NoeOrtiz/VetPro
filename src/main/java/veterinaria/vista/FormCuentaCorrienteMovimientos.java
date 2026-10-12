@@ -262,7 +262,7 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         if (saldo == null) {
             saldo = BigDecimal.ZERO;
         }
-        txtSaldoCC.setText(formatearMoneda(saldo.abs()));
+        txtSaldoCC.setText(formatearMoneda(saldo));
         if (saldo.signum() < 0) {
             txtSaldoCC.setForeground(colorSaldoTema()); // deuda -> rojo
         } else {
