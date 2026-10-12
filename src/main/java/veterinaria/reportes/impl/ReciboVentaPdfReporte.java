@@ -169,22 +169,32 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
         pdf.text(PDType1Font.HELVETICA_BOLD, 11, MARGIN, pdf.getY(), "MÉTODOS DE PAGO");
         pdf.down(16f);
 
+        BigDecimal totalRecibo = recibo.getTotalRecibo() != null ? recibo.getTotalRecibo() : totalCalculado;
+        BigDecimal totalCobrado = BigDecimal.ZERO;
         if (metodosPago != null) {
             for (ReciboMetodoPago mp : metodosPago) {
                 String metodo = mp.getMetodoPago() != null ? safe(mp.getMetodoPago().getNombre()) : "N/D";
                 BigDecimal monto = bd(mp.getMonto());
+                totalCobrado = totalCobrado.add(monto);
                 pdf.text(PdfStyle.TXT_FONT, 10, MARGIN, pdf.getY(), "• " + metodo);
                 pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN, MONEDA.format(monto));
                 pdf.down(14f);
             }
+        }
+        // La financiación no figura entre los métodos de pago: es la parte
+        // del total de la venta que no se cobró al emitir el comprobante.
+        BigDecimal montoFinanciado = totalRecibo.subtract(totalCobrado);
+        if (montoFinanciado.signum() > 0) {
+            pdf.text(PdfStyle.TXT_FONT, 10, MARGIN, pdf.getY(), "• Cuenta Corriente (saldo financiado)");
+            pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN, MONEDA.format(montoFinanciado));
+            pdf.down(14f);
         }
 
         pdf.down(2f);
         pdf.line();
         pdf.down(16f);
 
-        BigDecimal totalRecibo = recibo.getTotalRecibo() != null ? recibo.getTotalRecibo() : totalCalculado;
-        pdf.text(PDType1Font.HELVETICA_BOLD, 14, MARGIN, pdf.getY(), "TOTAL A PAGAR");
+        pdf.text(PDType1Font.HELVETICA_BOLD, 14, MARGIN, pdf.getY(), "TOTAL DE LA VENTA");
         pdf.textRight(PDType1Font.HELVETICA_BOLD, 14, pageW - MARGIN, MONEDA.format(totalRecibo));
         pdf.down(22f);
 
