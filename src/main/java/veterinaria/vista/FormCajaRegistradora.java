@@ -1644,10 +1644,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     }//GEN-LAST:event_btnRegistrarCierreCajaActionPerformed
 
     private void btnConfirmarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarVentaActionPerformed
-        Integer idClienteSelec = obtenerIdClienteVentaSeleccionado();
-
-        {
-            if (operandoTablas.isTableNotEmpty(tableVentas)) {
+        if (operandoTablas.isTableNotEmpty(tableVentas)) {
                 jpFormaDePago.setVisible(true);
                 btnLimpiarVenta.setEnabled(false);
                 btnConfirmarVenta.setEnabled(false);
@@ -1658,11 +1655,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 txtCantidadVenta.setEnabled(false);
                 btnAgregarProductoVenta.setEnabled(false);
                 txtSaldoPendiente.setText(monto);
-            } else {
-                JOptionPane.showMessageDialog(this, "Debe agregar al menos un producto!");
-            }
         } else {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un cliente antes de continuar!");
+            JOptionPane.showMessageDialog(this, "Debe agregar al menos un producto!");
         }
 
     }//GEN-LAST:event_btnConfirmarVentaActionPerformed
