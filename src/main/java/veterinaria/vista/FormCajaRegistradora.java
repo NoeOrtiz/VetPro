@@ -132,10 +132,33 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         // Campos donde el usuario escribe montos
         aplicarFiltroMonetario(txtMontoInicialCaja);
         aplicarFiltroMonetario(txtMontoCierreCaja);
-        aplicarFiltroMonetario(txtMontoFormaDePago);
+        // Este campo acepta formato argentino (7.602,00); el filtro antiguo lo corrompía.
+        normalizarEnFocusLost(txtMontoFormaDePago);
         aplicarFiltroMonetario(txtMontoPagoCC);
         aplicarFiltroMonetario(txtTotalFacturaCompra);
         aplicarFiltroMonetario(txtMontoFacturaCompra);
+
+        // Mostrar importes de las tablas de venta y pagos con formato argentino,
+        // manteniendo los valores numéricos originales para los cálculos.
+        javax.swing.table.DefaultTableCellRenderer dineroRenderer = new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public void setValue(Object value) {
+                if (value instanceof Number) {
+                    setText(MoneyUtil.format(BigDecimal.valueOf(((Number) value).doubleValue())));
+                } else {
+                    setText(value == null ? "" : value.toString());
+                }
+                setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+            }
+        };
+        for (int columna : new int[]{2, 3, 4, 6}) {
+            if (columna < tableVentas.getColumnCount()) {
+                tableVentas.getColumnModel().getColumn(columna).setCellRenderer(dineroRenderer);
+            }
+        }
+        if (tableFormaDePago.getColumnCount() > 1) {
+            tableFormaDePago.getColumnModel().getColumn(1).setCellRenderer(dineroRenderer);
+        }
 
         // Campos calculados (solo lectura) que luego se vuelven a parsear: asegurar estándar
         normalizarEnFocusLost(txtSaldoPendiente);
@@ -227,7 +250,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 }
                 try {
                     BigDecimal v = MoneyUtil.parse(raw);
-                    field.setText(MoneyUtil.formatStandard(v));
+                    field.setText(MoneyUtil.format(v));
                 } catch (Exception ignore) {
                     // si el usuario ingresó algo inválido, lo dejamos tal cual y validará donde corresponda
                 }
@@ -2844,10 +2867,10 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         }
 
 // Mostrar montos formateados (usa tu MoneyUtil del Punto 2)
-        txtSubtotalVenta.setText(MoneyUtil.formatStandard(acumulaSubTotal));
-        txtDescuentoVenta.setText(MoneyUtil.formatStandard(acumulaDescuento));
-        txtIvaVenta.setText(MoneyUtil.formatStandard(acumulaIva));
-        txtTotalVenta.setText(MoneyUtil.formatStandard(acumulaTotalTabla));
+        txtSubtotalVenta.setText(MoneyUtil.format(acumulaSubTotal));
+        txtDescuentoVenta.setText(MoneyUtil.format(acumulaDescuento));
+        txtIvaVenta.setText(MoneyUtil.format(acumulaIva));
+        txtTotalVenta.setText(MoneyUtil.format(acumulaTotalTabla));
 
         operandoTablas.asegurarSeleccionUnica(tableVentas);
     }
