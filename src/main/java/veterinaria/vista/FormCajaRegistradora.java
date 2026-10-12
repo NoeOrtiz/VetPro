@@ -1649,12 +1649,12 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 btnLimpiarVenta.setEnabled(false);
                 btnConfirmarVenta.setEnabled(false);
                 String monto = txtTotalVenta.getText();
-                txtMontoFormaDePago.setText(monto);
+                txtMontoFormaDePago.setText(MoneyUtil.format(MoneyUtil.parse(monto)));
                 jcbClienteVenta.setEnabled(false);
                 jcbProductoVenta.setEnabled(false);
                 txtCantidadVenta.setEnabled(false);
                 btnAgregarProductoVenta.setEnabled(false);
-                txtSaldoPendiente.setText(monto);
+                txtSaldoPendiente.setText(MoneyUtil.format(MoneyUtil.parse(monto)));
         } else {
             JOptionPane.showMessageDialog(this, "Debe agregar al menos un producto!");
         }
@@ -1697,14 +1697,14 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 }
                 BigDecimal vuelto = monto.subtract(pendiente);
                 int confirmarVuelto = JOptionPane.showConfirmDialog(this,
-                        "Efectivo recibido: $ " + MoneyUtil.formatStandard(monto)
-                        + "\\nImporte de la venta pendiente: $ " + MoneyUtil.formatStandard(pendiente)
-                        + "\\nVuelto a entregar: $ " + MoneyUtil.formatStandard(vuelto)
-                        + "\\n\n¿Confirmar el cobro?",
+                        "Efectivo recibido: $ " + MoneyUtil.format(monto)
+                        + "\nImporte de la venta pendiente: $ " + MoneyUtil.format(pendiente)
+                        + "\nVuelto a entregar: $ " + MoneyUtil.format(vuelto)
+                        + "\n\n¿Confirmar el cobro?",
                         "Calcular vuelto", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
                 if (confirmarVuelto != JOptionPane.YES_OPTION) return;
                 // Registrar solo el importe aplicado a la venta, nunca el efectivo bruto recibido.
-                txtMontoFormaDePago.setText(MoneyUtil.formatStandard(pendiente));
+                txtMontoFormaDePago.setText(MoneyUtil.format(pendiente));
             }
             cargarMetodoPagoTabla(mpSeleccionado.toString());
             calcularSaldoFormaDePago();
@@ -1747,12 +1747,12 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         BigDecimal montoACuenta = BigDecimal.ZERO;
         if (pendiente.signum() > 0) {
             if (idCliente == null) {
-                JOptionPane.showMessageDialog(this, "La venta tiene un saldo pendiente de $ " + MoneyUtil.formatStandard(pendiente) + ". Complete el pago para continuar.", "Venta", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "La venta tiene un saldo pendiente de $ " + MoneyUtil.format(pendiente) + ". Complete el pago para continuar.", "Venta", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             CuentaCorrienteControlador cuentaC = new CuentaCorrienteControlador();
             if (!cuentaC.cuentaCorrienteActiva(idCliente)) {
-                JOptionPane.showMessageDialog(this, "Queda un saldo pendiente de $" + MoneyUtil.formatStandard(pendiente)
+                JOptionPane.showMessageDialog(this, "Queda un saldo pendiente de $" + MoneyUtil.format(pendiente)
                         + " y el cliente no posee una Cuenta Corriente activa.", "Venta incompleta", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -1763,7 +1763,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 return;
             }
             int financiar = JOptionPane.showConfirmDialog(this,
-                    "Queda un saldo de $" + MoneyUtil.formatStandard(pendiente)
+                    "Queda un saldo de $" + MoneyUtil.format(pendiente)
                     + ".\n¿Registrar este importe como deuda en Cuenta Corriente?",
                     "Financiar saldo", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (financiar != JOptionPane.YES_OPTION) return;
@@ -1813,8 +1813,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     private void btnLimpiarPagosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarPagosActionPerformed
         DefaultTableModel modelo = (DefaultTableModel) tableFormaDePago.getModel();
         modelo.setRowCount(0);
-        txtSaldoPendiente.setText(txtTotalVenta.getText());
-        txtMontoFormaDePago.setText(txtTotalVenta.getText());
+        txtSaldoPendiente.setText(MoneyUtil.format(MoneyUtil.parse(txtTotalVenta.getText())));
+        txtMontoFormaDePago.setText(MoneyUtil.format(MoneyUtil.parse(txtTotalVenta.getText())));
     }//GEN-LAST:event_btnLimpiarPagosActionPerformed
 
     private void txtSaldoPendienteMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtSaldoPendienteMouseClicked
@@ -2260,7 +2260,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 "Pagos a proveedores", JOptionPane.PLAIN_MESSAGE, null, metodos.toArray(), metodos.get(0));
         if (mp == null) return;
         int confirmar = JOptionPane.showConfirmDialog(this,
-                "¿Confirmar pago de $" + MoneyUtil.formatStandard(monto) + " al proveedor?\nMedio: " + mp.getNombre(),
+                "¿Confirmar pago de $" + MoneyUtil.format(monto) + " al proveedor?\nMedio: " + mp.getNombre(),
                 "Confirmar pago", JOptionPane.YES_NO_OPTION);
         if (confirmar != JOptionPane.YES_OPTION) return;
         try {
@@ -2503,8 +2503,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             }
         }
         BigDecimal saldo = totalVenta.subtract(acumulaMontoPago);
-        txtSaldoPendiente.setText(MoneyUtil.formatStandard(saldo));
-        txtMontoFormaDePago.setText(MoneyUtil.formatStandard(saldo));
+        txtSaldoPendiente.setText(MoneyUtil.format(saldo));
+        txtMontoFormaDePago.setText(MoneyUtil.format(saldo));
     }
 
     private Boolean validarStockProducto(Integer stockProducto, Integer cantidad, Integer idProducto) {
