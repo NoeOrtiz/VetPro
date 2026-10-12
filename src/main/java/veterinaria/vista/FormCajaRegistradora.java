@@ -1689,11 +1689,23 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             if (monto == null || monto.signum() <= 0) {
                 throw new IllegalArgumentException("El monto debe ser mayor a 0.");
             }
+            boolean esEfectivo = "efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim())
+                    || "pago efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim());
             if (pendiente != null && monto.compareTo(pendiente) > 0) {
-                throw new IllegalArgumentException("El importe supera el saldo pendiente de la venta.");
+                if (!esEfectivo) {
+                    throw new IllegalArgumentException("El importe supera el saldo pendiente de la venta.");
+                }
+                BigDecimal vuelto = monto.subtract(pendiente);
+                int confirmarVuelto = JOptionPane.showConfirmDialog(this,
+                        "Efectivo recibido: $ " + MoneyUtil.formatStandard(monto)
+                        + "\nImporte de la venta pendiente: $ " + MoneyUtil.formatStandard(pendiente)
+                        + "\nVuelto a entregar: $ " + MoneyUtil.formatStandard(vuelto)
+                        + "\n\n¿Confirmar el cobro?",
+                        "Calcular vuelto", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (confirmarVuelto != JOptionPane.YES_OPTION) return;
+                // Registrar solo el importe aplicado a la venta, nunca el efectivo bruto recibido.
+                txtMontoFormaDePago.setText(MoneyUtil.formatStandard(pendiente));
             }
-            // Todos los medios activos parametrizados son válidos: efectivo, transferencia,
-            // débito, crédito, billetera virtual u otros configurados por el administrador.
             cargarMetodoPagoTabla(mpSeleccionado.toString());
             calcularSaldoFormaDePago();
         } catch (Exception ex) {
@@ -1713,7 +1725,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         BigDecimal montoACuenta = BigDecimal.ZERO;
         if (pendiente.signum() > 0) {
             if (idCliente == null) {
-                JOptionPane.showMessageDialog(this, "Consumidor Final debe abonar la totalidad de la venta. No puede utilizar Cuenta Corriente.", "Venta", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "La venta tiene un saldo pendiente de $ " + MoneyUtil.formatStandard(pendiente) + ". Complete el pago para continuar.", "Venta", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             CuentaCorrienteControlador cuentaC = new CuentaCorrienteControlador();
