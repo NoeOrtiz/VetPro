@@ -1,110 +1,65 @@
 package raven.tabbed;
 
 import java.awt.Color;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.geom.Area;
-import java.awt.geom.CubicCurve2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
+import javax.swing.UIManager;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 
-/**
- *
- * @author RAVEN
- */
+/** Navegación redondeada y legible tanto en FlatLaf claro como oscuro. */
 public class TabbedPaneCustomUI extends BasicTabbedPaneUI {
+    private final TabbedPaneCustom tabs;
 
-    private final TabbedPaneCustom tab;
-
-    public TabbedPaneCustomUI(TabbedPaneCustom tab) {
-        this.tab = tab;
+    public TabbedPaneCustomUI(TabbedPaneCustom tabs) {
+        this.tabs = tabs;
     }
 
     @Override
-    protected void installDefaults() {
-        super.installDefaults();
+    protected Insets getTabInsets(int placement, int index) {
+        return new Insets(9, 15, 9, 15);
     }
 
     @Override
-    protected Insets getTabInsets(int tabPlacement, int tabIndex) {
-        return new Insets(5, 30, 5, 30);
+    protected void paintTabBorder(Graphics g, int placement, int index,
+            int x, int y, int width, int height, boolean selected) {
+        // El borde se dibuja con el fondo redondeado.
     }
 
     @Override
-    protected void paintTabBorder(Graphics g, int tabPlacement, int tabIndex, int x, int y, int width, int height, boolean isSelected) {
-
+    protected void paintFocusIndicator(Graphics g, int placement, Rectangle[] rects,
+            int index, Rectangle iconRect, Rectangle textRect, boolean selected) {
     }
 
     @Override
-    protected void paintFocusIndicator(Graphics g, int tabPlacement, Rectangle[] rects, int tabIndex, Rectangle iconRect, Rectangle textRect, boolean isSelected) {
-    }
-
-    @Override
-    protected void paintTabArea(Graphics g, int tabPlacement, int selectedIndex) {
+    protected void paintTabBackground(Graphics g, int placement, int index,
+            int x, int y, int width, int height, boolean selected) {
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        for (int i = tabPane.getTabCount() - 1; i >= 0; i--) {
-            if (i != selectedIndex) {
-                paintTabBackground(g2, i, false);
-            }
-        }
-        paintTabBackground(g2, selectedIndex, true);
-        g2.dispose();
-        super.paintTabArea(g, tabPlacement, selectedIndex);
-    }
-
-    protected void paintTabBackground(Graphics2D g2, int index, boolean selected) {
-        Rectangle rec = getTabBounds(tabPane, index);
-        Color color = getTabColor(selected);
-        g2.setPaint(new GradientPaint(rec.x, rec.y, color.brighter(), rec.x, rec.y + rec.height, color));
-        Shape shape = createTabArea(rec);
-        g2.drawImage(new ShadowRenderer(6, 0.8f, new Color(50, 50, 50)).createShadow(shape), rec.x, rec.y, null);
-        g2.fill(shape);
-    }
-
-    @Override
-    protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        int height = calculateTabAreaWidth(tabPlacement, runCount, maxTabHeight) - 1;
-        g2.setColor(tabPane.getBackground());
-        Area area = new Area(new RoundRectangle2D.Double(0, height, tabPane.getWidth(), tabPane.getHeight() - height, 15, 15));
-        if (selectedIndex == 0) {
-            area.add(new Area(new Rectangle2D.Double(0, height, 15, 15)));
-        }
-        g2.fill(area);
+        Color background = selected ? tabs.getSelectedColor() : tabs.getUnselectedColor();
+        g2.setColor(background);
+        g2.fill(new RoundRectangle2D.Float(x + 2, y + 2, width - 4, height - 3, 12, 12));
         g2.dispose();
     }
 
-    private Shape createTabArea(Rectangle rec) {
-        int x = rec.x;
-        int y = rec.y;
-        int width = x + rec.width;
-        int height = y + rec.height;
-        int round = 10;
-        Path2D p = new Path2D.Double();
-        p.moveTo(x, height);
-        p.lineTo(x, y + round);
-        p.curveTo(x, y + round, x, y, x + round, y);
-        p.lineTo(width - round, y);
-        p.append(new CubicCurve2D.Double(width - round, y, width + round, y, width + round / 2, height, width + 40, height), true);
-        Area area = new Area(p);
-        area.add(new Area(new Rectangle2D.Double(x, height - round, round, round * 2)));
-        return area;
+    @Override
+    protected void paintText(Graphics g, int placement, java.awt.Font font,
+            java.awt.FontMetrics metrics, int index, String title,
+            Rectangle textRect, boolean selected) {
+        Color fg = selected ? UIManager.getColor("TabbedPane.foreground") : UIManager.getColor("Label.foreground");
+        if (fg == null) fg = tabs.getForeground();
+        g.setColor(fg);
+        g.setFont(font);
+        int mnemonic = tabs.getDisplayedMnemonicIndexAt(index);
+        javax.swing.plaf.basic.BasicGraphicsUtils.drawStringUnderlineCharAt(
+                g, title, mnemonic, textRect.x, textRect.y + metrics.getAscent());
     }
 
-    private Color getTabColor(boolean selected) {
-        if (selected) {
-            return tab.getSelectedColor();
-        } else {
-            return tab.getUnselectedColor();
-        }
+    @Override
+    protected void paintContentBorder(Graphics g, int placement, int selectedIndex) {
+        // Sin marco blanco ajeno al tema.
     }
 }
