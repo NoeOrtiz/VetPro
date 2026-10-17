@@ -71,6 +71,19 @@ public class PanelRubros extends JPanel {
         acciones.add(btnRefrescar);
 
         add(top, BorderLayout.NORTH);
+        table.setRowHeight(32);
+        table.setShowHorizontalLines(true);
+        table.setShowVerticalLines(true);
+        table.setIntercellSpacing(new Dimension(12, 3));
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getColumnModel().getColumn(1).setPreferredWidth(240);
+        table.getColumnModel().getColumn(2).setPreferredWidth(190);
+        table.getColumnModel().getColumn(3).setPreferredWidth(170);
+        table.getColumnModel().getColumn(4).setPreferredWidth(100);
+        javax.swing.table.DefaultTableCellRenderer numericRenderer = new javax.swing.table.DefaultTableCellRenderer();
+        numericRenderer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        table.getColumnModel().getColumn(2).setCellRenderer(numericRenderer);
+        table.getColumnModel().getColumn(3).setCellRenderer(numericRenderer);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setPreferredSize(new Dimension(800, 420));
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
