@@ -4,11 +4,11 @@ import java.awt.BorderLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingConstants;
+import raven.tabbed.TabbedPaneCustom;
 
 public class ClassConfig extends JPanel {
 
-    private final JTabbedPane tabs = new JTabbedPane(SwingConstants.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+    private final TabbedPaneCustom tabs = new TabbedPaneCustom();
 
     private final PanelRolesPermisos panelRolesPermisos = new PanelRolesPermisos();
     private final PanelMetodosPago panelMetodosPago = new PanelMetodosPago();
