@@ -872,7 +872,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Código", "Producto", "Precio Unidad", "IVA Acumulado", "Descuento Acumulado", "Cantidad", "Total"
+                "Código", "Producto", "Precio Unidad", "IVA ($)", "Descuento ($)", "Cantidad", "Total"
             }
         ) {
             boolean[] canEdit = new boolean [] {
@@ -1702,9 +1702,9 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             String motivo = null;
             if (diferencia.signum() != 0) {
                 motivo = JOptionPane.showInputDialog(this,
-                        "Efectivo esperado: $" + MoneyUtil.formatStandard(esperado) + "\\n"
-                        + "Efectivo contado: $" + MoneyUtil.formatStandard(contado) + "\\n"
-                        + "Diferencia: $" + MoneyUtil.formatStandard(diferencia) + "\\n\n"
+                        "Efectivo esperado: $" + MoneyUtil.format(esperado) + "\n"
+                        + "Efectivo contado: $" + MoneyUtil.format(contado) + "\n"
+                        + "Diferencia: $" + MoneyUtil.format(diferencia) + "\n\n"
                         + "Indique el motivo del sobrante/faltante:", "Diferencia de caja", JOptionPane.WARNING_MESSAGE);
                 if (motivo == null) return;
                 if (motivo.trim().isEmpty()) throw new IllegalArgumentException("El motivo de la diferencia es obligatorio.");
@@ -1713,7 +1713,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 throw new IllegalStateException(operarCaja.getUltimoError() == null ? "No se pudo cerrar la caja." : operarCaja.getUltimoError());
             }
             JOptionPane.showMessageDialog(this, "Caja cerrada correctamente.\nEfectivo esperado: $"
-                    + MoneyUtil.formatStandard(esperado) + "\\nEfectivo contado: $" + MoneyUtil.formatStandard(contado));
+                    + MoneyUtil.format(esperado) + "\nEfectivo contado: $" + MoneyUtil.format(contado));
             jpCierreCaja.setVisible(false); actualizarForm();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "No se puede cerrar caja", JOptionPane.WARNING_MESSAGE);
