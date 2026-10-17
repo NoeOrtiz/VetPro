@@ -25,6 +25,7 @@ import veterinaria.util.Validaciones;
 import veterinaria.vista.application.Application;
 import veterinaria.util.PermisoUI;
 import veterinaria.util.enums.EstadoCliente;
+import veterinaria.vista.table.TableGradientCell;
 
 public class FormCliente extends javax.swing.JPanel {
 
@@ -932,7 +933,23 @@ public class FormCliente extends javax.swing.JPanel {
             btnEliminar.setEnabled(false);
         }
 
+        instalarDegradadoSeleccionClientes();
         actualizarTabla();
+    }
+
+    /**
+     * Solo pinta las celdas de texto; preserva el checkbox y el modelo existente.
+     * No modifica anchos, filas, scroll ni tipografía.
+     */
+    private void instalarDegradadoSeleccionClientes() {
+        javax.swing.table.TableColumnModel columns = tableClientes.getColumnModel();
+        for (int col = 0; col < columns.getColumnCount(); col++) {
+            int modelColumn = columns.getColumn(col).getModelIndex();
+            if (modelColumn != COL_SELECCION && modelColumn != COL_ID_CLIENTE) {
+                columns.getColumn(col).setCellRenderer(new TableGradientCell());
+            }
+        }
+        tableClientes.repaint();
     }
 
     private void actualizarTabla() {
