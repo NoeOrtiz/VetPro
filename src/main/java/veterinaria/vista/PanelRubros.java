@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Dimension;
 import java.util.List;
+import java.math.BigDecimal;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -31,14 +32,14 @@ public class PanelRubros extends JPanel {
 
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[][]{},
-            new String[]{"ID", "Nombre", "Stock mínimo default", "Activo"}
+            new String[]{"ID", "Nombre", "Stock mínimo default", "% Ganancia", "Activo"}
     ) {
         @Override public boolean isCellEditable(int row, int col) { return false; }
         @Override public Class<?> getColumnClass(int col) {
             switch (col) {
                 case 0: return Integer.class;
                 case 2: return Integer.class;
-                case 3: return Boolean.class;
+                case 4: return Boolean.class;
                 default: return String.class;
             }
         }
@@ -100,6 +101,7 @@ public class PanelRubros extends JPanel {
                 r.getIdRubro(),
                 r.getNombre(),
                 r.getStockMinimoDefault(),
+                r.getPorcentajeGanancia() == null ? "" : r.getPorcentajeGanancia().stripTrailingZeros().toPlainString(),
                 r.isActivo()
             });
         }
@@ -117,9 +119,11 @@ public class PanelRubros extends JPanel {
         JTextField txtNombre = new JTextField();
         JSpinner spMin = new JSpinner(new SpinnerNumberModel(0, 0, 999999, 1));
 
+        JTextField txtGanancia = new JTextField(12);
         Object[] form = {
             "Nombre:", txtNombre,
-            "Stock mínimo default:", spMin
+            "Stock mínimo default:", spMin,
+            "% Ganancia (vacío = global):", txtGanancia
         };
 
         int op = JOptionPane.showConfirmDialog(this, form, "Agregar rubro",
@@ -142,11 +146,20 @@ public class PanelRubros extends JPanel {
             return;
         }
 
-        if (!confirmarCreacionRubro(nombre, stockMin)) return;
+        BigDecimal ganancia;
+        try {
+            ganancia = leerGanancia(txtGanancia.getText());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!confirmarCreacionRubro(nombre, stockMin, ganancia)) return;
 
         Rubro r = new Rubro();
         r.setNombre(nombre);
         r.setStockMinimoDefault(stockMin);
+        r.setPorcentajeGanancia(ganancia);
         r.setActivo(true);
 
         boolean ok = dao.crear(r);
@@ -178,9 +191,12 @@ public class PanelRubros extends JPanel {
         JTextField txtNombre = new JTextField(r.getNombre());
         JSpinner spMin = new JSpinner(new SpinnerNumberModel(r.getStockMinimoDefault(), 0, 999999, 1));
 
+        JTextField txtGanancia = new JTextField(
+                r.getPorcentajeGanancia() == null ? "" : r.getPorcentajeGanancia().stripTrailingZeros().toPlainString(), 12);
         Object[] form = {
             "Nombre:", txtNombre,
-            "Stock mínimo default:", spMin
+            "Stock mínimo default:", spMin,
+            "% Ganancia (vacío = global):", txtGanancia
         };
 
         int op = JOptionPane.showConfirmDialog(this, form, "Modificar rubro",
@@ -203,10 +219,20 @@ public class PanelRubros extends JPanel {
             return;
         }
 
-        if (!confirmarEdicionRubro(r.getNombre(), nombre, r.getStockMinimoDefault(), stockMin)) return;
+        BigDecimal ganancia;
+        try {
+            ganancia = leerGanancia(txtGanancia.getText());
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!confirmarEdicionRubro(r.getNombre(), nombre, r.getStockMinimoDefault(), stockMin,
+                r.getPorcentajeGanancia(), ganancia)) return;
 
         r.setNombre(nombre);
         r.setStockMinimoDefault(stockMin);
+        r.setPorcentajeGanancia(ganancia);
 
         boolean ok = dao.actualizar(r);
         if (!ok) {
@@ -218,11 +244,12 @@ public class PanelRubros extends JPanel {
         refrescarTabla();
     }
 
-    private boolean confirmarCreacionRubro(String nombre, int stockMinimoDefault) {
+    private boolean confirmarCreacionRubro(String nombre, int stockMinimoDefault, BigDecimal ganancia) {
         String msg = "<html><body style='width:320px'>"
                 + "<p>Se creará el siguiente rubro:</p>"
                 + "<b>Nombre:</b> " + escapeHtml(nombre) + "<br>"
                 + "<b>Stock mínimo default:</b> " + stockMinimoDefault
+                + "<br><b>Ganancia:</b> " + textoGanancia(ganancia)
                 + "<br><br><b>¿Desea confirmar?</b></body></html>";
 
         int op = JOptionPane.showConfirmDialog(this, msg,
@@ -233,12 +260,15 @@ public class PanelRubros extends JPanel {
     }
 
     private boolean confirmarEdicionRubro(String nombreOriginal, String nombreNuevo,
-                                          int stockMinOriginal, int stockMinNuevo) {
+                                          int stockMinOriginal, int stockMinNuevo,
+                                          BigDecimal gananciaOriginal, BigDecimal gananciaNueva) {
         StringBuilder msg = new StringBuilder("<html><body style='width:360px'>");
         msg.append("<p>Se modificarán los siguientes datos:</p>");
         int cambios = 0;
         cambios += appendCambio(msg, "Nombre", nombreOriginal, nombreNuevo);
         cambios += appendCambio(msg, "Stock mínimo default", String.valueOf(stockMinOriginal), String.valueOf(stockMinNuevo));
+
+        cambios += appendCambio(msg, "% Ganancia", textoGanancia(gananciaOriginal), textoGanancia(gananciaNueva));
 
         if (cambios == 0) {
             JOptionPane.showMessageDialog(this, "No se detectaron cambios para guardar.",
@@ -252,6 +282,24 @@ public class PanelRubros extends JPanel {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE);
         return op == JOptionPane.YES_OPTION;
+    }
+
+    private static BigDecimal leerGanancia(String texto) {
+        String valor = texto == null ? "" : texto.trim();
+        if (valor.isEmpty()) return null;
+        try {
+            BigDecimal porcentaje = new BigDecimal(valor.replace(",", "."));
+            if (porcentaje.signum() < 0 || porcentaje.compareTo(new BigDecimal("999")) > 0) {
+                throw new IllegalArgumentException("La ganancia debe estar entre 0 y 999 %.");
+            }
+            return porcentaje;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Porcentaje inválido. Ejemplo: 50 o 37,5.");
+        }
+    }
+
+    private static String textoGanancia(BigDecimal porcentaje) {
+        return porcentaje == null ? "Global" : porcentaje.stripTrailingZeros().toPlainString() + " %";
     }
 
     private int appendCambio(StringBuilder sb, String campo, String valorOriginal, String valorNuevo) {
