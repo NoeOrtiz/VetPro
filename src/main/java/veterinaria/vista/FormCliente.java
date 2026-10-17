@@ -569,7 +569,7 @@ public class FormCliente extends javax.swing.JPanel {
         // Un preferredSize fijo de 220 px recortaba los registros al desplazarse.
         tableClientes.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(tableClientes);
-        tableClientes.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tableClientes.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
         tableClientes.setFillsViewportHeight(true);
         scroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
