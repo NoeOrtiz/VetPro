@@ -589,9 +589,11 @@ public class FormUsuario extends javax.swing.JPanel {
             }
         });
         table.setMinimumSize(new java.awt.Dimension(848, 220));
-        table.setPreferredSize(new java.awt.Dimension(848, 220));
+        // La altura de la JTable debe depender de todas las filas, no de un valor fijo.
         table.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(table);
+        scroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         btnImprimir1.setText("Imprimir");
 
