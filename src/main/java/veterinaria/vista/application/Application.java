@@ -178,6 +178,11 @@ public class Application extends javax.swing.JFrame {
 
         configurarTextosDialogosEnEspañol();
         FlatMacDarkLaf.setup();
+        // Estilo general de todas las JTable, compatible con los temas FlatLaf.
+        UIManager.put("Table.showHorizontalLines", true);
+        UIManager.put("Table.showVerticalLines", true);
+        UIManager.put("Table.showGrid", true);
+        UIManager.put("Table.gridColor", UIManager.getColor("Component.borderColor"));
         DateChooserThemeSupport.instalar();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
