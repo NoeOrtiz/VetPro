@@ -49,10 +49,10 @@ public class TabbedPaneCustomUI extends BasicTabbedPaneUI {
     protected void paintText(Graphics g, int placement, java.awt.Font font,
             java.awt.FontMetrics metrics, int index, String title,
             Rectangle textRect, boolean selected) {
-        Color fg = selected ? UIManager.getColor("TabbedPane.foreground") : UIManager.getColor("Label.foreground");
+        Color fg = UIManager.getColor("TabbedPane.foreground");
         if (fg == null) fg = tabs.getForeground();
         g.setColor(fg);
-        g.setFont(font);
+        g.setFont(tabs.getFont());
         int mnemonic = tabs.getDisplayedMnemonicIndexAt(index);
         javax.swing.plaf.basic.BasicGraphicsUtils.drawStringUnderlineCharAt(
                 g, title, mnemonic, textRect.x, textRect.y + metrics.getAscent());
