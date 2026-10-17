@@ -68,10 +68,16 @@ public final class TableLayoutSupport {
         }
         table.setIntercellSpacing(new Dimension(1, 1));
         table.setShowGrid(true);
+        // Evita que los márgenes de celda particulares fragmenten la cuadrícula.
+        table.setRowMargin(1);
+        table.getColumnModel().setColumnMargin(1);
         // Aplicar el degradado a celdas de texto sin sustituir editores,
         // casillas de verificación ni renderizadores específicos por columna.
         table.setDefaultRenderer(Object.class, new TableGradientCell());
         table.setDefaultRenderer(String.class, new TableGradientCell());
+        table.setDefaultRenderer(Number.class, new TableGradientCell());
+        table.setDefaultRenderer(Integer.class, new TableGradientCell());
+        table.setDefaultRenderer(Double.class, new TableGradientCell());
         // Las columnas que poseen renderizadores propios conservan su lógica.
         // La cuadrícula se dibuja desde JTable, no desde el renderizador.
         table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
