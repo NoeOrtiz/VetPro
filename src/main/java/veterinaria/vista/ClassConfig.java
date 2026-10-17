@@ -5,6 +5,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import raven.tabbed.TabbedPaneCustom;
+import veterinaria.util.ui.TableLayoutSupport;
 
 public class ClassConfig extends JPanel {
 
@@ -31,10 +32,14 @@ public class ClassConfig extends JPanel {
         tabs.addTab("Tipos de Cita", panelTiposCitaPeluqueria);
         tabs.addTab("Rubros / Stock", panelRubros);
 
-        tabs.addChangeListener(e -> cargarSolapaSeleccionada());
+        tabs.addChangeListener(e -> {
+            cargarSolapaSeleccionada();
+            TableLayoutSupport.prepare(tabs.getSelectedComponent());
+        });
         add(tabs, BorderLayout.CENTER);
 
         tabs.setSelectedIndex(0);
+        TableLayoutSupport.prepare(tabs.getSelectedComponent());
     }
 
     private void cargarSolapaSeleccionada() {
