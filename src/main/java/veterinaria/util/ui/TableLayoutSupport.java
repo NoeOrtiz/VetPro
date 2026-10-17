@@ -9,6 +9,7 @@ import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import veterinaria.vista.table.TableColumnAdjuster;
+import veterinaria.vista.table.TableGradientCell;
 
 public final class TableLayoutSupport {
 
@@ -49,6 +50,10 @@ public final class TableLayoutSupport {
         table.setMinimumSize(new Dimension(0, 0));
         table.setMaximumSize(null);
         table.setFillsViewportHeight(true);
+        // Aplicar el degradado a celdas de texto sin sustituir editores,
+        // casillas de verificación ni renderizadores específicos por columna.
+        table.setDefaultRenderer(Object.class, new TableGradientCell());
+        table.setDefaultRenderer(String.class, new TableGradientCell());
         table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
         // Un único criterio de ancho para todas las tablas de VetPRO.
