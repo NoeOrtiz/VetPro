@@ -12,6 +12,8 @@ import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
+import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableColumnModelListener;
 import veterinaria.vista.table.TableColumnAdjuster;
 import veterinaria.vista.table.TableGradientCell;
 
@@ -49,6 +51,25 @@ public final class TableLayoutSupport {
         }
     }
 
+    private static void adjustRowHeights(JTable table) {
+        if (table.getColumnCount() == 0) return;
+        int minimum = Math.max(22, table.getFontMetrics(table.getFont()).getHeight() + 8);
+        for (int row = 0; row < table.getRowCount(); row++) {
+            int height = minimum;
+            for (int col = 0; col < table.getColumnCount(); col++) {
+                TableCellRenderer renderer = table.getCellRenderer(row, col);
+                Component component = table.prepareRenderer(renderer, row, col);
+                if (component instanceof javax.swing.JTextArea) {
+                    int width = Math.max(20, table.getColumnModel().getColumn(col).getWidth()
+                            - table.getColumnModel().getColumnMargin() - 4);
+                    component.setSize(width, Short.MAX_VALUE);
+                }
+                height = Math.max(height, component.getPreferredSize().height + 6);
+            }
+            if (table.getRowHeight(row) != height) table.setRowHeight(row, height);
+        }
+    }
+
     private static void normalizeTable(JTable table) {
         table.setPreferredSize(null);
         table.setMinimumSize(new Dimension(0, 0));
@@ -80,13 +101,26 @@ public final class TableLayoutSupport {
         table.setDefaultRenderer(Double.class, new TableGradientCell());
         // Las columnas que poseen renderizadores propios conservan su lógica.
         // La cuadrícula se dibuja desde JTable, no desde el renderizador.
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+        // No imponer un modo de ancho: conservar el que eligió cada formulario.
+        if (!Boolean.TRUE.equals(table.getClientProperty("vetpro.multiline.installed"))) {
+            table.putClientProperty("vetpro.multiline.installed", Boolean.TRUE);
+            table.getColumnModel().addColumnModelListener(new TableColumnModelListener() {
+                @Override public void columnMarginChanged(javax.swing.event.ChangeEvent e) {
+                    SwingUtilities.invokeLater(() -> adjustRowHeights(table));
+                }
+                @Override public void columnAdded(TableColumnModelEvent e) {}
+                @Override public void columnRemoved(TableColumnModelEvent e) {}
+                @Override public void columnMoved(TableColumnModelEvent e) {}
+                @Override public void columnSelectionChanged(javax.swing.event.ListSelectionEvent e) {}
+            });
+        }
 
         // Un único criterio de ancho para todas las tablas de VetPRO.
         // Se reaplica después de que Swing termina de montar/cargar el modelo.
         SwingUtilities.invokeLater(() -> {
             if (table.getColumnCount() > 0) {
                 TableColumnAdjuster.ajustarAnchoColumnas(table);
+                adjustRowHeights(table);
                 table.revalidate();
                 table.repaint();
             }
