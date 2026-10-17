@@ -15,6 +15,7 @@ import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 import veterinaria.entidad.MetodoPago;
 import veterinaria.persistencia.MetodoPagoDAO;
+import veterinaria.util.ui.TableLayoutSupport;
 
 /**
  * Panel CRUD para Métodos de Pago.
@@ -70,6 +71,7 @@ public class PanelMetodosPago extends JPanel {
 
         wireEvents();
         refrescarTabla();
+        TableLayoutSupport.prepare(this);
     }
 
     private void wireEvents() {
