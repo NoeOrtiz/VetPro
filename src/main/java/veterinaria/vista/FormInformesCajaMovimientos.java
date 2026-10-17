@@ -55,11 +55,11 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // Distribución adaptable: evita que los botones se recorten y elimina
         // el desplazamiento horizontal cuando la ventana es angosta.
         javax.swing.SwingUtilities.invokeLater(() -> {
-            tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+            tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
             tableCajaMovimientos.setFillsViewportHeight(true);
             if (tableCajaMovimientos.getParent() instanceof javax.swing.JViewport) {
                 javax.swing.JScrollPane panel = (javax.swing.JScrollPane) tableCajaMovimientos.getParent().getParent();
-                panel.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+                panel.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
             }
         });
 
@@ -120,8 +120,8 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         titulo.add(jSeparator3, java.awt.BorderLayout.SOUTH);
         jpListaOperaciones.add(titulo, java.awt.BorderLayout.NORTH);
         jpListaOperaciones.add(scroll1, java.awt.BorderLayout.CENTER);
-        scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         setLayout(new java.awt.BorderLayout(0, 4));
         removeAll();
@@ -170,7 +170,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         tableCajaMovimientos.getTableHeader().setReorderingAllowed(false);
         // El informe debe adaptarse al ancho disponible. La descripción ocupa
         // el espacio restante y se envuelve en varias líneas cuando es extensa.
-        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         // El ID sigue en el modelo para selección interna, pero no se muestra al usuario.
         tableCajaMovimientos.removeColumn(tableCajaMovimientos.getColumnModel().getColumn(0));
         configurarColumnasInforme();
