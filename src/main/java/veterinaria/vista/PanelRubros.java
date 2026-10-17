@@ -72,8 +72,6 @@ public class PanelRubros extends JPanel {
 
         add(top, BorderLayout.NORTH);
         table.setRowHeight(32);
-        table.setShowHorizontalLines(false);
-        table.setShowVerticalLines(false);
         table.setIntercellSpacing(new Dimension(12, 3));
         table.getTableHeader().setReorderingAllowed(false);
         table.getColumnModel().getColumn(1).setPreferredWidth(240);
