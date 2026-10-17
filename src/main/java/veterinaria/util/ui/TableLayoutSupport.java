@@ -28,10 +28,9 @@ public final class TableLayoutSupport {
     private static void normalizeRecursively(Component component) {
         if (component instanceof JTable) {
             JTable table = (JTable) component;
-            table.setShowHorizontalLines(true);
-            table.setShowVerticalLines(true);
-            Color grid = UIManager.getColor("Table.gridColor");
-            if (grid != null && grid.getAlpha() > 0) table.setGridColor(grid);
+            table.setShowHorizontalLines(false);
+            table.setShowVerticalLines(false);
+            table.setIntercellSpacing(new java.awt.Dimension(0, 0));
             table.repaint();
         }
         if (component instanceof Container) {
