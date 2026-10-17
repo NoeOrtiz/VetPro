@@ -7,51 +7,62 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.UIManager;
-import javax.swing.table.TableCellRenderer;
+import javax.swing.table.DefaultTableCellRenderer;
 
-/** Texto multilínea con selección degradada; hereda la tipografía de JTable. */
-public class TableGradientCell extends JTextArea implements TableCellRenderer {
-    private boolean selected;
+/**
+ * Degradado de selección, inspirado en DJ-Raven.
+ * No cambia fuente, ancho de columna ni altura de fila.
+ */
+public class TableGradientCell extends DefaultTableCellRenderer {
+    private boolean highlighted;
     private int offsetX;
     private int tableWidth;
+    private Color start;
+    private Color end;
 
     public TableGradientCell() {
-        setEditable(false);
-        setLineWrap(true);
-        setWrapStyleWord(true);
         setOpaque(false);
-        setBorder(null);
     }
 
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        highlighted = isSelected || (table.getColumnCount() > 0
+                && Boolean.TRUE.equals(table.getValueAt(row, 0)));
+        Rectangle bounds = table.getCellRect(row, column, true);
+        offsetX = -bounds.x;
+        tableWidth = Math.max(1, table.getWidth());
+        boolean dark = UIManager.getColor("Panel.background") != null
+                && luminance(UIManager.getColor("Panel.background")) < 128;
+        start = dark ? new Color(169, 65, 44) : new Color(255, 210, 157);
+        end = dark ? new Color(44, 105, 177) : new Color(174, 207, 245);
+        if (highlighted) {
+            setForeground(dark ? Color.WHITE : new Color(35, 39, 45));
+        } else {
+            setForeground(table.getForeground());
+        }
         setFont(table.getFont());
-        setText(value == null ? "" : String.valueOf(value));
-        setForeground(isSelected ? table.getSelectionForeground() : table.getForeground());
-        setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-        selected = isSelected;
-        Rectangle cell = table.getCellRect(row, column, true);
-        offsetX = -cell.x;
-        tableWidth = table.getWidth();
-        setSize(Math.max(1, cell.width - table.getColumnModel().getColumnMargin()), Short.MAX_VALUE);
+        setOpaque(false);
         return this;
+    }
+
+    private static int luminance(Color color) {
+        return (color.getRed() * 299 + color.getGreen() * 587 + color.getBlue() * 114) / 1000;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
-        if (selected) {
+        if (highlighted) {
             Graphics2D g2 = (Graphics2D) g.create();
-            Color start = UIManager.getColor("Table.selectionBackground");
-            if (start == null) start = getBackground();
-            Color end = new Color(
-                    Math.min(255, start.getRed() + 22),
-                    Math.min(255, start.getGreen() + 22),
-                    Math.min(255, start.getBlue() + 22));
             g2.setPaint(new GradientPaint(offsetX, 0, start,
-                    offsetX + Math.max(1, tableWidth), 0, end));
+                    offsetX + tableWidth, 0, end));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.dispose();
+        } else {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setColor(getBackground());
             g2.fillRect(0, 0, getWidth(), getHeight());
             g2.dispose();
         }
