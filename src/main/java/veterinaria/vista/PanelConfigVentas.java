@@ -132,6 +132,9 @@ public class PanelConfigVentas extends JPanel {
         g.gridy = row;
         g.fill = GridBagConstraints.BOTH;
         g.weighty = 1;
+        tblRubros.setRowHeight(30);
+        tblRubros.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+        tblRubros.setToolTipText("Doble clic en el porcentaje para editar. Dejar vacío utiliza el porcentaje global.");
         JScrollPane sp = new JScrollPane(tblRubros);
         sp.setPreferredSize(new Dimension(800, 150));
         sp.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -263,6 +266,10 @@ public class PanelConfigVentas extends JPanel {
 
     private void guardar() {
         try {
+            if (tblRubros.isEditing() && !tblRubros.getCellEditor().stopCellEditing()) {
+                JOptionPane.showMessageDialog(this, "Terminá de editar el porcentaje antes de guardar.");
+                return;
+            }
             int ganGlobal = (Integer) spGananciaGlobal.getValue();
             int dec = (Integer) spDecimales.getValue();
                         RedondeoItem rmItem = (RedondeoItem) cbRedondeo.getSelectedItem();
@@ -384,10 +391,15 @@ private static class RubroTableModel extends AbstractTableModel {
                     r.setPorcentajeGanancia(null);
                 } else {
                     try {
-                        BigDecimal bd = new BigDecimal(s);
+                        BigDecimal bd = new BigDecimal(s.replace(",", "."));
+                        if (bd.signum() < 0 || bd.compareTo(new BigDecimal("999")) > 0) {
+                            JOptionPane.showMessageDialog(null, "La ganancia debe estar entre 0 y 999 %.");
+                            return;
+                        }
                         r.setPorcentajeGanancia(bd);
                     } catch (Exception e) {
-                        // inválido: no cambia
+                        JOptionPane.showMessageDialog(null, "Porcentaje inválido. Ejemplo: 50 o 37,5.");
+                        return;
                     }
                 }
             } else if (columnIndex == 3) {
