@@ -3,6 +3,8 @@ package veterinaria.util.ui;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Color;
+import javax.swing.UIManager;
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -50,6 +52,19 @@ public final class TableLayoutSupport {
         table.setMinimumSize(new Dimension(0, 0));
         table.setMaximumSize(null);
         table.setFillsViewportHeight(true);
+        table.setShowHorizontalLines(true);
+        table.setShowVerticalLines(true);
+        Color grid = UIManager.getColor("Table.gridColor");
+        if (grid == null || grid.getAlpha() == 0) {
+            grid = UIManager.getColor("Component.borderColor");
+        }
+        if (grid == null || grid.getAlpha() == 0) {
+            grid = UIManager.getColor("Separator.foreground");
+        }
+        if (grid != null) {
+            table.setGridColor(grid);
+        }
+        table.setIntercellSpacing(new Dimension(1, 1));
         // Aplicar el degradado a celdas de texto sin sustituir editores,
         // casillas de verificación ni renderizadores específicos por columna.
         table.setDefaultRenderer(Object.class, new TableGradientCell());
