@@ -564,9 +564,14 @@ public class FormCliente extends javax.swing.JPanel {
             }
         });
         tableClientes.setMinimumSize(new java.awt.Dimension(0, 0));
-        tableClientes.setPreferredSize(new java.awt.Dimension(848, 220));
+        // JTable calcula su altura real a partir de todas las filas del modelo.
+        // Un preferredSize fijo de 220 px recortaba los registros al desplazarse.
         tableClientes.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(tableClientes);
+        tableClientes.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tableClientes.setFillsViewportHeight(true);
+        scroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
         btnImprimirLista.setText("Imprimir Lista");
         btnImprimirLista.addActionListener(new java.awt.event.ActionListener() {
