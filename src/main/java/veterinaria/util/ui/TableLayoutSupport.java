@@ -10,6 +10,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
 import veterinaria.vista.table.TableColumnAdjuster;
 import veterinaria.vista.table.TableGradientCell;
 
@@ -65,10 +67,13 @@ public final class TableLayoutSupport {
             table.setGridColor(grid);
         }
         table.setIntercellSpacing(new Dimension(1, 1));
+        table.setShowGrid(true);
         // Aplicar el degradado a celdas de texto sin sustituir editores,
         // casillas de verificación ni renderizadores específicos por columna.
         table.setDefaultRenderer(Object.class, new TableGradientCell());
         table.setDefaultRenderer(String.class, new TableGradientCell());
+        // Las columnas que poseen renderizadores propios conservan su lógica.
+        // La cuadrícula se dibuja desde JTable, no desde el renderizador.
         table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
 
         // Un único criterio de ancho para todas las tablas de VetPRO.
