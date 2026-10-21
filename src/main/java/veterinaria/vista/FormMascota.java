@@ -56,6 +56,7 @@ public class FormMascota extends javax.swing.JPanel {
 
     public FormMascota() {
         initComponents();
+        configurarFechaNacimientoTemaOscuro();
         PermisoUI.aplicar(this);
         cargarDatosComboBoxes();
         List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 10);
@@ -90,6 +91,25 @@ public class FormMascota extends javax.swing.JPanel {
         });
 
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
+    }
+
+    /**
+     * Mantiene legible el editor de fecha bajo FlatLaf oscuro sin alterar el calendario.
+     */
+    private void configurarFechaNacimientoTemaOscuro() {
+        java.awt.Color blanco = java.awt.Color.WHITE;
+        java.awt.Color texto = java.awt.Color.BLACK;
+        jDateFechaNacimiento.setBackground(blanco);
+        jDateFechaNacimiento.setForeground(texto);
+        if (jDateFechaNacimiento.getDateEditor() != null
+                && jDateFechaNacimiento.getDateEditor().getUiComponent() != null) {
+            javax.swing.JComponent editor = jDateFechaNacimiento.getDateEditor().getUiComponent();
+            editor.setBackground(blanco);
+            editor.setForeground(texto);
+            if (editor instanceof javax.swing.JTextField) {
+                ((javax.swing.JTextField) editor).setCaretColor(texto);
+            }
+        }
     }
 
     /**
