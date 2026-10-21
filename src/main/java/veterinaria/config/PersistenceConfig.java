@@ -25,7 +25,7 @@ public final class PersistenceConfig {
     public static final String ENV_HBM2DDL = "VETPRO_HIBERNATE_HBM2DDL";
     public static final String ENV_SHOW_SQL = "VETPRO_HIBERNATE_SHOW_SQL";
 
-    private static final String DEFAULT_DB_URL = "jdbc:mysql://localhost:3306/veterinaria_prueba?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+    private static final String DEFAULT_DB_URL = "jdbc:mysql://localhost:3306/veterinaria?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
     private static final String DEFAULT_DB_USER = "root";
     private static final String DEFAULT_DB_PASSWORD = "";
     private static final String DEFAULT_HBM2DDL = "validate";
@@ -45,9 +45,7 @@ public final class PersistenceConfig {
     }
 
     public static String getDbUrl() {
-        // La rama de diagnóstico de la PC del trabajo utiliza exclusivamente la BD de prueba.
-        // No se aceptan overrides de vetpro.properties, variables de entorno ni -Dvetpro.db.url.
-        return DEFAULT_DB_URL;
+        return resolve(PROP_DB_URL, ENV_DB_URL, DEFAULT_DB_URL);
     }
 
     public static String getDbUser() {
