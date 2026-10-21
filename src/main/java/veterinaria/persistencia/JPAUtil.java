@@ -20,6 +20,7 @@ public final class JPAUtil {
 
     private static EntityManagerFactory buildEntityManagerFactory() {
         Map<String, String> overrides = PersistenceConfig.asJpaOverrides();
+        System.out.println("[VetPRO] Configuración de persistencia: " + PersistenceConfig.describeSafe());
         return Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME, overrides);
     }
 
