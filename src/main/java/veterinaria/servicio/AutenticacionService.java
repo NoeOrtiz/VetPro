@@ -100,6 +100,8 @@ public class AutenticacionService {
         } catch (SecurityException se) {
             throw se;
         } catch (Exception ex) {
+            System.err.println("[VetPRO] Error interno durante el inicio de sesión (no implica contraseña incorrecta): " + ex.getClass().getName());
+            ex.printStackTrace(System.err);
             registrarLoginFallido(null, nombreUsuario, ex.getMessage());
             return false;
         } finally {
