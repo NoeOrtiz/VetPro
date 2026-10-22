@@ -48,6 +48,7 @@ public class ReporteRegistry {
 
         // === CONFIGURACIÓN DE REPORTES EXCEL (XLS) ===
         // Buscá el constructor de tu ReporteRegistry y agregá esta línea:
+        registrar(ReporteSelectorUtil.Formato.XLS, new CajaMovimientosListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new ClienteListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new ClienteRegistroXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new ProductoListadoXlsReporte()
