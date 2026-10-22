@@ -12,6 +12,11 @@ import javax.swing.SwingUtilities;
 public class AutoTable extends JTable {
 
     private TableModelListener tableModelListener;
+    private boolean ajustarAnchoAutomaticamente = true;
+
+    public void setAjustarAnchoAutomaticamente(boolean ajustar) {
+        this.ajustarAnchoAutomaticamente = ajustar;
+    }
 
     public AutoTable() {
         super();
@@ -46,6 +51,7 @@ public class AutoTable extends JTable {
         }
 
         // 1. Ajuste de Ancho de Columnas
+        if (ajustarAnchoAutomaticamente) {
         for (int column = 0; column < getColumnModel().getColumnCount(); column++) {
             TableColumn tableColumn = getColumnModel().getColumn(column);
 
@@ -86,6 +92,8 @@ public class AutoTable extends JTable {
             }
 
             tableColumn.setPreferredWidth(Math.min(preferredWidth, maxWidth));
+        }
+
         }
 
         // 2. Ajuste dinámico de Altura de Filas para evitar que los textos se corten verticalmente
