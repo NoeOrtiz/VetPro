@@ -61,14 +61,28 @@ public class FormMascota extends javax.swing.JPanel {
         List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 10);
         operarTablas.aplicarFiltroYResaltado(tableMascotas, txtBusqueda, columnasObjetivo);
         cargarDatosTablaMascota();
-        // Mantener visibles todas las columnas mediante desplazamiento horizontal
-        // cuando el ancho disponible no alcanza (sin comprimir ni recortar datos).
-        tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
-        int[] anchos = {95, 0, 115, 90, 175, 150, 95, 200, 90, 155, 100, 100};
-        for (int i = 0; i < anchos.length && i < tableMascotas.getColumnModel().getColumnCount(); i++) {
-            if (i == 1) continue; // ID interno oculto
-            tableMascotas.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+        // El modelo conserva el ID oculto (índice 1). El resto de las
+        // columnas se reparte proporcionalmente por todo el ancho disponible.
+        // No se utiliza AUTO_RESIZE_OFF: dejaba una gran zona vacía a la derecha.
+        tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        int[] anchos = {95, 0, 100, 75, 155, 140, 85, 195, 90, 165, 95, 95};
+        javax.swing.table.TableColumnModel columnas = tableMascotas.getColumnModel();
+        for (int i = 0; i < anchos.length && i < columnas.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = columnas.getColumn(i);
+            if (i == 1) {
+                columna.setMinWidth(0);
+                columna.setMaxWidth(0);
+                columna.setPreferredWidth(0);
+                columna.setWidth(0);
+                continue;
+            }
+            columna.setMinWidth(i == 0 ? 90 : 65);
+            columna.setMaxWidth(Integer.MAX_VALUE);
+            columna.setPreferredWidth(anchos[i]);
         }
+        // El ajuste automático de AutoTable se ejecuta después de cargar filas.
+        // Desactivarlo para esta tabla evita que vuelva a estrechar las columnas.
+        tableMascotas.setAutoCreateColumnsFromModel(false);
         panelDatos.setVisible(false);
 
         // -------------------- Impresión PDF (patrón similar a FormHospitalizaciones / FormUsuario) --------------------
