@@ -260,6 +260,11 @@ public class ManejoTablas {
         instalarRendererBusqueda(table, q, columnasObjetivoVista);
     }
 
+    /** Resalta coincidencias sin modificar el filtro o la paginación existentes. */
+    public static void resaltarBusqueda(JTable table, String consulta, List<Integer> columnas) {
+        instalarRendererBusqueda(table, consulta == null ? "" : consulta.trim(), columnas);
+    }
+
     private static void instalarRendererBusqueda(JTable table, String consulta, List<Integer> columnas) {
         // Un renderer por columna evita que los estilos personalizados de la tabla
         // sustituyan el resaltado al buscar.
