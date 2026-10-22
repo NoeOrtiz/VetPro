@@ -267,7 +267,14 @@ public class ManejoTablas {
             javax.swing.table.TableColumn columna = table.getColumnModel().getColumn(i);
             int indiceModelo = columna.getModelIndex();
             if (columnas != null && columnas.contains(indiceModelo)) {
-                columna.setCellRenderer(consulta.isEmpty() ? null : new ResaltarCoincidenciasRenderer(consulta, columnas));
+                // Nunca descartar el renderer de FlatLaf cuando no hay búsqueda.
+                if (consulta.isEmpty()) {
+                    if (columna.getCellRenderer() instanceof ResaltarCoincidenciasRenderer) {
+                        columna.setCellRenderer(null);
+                    }
+                } else {
+                    columna.setCellRenderer(new ResaltarCoincidenciasRenderer(consulta, columnas));
+                }
             }
         }
         table.repaint();
