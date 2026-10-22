@@ -55,7 +55,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // Distribución adaptable: evita que los botones se recorten y elimina
         // el desplazamiento horizontal cuando la ventana es angosta.
         javax.swing.SwingUtilities.invokeLater(() -> {
-            tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+            tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
             tableCajaMovimientos.setFillsViewportHeight(true);
             if (tableCajaMovimientos.getParent() instanceof javax.swing.JViewport) {
                 javax.swing.JScrollPane panel = (javax.swing.JScrollPane) tableCajaMovimientos.getParent().getParent();
@@ -147,11 +147,22 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         });
     }
 
+    private static String formatoTipo(TipoMovimiento tipo) {
+        if (tipo == null) return "-";
+        switch (tipo) {
+            case APERTURA: return "Apertura";
+            case CIERRE: return "Cierre";
+            case CREDITO: return "Crédito";
+            case DEBITO: return "Débito";
+            default: return tipo.name();
+        }
+    }
+
     private void inicializarComboTipos() {
         jcbTipoMovimiento.removeAllItems();
-        jcbTipoMovimiento.addItem("TODOS");
+        jcbTipoMovimiento.addItem("Todos");
         for (TipoMovimiento t : TipoMovimiento.values()) {
-            jcbTipoMovimiento.addItem(t.name());
+            jcbTipoMovimiento.addItem(formatoTipo(t));
         }
         jcbTipoMovimiento.setSelectedIndex(0);
     }
@@ -178,7 +189,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     }
 
     private void configurarColumnasInforme() {
-        int[] anchos = {105, 85, 100, 125, 165, 120};
+        int[] anchos = {105, 95, 110, 125, 190, 120};
         for (int i = 0; i < anchos.length && i < tableCajaMovimientos.getColumnCount() - 1; i++) {
             tableCajaMovimientos.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         }
@@ -227,10 +238,10 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
      */
     private void resetTotales() {
         if (txtVentas != null) {
-            txtVentas.setText(formatMoney(BigDecimal.ZERO));
+            txtVentas.setText("$ " + formatMoney(BigDecimal.ZERO));
         }
         if (txtCompras != null) {
-            txtCompras.setText(formatMoney(BigDecimal.ZERO));
+            txtCompras.setText("$ " + formatMoney(BigDecimal.ZERO));
         }
     }
 
@@ -315,7 +326,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             return null;
         }
         try {
-            return TipoMovimiento.valueOf(s);
+            return TipoMovimiento.valueOf(s.toUpperCase(java.util.Locale.ROOT).replace("É", "E"));
         } catch (Exception e) {
             return null;
         }
@@ -334,7 +345,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         for (CajaMovimiento m : movimientos) {
             String fecha = "-";
             fecha = formatFecha(m.getFecha());
-            String tipo = m.getTipoMovimiento() != null ? m.getTipoMovimiento().name() : "-";
+            String tipo = m.getTipoMovimiento() != null ? formatoTipo(m.getTipoMovimiento()) : "-";
             String monto = "$ " + formatMoney(m.getMonto());
 
             Usuario u = m.getUsuario();
@@ -347,6 +358,20 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             String recibo = (r != null && r.getIdRecibo() != null) ? ("Recibo N.º " + r.getIdRecibo()) : "-";
 
             String desc = normalizarDescripcion(safe(m.getDescripcion()), r);
+            if (r != null && r.getIdRecibo() != null) {
+                try {
+                    Recibo detalle = reciboDAO.obtenerReciboConDetalles(r.getIdRecibo());
+                    if (detalle != null && detalle.getCliente() != null && detalle.getCliente().getPersona() != null) {
+                        Persona persona = detalle.getCliente().getPersona();
+                        String nombreCliente = (safe(persona.getNombre()) + " " + safe(persona.getApellido())).trim();
+                        if (!nombreCliente.isEmpty() && !desc.contains(nombreCliente)) {
+                            desc += " - Cliente: " + nombreCliente;
+                        }
+                    }
+                } catch (Exception ex) {
+                    AppLog.error("No se pudo recuperar el cliente del recibo para el informe de caja", ex);
+                }
+            }
 
             model.addRow(new Object[]{m.getIdMovimiento(), fecha, tipo, monto, usuario, metodo, recibo, desc});
 
@@ -382,10 +407,10 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
      */
     private void setTotales(BigDecimal totalCreditos, BigDecimal totalDebitos) {
         if (txtVentas != null) {
-            txtVentas.setText(formatMoney(totalCreditos != null ? totalCreditos : BigDecimal.ZERO));
+            txtVentas.setText("$ " + formatMoney(totalCreditos != null ? totalCreditos : BigDecimal.ZERO));
         }
         if (txtCompras != null) {
-            txtCompras.setText(formatMoney(totalDebitos != null ? totalDebitos : BigDecimal.ZERO));
+            txtCompras.setText("$ " + formatMoney(totalDebitos != null ? totalDebitos : BigDecimal.ZERO));
         }
     }
 
