@@ -23,6 +23,11 @@ class PersistenceConfigTest {
     @Test
     void debeExponerDefaultsInternosSiSeAislaDeArchivosLocales() {
         System.setProperty(PersistenceConfig.PROP_IGNORE_CLASSPATH, "true");
+        // Aislar la prueba de configuraciones locales de trabajo y casa.
+        System.setProperty(PersistenceConfig.PROP_DB_URL, "jdbc:mysql://localhost:3306/veterinaria?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
+        System.setProperty(PersistenceConfig.PROP_DB_USER, "root");
+        System.setProperty(PersistenceConfig.PROP_HBM2DDL, "validate");
+        System.setProperty(PersistenceConfig.PROP_SHOW_SQL, "false");
 
         assertEquals("jdbc:mysql://localhost:3306/veterinaria?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC", PersistenceConfig.getDbUrl());
         assertEquals("root", PersistenceConfig.getDbUser());
