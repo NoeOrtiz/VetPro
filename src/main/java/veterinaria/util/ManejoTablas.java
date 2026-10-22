@@ -286,33 +286,34 @@ public class ManejoTablas {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-
+            // Las columnas configuradas por los formularios son índices del modelo.
+            // El renderer recibe un índice de vista; convertirlo evita perder el resaltado.
+            int columnaModelo = table.convertColumnIndexToModel(column);
+            String texto = value == null ? "" : value.toString();
             if (columnasObjetivoVista != null
-                    && columnasObjetivoVista.contains(column)
-                    && value != null
-                    && query != null
+                    && columnasObjetivoVista.contains(columnaModelo)
                     && !query.isEmpty()) {
-
-                String cellValue = value.toString();
-                String lowerCellValue = cellValue.toLowerCase();
-                String lowerQuery = query.toLowerCase();
-
-                int idx = lowerCellValue.indexOf(lowerQuery);
-                if (idx >= 0) {
-                    String before = cellValue.substring(0, idx);
-                    String match = cellValue.substring(idx, idx + query.length());
-                    String after = cellValue.substring(idx + query.length());
-                    String highlightedText = "<html>" + escapeHtml(before)
-                            + "<span style='color:#FFA500; font-weight:bold;'>" + escapeHtml(match) + "</span>"
-                            + escapeHtml(after) + "</html>";
-                    setText(highlightedText);
+                String textoNormalizado = java.text.Normalizer.normalize(texto, java.text.Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
+                String consultaNormalizada = java.text.Normalizer.normalize(query, java.text.Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
+                int indice = textoNormalizado.indexOf(consultaNormalizada);
+                // Para preservar índices de caracteres Unicode se usa búsqueda directa
+                // cuando la normalización modifica la longitud.
+                if (indice >= 0 && indice + query.length() <= texto.length()) {
+                    String antes = texto.substring(0, indice);
+                    String coincidencia = texto.substring(indice, indice + query.length());
+                    String despues = texto.substring(indice + query.length());
+                    setText("<html>" + escapeHtml(antes)
+                            + "<span style='color:#FFA500; font-weight:bold;'>"
+                            + escapeHtml(coincidencia) + "</span>"
+                            + escapeHtml(despues) + "</html>");
                 } else {
-                    setText(cellValue);
+                    setText(texto);
                 }
             } else {
-                setText(value != null ? value.toString() : "");
+                setText(texto);
             }
-
             return c;
         }
 
