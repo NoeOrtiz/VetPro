@@ -641,39 +641,65 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     }
 
     private void imprimirMovimientoSeleccionado() {
-        try {
-            CajaMovimiento mov = getMovimientoSeleccionado();
-            if (mov == null) {
-                JOptionPane.showMessageDialog(this, "Seleccione un movimiento en la tabla.", "Imprimir", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-
-            ReporteRequest req = new ReporteRequest()
-                    .put("movimiento", mov);
-
-            reporteService.generar(ReporteTipo.CAJA_MOVIMIENTO, req);
-        } catch (Exception ex) {
-            showException("Error al imprimir", ex);
+        CajaMovimiento mov = getMovimientoSeleccionado();
+        if (mov == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un movimiento en la tabla.",
+                    "Imprimir", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
+        ReporteRequest req = new ReporteRequest().put("movimiento", mov)
+                .put("FORMATO_REPORTE", veterinaria.reportes.pdf.ReporteSelectorUtil.Formato.PDF);
+        veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.CAJA_MOVIMIENTO, req);
     }
 
     private void imprimirListaMovimientos() {
-        try {
-            if (tableCajaMovimientos == null || tableCajaMovimientos.getRowCount() == 0) {
-                JOptionPane.showMessageDialog(this, "No hay movimientos para imprimir.", "Imprimir", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-
-            String filtros = buildFiltroTexto();
-
-            ReporteRequest req = new ReporteRequest()
-                    .put("tabla", tableCajaMovimientos)
-                    .put("filtros", filtros);
-
-            reporteService.generar(ReporteTipo.CAJA_MOVIMIENTOS_LISTADO, req);
-        } catch (Exception ex) {
-            showException("Error al imprimir", ex);
+        if (tableCajaMovimientos.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "No hay movimientos para imprimir.",
+                    "Imprimir", JOptionPane.INFORMATION_MESSAGE);
+            return;
         }
+        javax.swing.JPopupMenu menu = new javax.swing.JPopupMenu();
+        String[] etiquetas = {"Todos los movimientos", "Solo créditos", "Solo débitos", "Aperturas", "Cierres"};
+        String[] filtros = {"TODOS", "CREDITO", "DEBITO", "APERTURA", "CIERRE"};
+        for (int i = 0; i < etiquetas.length; i++) {
+            final String filtro = filtros[i];
+            javax.swing.JMenuItem item = new javax.swing.JMenuItem(etiquetas[i]);
+            item.addActionListener(e -> solicitarFormatoEImprimirMovimientos(filtro));
+            menu.add(item);
+        }
+        menu.show(btnImprimirLista, 0, btnImprimirLista.getHeight());
+    }
+
+    private void solicitarFormatoEImprimirMovimientos(String filtro) {
+        veterinaria.reportes.pdf.ReporteSelectorUtil.Formato formato =
+                veterinaria.reportes.pdf.ReporteSelectorUtil.solicitarFormato(this);
+        if (formato == null) return;
+        javax.swing.table.DefaultTableModel copia = new javax.swing.table.DefaultTableModel(
+                new String[]{"ID", "Fecha", "Tipo", "Monto", "Usuario", "Método", "Recibo", "Descripción"}, 0);
+        javax.swing.table.TableModel original = tableCajaMovimientos.getModel();
+        for (int fila = 0; fila < original.getRowCount(); fila++) {
+            String tipo = String.valueOf(original.getValueAt(fila, 3));
+            String normalizado = java.text.Normalizer.normalize(tipo, java.text.Normalizer.Form.NFD)
+                    .replaceAll("\\p{M}", "").toUpperCase(java.util.Locale.ROOT);
+            if (!"TODOS".equals(filtro) && !filtro.equals(normalizado)) continue;
+            copia.addRow(new Object[]{
+                original.getValueAt(fila, 0), original.getValueAt(fila, 2),
+                original.getValueAt(fila, 3), original.getValueAt(fila, 4),
+                original.getValueAt(fila, 5), original.getValueAt(fila, 6),
+                original.getValueAt(fila, 7), original.getValueAt(fila, 8)
+            });
+        }
+        if (copia.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, "No hay movimientos para el tipo seleccionado.",
+                    "Imprimir", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        ReporteRequest req = new ReporteRequest()
+                .put("tabla", new JTable(copia))
+                .put("filtros", buildFiltroTexto() + " | Reporte=" + filtro)
+                .put("FORMATO_REPORTE", formato);
+        veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(
+                this, ReporteTipo.CAJA_MOVIMIENTOS_LISTADO, req);
     }
 
     private String buildFiltroTexto() {
