@@ -62,6 +62,16 @@ public class PanelTiposCitaPeluqueria extends JPanel {
         top.add(btnOrden);
         top.add(btnRefrescar);
 
+        // ID técnico oculto: se conserva en el modelo para editar y ordenar.
+        javax.swing.table.TableColumn id = table.getColumnModel().getColumn(0);
+        id.setMinWidth(0);
+        id.setMaxWidth(0);
+        id.setPreferredWidth(0);
+        id.setResizable(false);
+        table.getColumnModel().getColumn(1).setPreferredWidth(75);
+        table.getColumnModel().getColumn(2).setPreferredWidth(350);
+        table.getColumnModel().getColumn(3).setPreferredWidth(115);
+        table.getColumnModel().getColumn(4).setPreferredWidth(80);
         JScrollPane scroll = new JScrollPane(table);
         scroll.setPreferredSize(new Dimension(800, 430));
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
