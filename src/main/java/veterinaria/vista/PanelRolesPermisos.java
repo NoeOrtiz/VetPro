@@ -44,6 +44,7 @@ public class PanelRolesPermisos extends JPanel {
     private final JButton btnRefrescar = new JButton("Refrescar");
     private final JButton btnGuardarCambios = new JButton("Guardar cambios");
     private final JButton btnRevocar = new JButton("Revocar (Quitar) seleccionado");
+    private final JLabel lbEstadoAcciones = new JLabel("Seleccione un rol para habilitar las acciones.");
     private final JButton btnCrearYAsignar = new JButton("Crear permiso + Asignar al rol");
 
     // DAOs
@@ -116,6 +117,7 @@ public class PanelRolesPermisos extends JPanel {
         btnGuardarCambios.setEnabled(rolOk);
         btnRevocar.setEnabled(rolOk);
         btnCrearYAsignar.setEnabled(rolOk);
+        lbEstadoAcciones.setText(rolOk ? "Seleccione un permiso para revocarlo o cree uno nuevo." : "Seleccione un rol para habilitar las acciones.");
     }
 
     private JPanel buildHeader() {
@@ -184,6 +186,7 @@ public class PanelRolesPermisos extends JPanel {
 
     private JPanel buildActionsBar() {
         JPanel p = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        p.add(lbEstadoAcciones);
         p.add(btnRevocar);
         p.add(btnGuardarCambios);
         return p;
