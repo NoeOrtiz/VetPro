@@ -262,8 +262,10 @@ public class PanelConfigPeluqueria extends JPanel {
     }
 
     private static JLabel buildHelpLabel(String htmlText) {
-        JLabel l = new JLabel("<html><span style='color:#666666;'>" + htmlText + "</span></html>");
-        l.setForeground(new Color(102, 102, 102));
+        // No fijar color dentro del HTML: el texto debe seguir el tema activo.
+        JLabel l = new JLabel("<html>" + htmlText + "</html>");
+        java.awt.Color color = javax.swing.UIManager.getColor("Label.foreground");
+        if (color != null) l.setForeground(color);
         l.setFont(l.getFont().deriveFont(11f));
         return l;
     }
