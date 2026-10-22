@@ -135,6 +135,16 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
     private void initListeners() {
         btnBuscarMovimientos.addActionListener(e -> buscarMovimientos());
+        tableCajaMovimientos.getModel().addTableModelListener(e -> {
+            if (e.getColumn() != 1 || e.getFirstRow() < 0) return;
+            int selected = e.getFirstRow();
+            javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tableCajaMovimientos.getModel();
+            if (!Boolean.TRUE.equals(model.getValueAt(selected, 1))) return;
+            for (int i = 0; i < model.getRowCount(); i++) {
+                if (i != selected && Boolean.TRUE.equals(model.getValueAt(i, 1))) model.setValueAt(Boolean.FALSE, i, 1);
+            }
+            tableCajaMovimientos.setRowSelectionInterval(selected, selected);
+        });
 
         // Botón "Ver" para detalle
         btnVer.addActionListener(e -> verDetalleMovimientoSeleccionado());
@@ -173,11 +183,16 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     private void inicializarTabla() {
         DefaultTableModel model = new DefaultTableModel(
                 new Object[][]{},
-                new String[]{"ID", "Fecha", "Tipo", "Monto", "Usuario", "Método", "Recibo", "Descripción"}
+                new String[]{"ID", "Seleccionar", "Fecha", "Tipo", "Monto", "Usuario", "Método", "Recibo", "Descripción"}
         ) {
             @Override
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return false;
+                return columnIndex == 1;
+            }
+
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return columnIndex == 1 ? Boolean.class : Object.class;
             }
         };
         tableCajaMovimientos.setModel(model);
@@ -187,12 +202,13 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         // El ID sigue en el modelo para selección interna, pero no se muestra al usuario.
         tableCajaMovimientos.removeColumn(tableCajaMovimientos.getColumnModel().getColumn(0));
+        tableCajaMovimientos.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         configurarColumnasInforme();
         limpiarTabla();
     }
 
     private void configurarColumnasInforme() {
-        int[] anchos = {105, 95, 110, 125, 190, 120};
+        int[] anchos = {88, 105, 95, 110, 125, 190, 120};
         for (int i = 0; i < anchos.length && i < tableCajaMovimientos.getColumnCount() - 1; i++) {
             tableCajaMovimientos.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         }
@@ -378,7 +394,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
             desc = agregarClienteCuentaCorriente(desc);
 
-            model.addRow(new Object[]{m.getIdMovimiento(), fecha, tipo, monto, usuario, metodo, recibo, desc});
+            model.addRow(new Object[]{m.getIdMovimiento(), Boolean.FALSE, fecha, tipo, monto, usuario, metodo, recibo, desc});
 
             // totales (según TipoMovimiento)
             TipoMovimiento tm = m.getTipoMovimiento();
@@ -598,29 +614,28 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     }
 
     private CajaMovimiento getMovimientoSeleccionado() {
-        int row = tableCajaMovimientos.getSelectedRow();
-        if (row < 0) {
-            return null;
-        }
-
-        Object idObj = tableCajaMovimientos.getValueAt(row, 0);
-        if (idObj == null) {
-            return null;
-        }
-
-        Long id = null;
-        try {
-            id = (idObj instanceof Long) ? (Long) idObj : Long.valueOf(idObj.toString());
-        } catch (Exception e) {
-            return null;
-        }
-
-        if (movimientosActuales != null) {
-            for (CajaMovimiento m : movimientosActuales) {
-                if (m != null && m.getIdMovimiento() != null && m.getIdMovimiento().equals(id)) {
-                    return m;
-                }
+        int filaModelo = -1;
+        javax.swing.table.TableModel model = tableCajaMovimientos.getModel();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            if (Boolean.TRUE.equals(model.getValueAt(i, 1))) {
+                filaModelo = i;
+                break;
             }
+        }
+        if (filaModelo < 0) {
+            int filaVista = tableCajaMovimientos.getSelectedRow();
+            if (filaVista >= 0) filaModelo = tableCajaMovimientos.convertRowIndexToModel(filaVista);
+        }
+        if (filaModelo < 0) return null;
+        Object idObj = model.getValueAt(filaModelo, 0);
+        if (idObj == null) return null;
+        try {
+            Long id = idObj instanceof Number ? ((Number) idObj).longValue() : Long.valueOf(idObj.toString());
+            for (CajaMovimiento movimiento : movimientosActuales) {
+                if (movimiento != null && id.equals(movimiento.getIdMovimiento())) return movimiento;
+            }
+        } catch (NumberFormatException ex) {
+            AppLog.warn(FormInformesCajaMovimientos.class, "Identificador de movimiento inválido", ex);
         }
         return null;
     }
