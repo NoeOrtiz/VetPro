@@ -23,6 +23,14 @@ public class ReporteService {
     }
 
     public File generar(ReporteTipo tipo, ReporteRequest request) throws Exception {
+        // El emisor es quien genera el informe, no quien registró cada operación.
+        String emisor = request.get("emisor", String.class);
+        if (emisor == null || emisor.isBlank()) {
+            String nombre = veterinaria.util.SesionUsuario.getInstancia().getNombreApellido();
+            if (nombre != null && !nombre.isBlank()) {
+                request.put("emisor", nombre.trim());
+            }
+        }
         // 1. Extraemos el formato solicitado por el usuario
         ReporteSelectorUtil.Formato formato = request.get("FORMATO_REPORTE", ReporteSelectorUtil.Formato.class);
 
