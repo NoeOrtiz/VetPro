@@ -58,14 +58,15 @@ public class FormMascota extends javax.swing.JPanel {
         initComponents();
         PermisoUI.aplicar(this);
         cargarDatosComboBoxes();
-        List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 10);
+        List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 6, 7, 9, 10, 11);
         operarTablas.aplicarFiltroYResaltado(tableMascotas, txtBusqueda, columnasObjetivo);
+        tableMascotas.setAjustarAnchoAutomaticamente(false);
         cargarDatosTablaMascota();
         // El modelo conserva el ID oculto (índice 1). El resto de las
         // columnas se reparte proporcionalmente por todo el ancho disponible.
         // No se utiliza AUTO_RESIZE_OFF: dejaba una gran zona vacía a la derecha.
         tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        int[] anchos = {95, 0, 100, 75, 155, 140, 85, 195, 90, 165, 95, 95};
+        int[] anchos = {85, 0, 85, 70, 135, 125, 70, 185, 80, 105, 80, 80};
         javax.swing.table.TableColumnModel columnas = tableMascotas.getColumnModel();
         for (int i = 0; i < anchos.length && i < columnas.getColumnCount(); i++) {
             javax.swing.table.TableColumn columna = columnas.getColumn(i);
@@ -76,14 +77,16 @@ public class FormMascota extends javax.swing.JPanel {
                 columna.setWidth(0);
                 continue;
             }
-            columna.setMinWidth(i == 0 ? 90 : 65);
+            columna.setMinWidth(i == 0 ? 75 : 45);
             columna.setMaxWidth(Integer.MAX_VALUE);
             columna.setPreferredWidth(anchos[i]);
         }
         // El ajuste automático de AutoTable se ejecuta después de cargar filas.
         // Desactivarlo para esta tabla evita que vuelva a estrechar las columnas.
         tableMascotas.setAutoCreateColumnsFromModel(false);
-        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        tableMascotas.getColumnModel().getColumn(9).setHeaderValue("Fecha de Nac.");
+        tableMascotas.getTableHeader().repaint();
+        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         panelDatos.setVisible(false);
 
         // -------------------- Impresión PDF (patrón similar a FormHospitalizaciones / FormUsuario) --------------------
@@ -811,6 +814,18 @@ public class FormMascota extends javax.swing.JPanel {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtPesoActionPerformed
 
+    // Formato de visualización: sin ceros decimales innecesarios y con unidad.
+    // El valor persistido en la entidad no se modifica.
+    private static String formatearPesoTabla(Object peso) {
+        if (peso == null) return "";
+        try {
+            java.math.BigDecimal valor = new java.math.BigDecimal(peso.toString().replace(',', '.'));
+            return valor.stripTrailingZeros().toPlainString().replace('.', ',') + " kg";
+        } catch (NumberFormatException ex) {
+            return peso.toString() + " kg";
+        }
+    }
+
     private void cargarDatosTablaMascota() {
         List<Mascota> mascotas = operandoMascota.buscarTodasLasMascotas();
         DefaultTableModel modelo = (DefaultTableModel) tableMascotas.getModel();
@@ -848,7 +863,7 @@ public class FormMascota extends javax.swing.JPanel {
                 mascota.getCastrado(),
                 mascota.getFechaNacimiento(),
                 mascota.getTamano(),
-                mascota.getPeso()
+                formatearPesoTabla(mascota.getPeso())
             };
             modelo.addRow(fila);
         }
@@ -1044,7 +1059,7 @@ public class FormMascota extends javax.swing.JPanel {
 
             bRetorno = true;
         } else {
-            JOptionPane.showMessageDialog(null, "Debe seleccionar una mascota (checkbox) para poder editar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Seleccione una mascota marcando la casilla de la primera columna para poder editar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
         }
         return bRetorno;
 
