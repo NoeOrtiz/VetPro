@@ -50,88 +50,60 @@ public class CajaMovimientosListadoPdfReporte extends AbstractPdfReporte {
             pdf.down(16f);
         }
 
-        int colId = 0;
-        int colFecha = 1;
-        int colTipo = 2;
-        int colMonto = 3;
-        int colUsuario = 4;
-        int colMetodo = 5;
-        int colRecibo = 6;
-        int colDesc = 7;
-
-        final int fontSize = 9;
+        // El ID es técnico: no se muestra en el documento.
+        final int[] columnas = {1, 2, 3, 4, 5, 6, 7};
+        final String[] titulos = {"FECHA", "TIPO", "MONTO", "USUARIO", "MÉTODO", "RECIBO", "DESCRIPCIÓN"};
+        final float[] pesos = {75f, 65f, 85f, 95f, 105f, 75f, 210f};
+        final int fontSize = 8;
         final float lineH = 11f;
-
-        final float[] w = new float[] {
-            45f,   // ID
-            65f,   // Fecha
-            65f,   // Tipo
-            70f,   // Monto
-            110f,  // Usuario
-            90f,   // Método
-            60f,   // Recibo
-            235f   // Descripción
-        };
-
-        float x = pdf.getMargin();
-        final float[] cx = new float[w.length];
-        cx[0] = x;
-        for (int i = 1; i < w.length; i++) {
-            cx[i] = cx[i - 1] + w[i - 1];
+        final float disponible = pdf.getUsableWidth();
+        float suma = 0f;
+        for (float peso : pesos) suma += peso;
+        final float[] w = new float[pesos.length];
+        final float[] cx = new float[pesos.length];
+        float cursor = pdf.getMargin();
+        for (int i = 0; i < pesos.length; i++) {
+            w[i] = pesos[i] * disponible / suma;
+            cx[i] = cursor;
+            cursor += w[i];
         }
-
         pdf.ensureSpace(60f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[0], pdf.getY(), "ID");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[1], pdf.getY(), "FECHA");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[2], pdf.getY(), "TIPO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[3], pdf.getY(), "MONTO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[4], pdf.getY(), "USUARIO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[5], pdf.getY(), "MÉTODO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[6], pdf.getY(), "RECIBO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[7], pdf.getY(), "DESCRIPCIÓN");
-        pdf.down(10f);
+        for (int i = 0; i < titulos.length; i++) {
+            pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[i], pdf.getY(), titulos[i]);
+        }
+        pdf.down(13f);
         pdf.line();
 
         BigDecimal totalCreditos = BigDecimal.ZERO;
         BigDecimal totalDebitos = BigDecimal.ZERO;
 
         for (int r = 0; r < m.getRowCount(); r++) {
-            String id = safe(m.getValueAt(r, colId));
-            String fecha = safe(m.getValueAt(r, colFecha));
-            String tipo = safe(m.getValueAt(r, colTipo));
-            String montoStr = safe(m.getValueAt(r, colMonto));
-            String usuario = safe(m.getValueAt(r, colUsuario));
-            String metodo = safe(m.getValueAt(r, colMetodo));
-            String recibo = safe(m.getValueAt(r, colRecibo));
-            String desc = safe(m.getValueAt(r, colDesc));
-
-            java.util.List<String> descLines = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, desc, w[7] - 4);
-            int rows = Math.max(1, descLines.size());
-
-            float needed = (rows * lineH) + 10f;
-            pdf.ensureSpace(needed);
-
-            for (int i = 0; i < rows; i++) {
-                String dline = i < descLines.size() ? descLines.get(i) : "";
-                if (i == 0) {
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[0], pdf.getY(), id);
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[1], pdf.getY(), fecha);
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[2], pdf.getY(), tipo);
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[3], pdf.getY(), montoStr);
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[4], pdf.getY(), usuario);
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[5], pdf.getY(), metodo);
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[6], pdf.getY(), recibo);
+            java.util.List<java.util.List<String>> celdas = new java.util.ArrayList<>();
+            int lineas = 1;
+            for (int i = 0; i < columnas.length; i++) {
+                java.util.List<String> lineasCelda = pdf.wrapText(
+                        PdfStyle.TXT_FONT, fontSize, safe(m.getValueAt(r, columnas[i])),
+                        Math.max(20f, w[i] - 6f));
+                celdas.add(lineasCelda);
+                lineas = Math.max(lineas, lineasCelda.size());
+            }
+            pdf.ensureSpace(lineas * lineH + 9f);
+            for (int linea = 0; linea < lineas; linea++) {
+                for (int i = 0; i < columnas.length; i++) {
+                    if (linea < celdas.get(i).size()) {
+                        pdf.text(PdfStyle.TXT_FONT, fontSize, cx[i], pdf.getY(),
+                                celdas.get(i).get(linea));
+                    }
                 }
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[7], pdf.getY(), dline);
                 pdf.down(lineH);
             }
-            pdf.down(2f);
-
-            BigDecimal monto = parseMoneySafe(montoStr);
-            String t = java.text.Normalizer.normalize(tipo, java.text.Normalizer.Form.NFD)
+            pdf.down(3f);
+            BigDecimal monto = parseMoneySafe(safe(m.getValueAt(r, 3)));
+            String tipo = safe(m.getValueAt(r, 2));
+            String normalizado = java.text.Normalizer.normalize(tipo, java.text.Normalizer.Form.NFD)
                     .replaceAll("\\p{M}", "").toUpperCase(Locale.ROOT);
-            if (t.contains("CREDITO")) totalCreditos = totalCreditos.add(monto);
-            if (t.contains("DEBITO")) totalDebitos = totalDebitos.add(monto);
+            if (normalizado.contains("CREDITO")) totalCreditos = totalCreditos.add(monto);
+            if (normalizado.contains("DEBITO")) totalDebitos = totalDebitos.add(monto);
         }
 
         pdf.line();
