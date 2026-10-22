@@ -369,7 +369,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                         }
                     }
                 } catch (Exception ex) {
-                    AppLog.error("No se pudo recuperar el cliente del recibo para el informe de caja", ex);
+                    AppLog.warn(FormInformesCajaMovimientos.class, "No se pudo recuperar el cliente del recibo para el informe de caja", ex);
                 }
             }
 
