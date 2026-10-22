@@ -128,7 +128,8 @@ public class CajaMovimientosListadoPdfReporte extends AbstractPdfReporte {
             pdf.down(2f);
 
             BigDecimal monto = parseMoneySafe(montoStr);
-            String t = tipo.toUpperCase(Locale.ROOT);
+            String t = java.text.Normalizer.normalize(tipo, java.text.Normalizer.Form.NFD)
+                    .replaceAll("\\p{M}", "").toUpperCase(Locale.ROOT);
             if (t.contains("CREDITO")) totalCreditos = totalCreditos.add(monto);
             if (t.contains("DEBITO")) totalDebitos = totalDebitos.add(monto);
         }
