@@ -83,6 +83,7 @@ public class FormMascota extends javax.swing.JPanel {
         // El ajuste automático de AutoTable se ejecuta después de cargar filas.
         // Desactivarlo para esta tabla evita que vuelva a estrechar las columnas.
         tableMascotas.setAutoCreateColumnsFromModel(false);
+        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         panelDatos.setVisible(false);
 
         // -------------------- Impresión PDF (patrón similar a FormHospitalizaciones / FormUsuario) --------------------
@@ -622,8 +623,11 @@ public class FormMascota extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        tableMascotas.setMinimumSize(new java.awt.Dimension(848, 220));
-        tableMascotas.setPreferredSize(new java.awt.Dimension(848, 220));
+        // JTable debe tomar el tamaño del viewport, no un ancho fijo de 848px.
+        // La altura la administra JScrollPane; una preferredSize fija genera
+        // espacios vacíos y una barra horizontal que no corresponde.
+        tableMascotas.setMinimumSize(new java.awt.Dimension(0, 0));
+        tableMascotas.setPreferredScrollableViewportSize(new java.awt.Dimension(1100, 300));
         tableMascotas.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(tableMascotas);
 
