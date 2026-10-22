@@ -30,6 +30,10 @@ import veterinaria.reportes.core.ReporteTipo;
 
 public class FormMascota extends javax.swing.JPanel {
 
+    private veterinaria.util.PaginacionTablas paginacionMascotas;
+    private final javax.swing.JPanel panelPaginacionMascotas =
+            new javax.swing.JPanel(new java.awt.BorderLayout());
+
     private final ClienteControlador operandoCliente = new ClienteControlador();
     private final MascotaControlador operandoMascota = new MascotaControlador();
     private final Validaciones validar = new Validaciones();
@@ -59,7 +63,13 @@ public class FormMascota extends javax.swing.JPanel {
         PermisoUI.aplicar(this);
         cargarDatosComboBoxes();
         List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 6, 7, 9, 10, 11);
-        operarTablas.aplicarFiltroYResaltado(tableMascotas, txtBusqueda, columnasObjetivo);
+        // La búsqueda y la paginación comparten un único filtro global.
+        paginacionMascotas = new veterinaria.util.PaginacionTablas(
+                tableMascotas, txtBusqueda, 15, 2, 3, 4, 5, 6, 7, 9, 10, 11);
+        panelPaginacionMascotas.add(paginacionMascotas.getControles(), java.awt.BorderLayout.EAST);
+        javax.swing.JButton limpiarBusqueda = paginacionMascotas.getBotonLimpiar();
+        txtBusqueda.setLayout(new java.awt.BorderLayout());
+        txtBusqueda.add(limpiarBusqueda, java.awt.BorderLayout.EAST);
         // El formulario de NetBeans declara tableMascotas como JTable.
         // Activar la opción solo si la instancia real es AutoTable.
         if (tableMascotas instanceof veterinaria.vista.table.AutoTable) {
@@ -648,6 +658,7 @@ public class FormMascota extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(jpListaPacientesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(scroll)
+                    .addComponent(panelPaginacionMascotas)
                     .addGroup(jpListaPacientesLayout.createSequentialGroup()
                         .addGroup(jpListaPacientesLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING)
@@ -667,6 +678,9 @@ public class FormMascota extends javax.swing.JPanel {
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 239, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelPaginacionMascotas, javax.swing.GroupLayout.PREFERRED_SIZE,
+                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -874,6 +888,9 @@ public class FormMascota extends javax.swing.JPanel {
         tableMascotas.getColumnModel().getColumn(1).setMinWidth(0);
         tableMascotas.getColumnModel().getColumn(1).setMaxWidth(0);
         tableMascotas.getColumnModel().getColumn(1).setPreferredWidth(0);
+        if (paginacionMascotas != null) {
+            paginacionMascotas.actualizar();
+        }
 
     }
 
@@ -919,10 +936,22 @@ public class FormMascota extends javax.swing.JPanel {
         veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.MASCOTA_REGISTRO, req);
     }
 
+    private javax.swing.JTable crearTablaCompletaParaImpresion() {
+        javax.swing.JTable copia = new javax.swing.JTable(tableMascotas.getModel());
+        copia.setAutoCreateColumnsFromModel(false);
+        javax.swing.table.TableColumn id = copia.getColumnModel().getColumn(1);
+        id.setMinWidth(0);
+        id.setMaxWidth(0);
+        id.setPreferredWidth(0);
+        copia.getColumnModel().getColumn(9).setHeaderValue("Fecha de Nac.");
+        return copia;
+    }
+
     private void imprimirListaMascotas() {
         // 1. Armamos los parámetros para el listado de mascotas
         ReporteRequest req = new ReporteRequest()
-                .put("tabla", tableMascotas)
+                // Se imprime el modelo completo, no solamente la página visible.
+                .put("tabla", crearTablaCompletaParaImpresion())
                 .put("emisor", Application.getNombreApellidoUsuarioLogeado());
 
         // 2. 🚀 AL EJECUTOR: Limpio, seguro y en segundo plano
