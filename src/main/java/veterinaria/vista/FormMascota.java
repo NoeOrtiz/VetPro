@@ -60,7 +60,11 @@ public class FormMascota extends javax.swing.JPanel {
         cargarDatosComboBoxes();
         List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 6, 7, 9, 10, 11);
         operarTablas.aplicarFiltroYResaltado(tableMascotas, txtBusqueda, columnasObjetivo);
-        tableMascotas.setAjustarAnchoAutomaticamente(false);
+        // El formulario de NetBeans declara tableMascotas como JTable.
+        // Activar la opción solo si la instancia real es AutoTable.
+        if (tableMascotas instanceof veterinaria.vista.table.AutoTable) {
+            ((veterinaria.vista.table.AutoTable) tableMascotas).setAjustarAnchoAutomaticamente(false);
+        }
         cargarDatosTablaMascota();
         // El modelo conserva el ID oculto (índice 1). El resto de las
         // columnas se reparte proporcionalmente por todo el ancho disponible.
