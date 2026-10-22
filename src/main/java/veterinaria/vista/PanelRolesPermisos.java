@@ -26,6 +26,39 @@ import veterinaria.util.PermisoUI;
 
 public class PanelRolesPermisos extends JPanel {
 
+    /**
+     * FlatLaf atenúa demasiado el texto de botones deshabilitados en algunos
+     * temas. Conservamos setEnabled(false) y su lógica, pero dibujamos un
+     * rótulo contrastante utilizando el color vigente de las etiquetas.
+     */
+    private static final class BotonTextoLegible extends JButton {
+        BotonTextoLegible(String texto) {
+            super(texto);
+        }
+
+        @Override
+        protected void paintComponent(java.awt.Graphics g) {
+            super.paintComponent(g);
+            if (isEnabled() || getText() == null || getText().isEmpty()) {
+                return;
+            }
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+                        java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                java.awt.Color color = javax.swing.UIManager.getColor("Label.foreground");
+                g2.setColor(color != null ? color : getForeground());
+                g2.setFont(getFont());
+                java.awt.FontMetrics fm = g2.getFontMetrics();
+                int x = Math.max(2, (getWidth() - fm.stringWidth(getText())) / 2);
+                int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                g2.drawString(getText(), x, y);
+            } finally {
+                g2.dispose();
+            }
+        }
+    }
+
     // UI
     private final JLabel lbTitulo = new JLabel("Configuración - Permisos por Rol");
     private final JTextField txtBuscar = new JTextField();
@@ -41,11 +74,11 @@ public class PanelRolesPermisos extends JPanel {
             new String[]{TipoPermiso.FORMULARIO.toString(), TipoPermiso.FUNCIONALIDAD.toString()}
     );
 
-    private final JButton btnRefrescar = new JButton("Refrescar");
+    private final JButton btnRefrescar = new BotonTextoLegible("Refrescar");
     private final JButton btnGuardarCambios = new JButton("Guardar cambios");
-    private final JButton btnRevocar = new JButton("Revocar (Quitar) seleccionado");
+    private final JButton btnRevocar = new BotonTextoLegible("Revocar (Quitar) seleccionado");
     private final JLabel lbEstadoAcciones = new JLabel("Seleccione un rol para habilitar las acciones.");
-    private final JButton btnCrearYAsignar = new JButton("Crear permiso + Asignar al rol");
+    private final JButton btnCrearYAsignar = new BotonTextoLegible("Crear permiso + Asignar al rol");
 
     // DAOs
     private final RolDAO rolDAO = new RolDAO();
