@@ -23,6 +23,8 @@ import veterinaria.entidad.ReciboMetodoPago;
 import veterinaria.entidad.ReciboProductos;
 import veterinaria.entidad.Usuario;
 import veterinaria.persistencia.ReciboDAO;
+import veterinaria.persistencia.CuentaCorrienteDAO;
+import veterinaria.entidad.CuentaCorriente;
 import veterinaria.servicio.CajaSesionService;
 import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteService;
@@ -36,6 +38,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     // 🚀 REEMPLAZÁ TU LÍNEA POR ESTA:
     private final ReporteService reporteService = ReporteService.getInstance();
     private final ReciboDAO reciboDAO = new ReciboDAO();
+    private final CuentaCorrienteDAO cuentaCorrienteDAO = new CuentaCorrienteDAO();
     private final CajaSesionService cajaSesionService = new CajaSesionService();
 
     private final DateTimeFormatter dtfFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -373,6 +376,8 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                 }
             }
 
+            desc = agregarClienteCuentaCorriente(desc);
+
             model.addRow(new Object[]{m.getIdMovimiento(), fecha, tipo, monto, usuario, metodo, recibo, desc});
 
             // totales (según TipoMovimiento)
@@ -661,6 +666,36 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         String desde = formatFecha(jdcFechaDesdeFiltro.getDate());
         String hasta = formatFecha(jdcFechaHastaFiltro.getDate());
         return "Filtros: Tipo=" + tipo + " | Desde=" + desde + " | Hasta=" + hasta;
+    }
+
+    /**
+     * Enriquece cobros de cuenta corriente que no tienen recibo asociado.
+     * El número indicado en "Cobro cuenta corriente N.º X" identifica la cuenta.
+     * Ante una cuenta inexistente se conserva la descripción original.
+     */
+    private String agregarClienteCuentaCorriente(String descripcion) {
+        if (descripcion == null || !descripcion.toLowerCase(java.util.Locale.ROOT)
+                .contains("cobro cuenta corriente")) {
+            return descripcion;
+        }
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(
+                "(?i)cobro\\s+cuenta\\s+corriente\\s+(?:n\\s*[.º°o]*\\s*)?(\\d+)")
+                .matcher(descripcion);
+        if (!matcher.find()) return descripcion;
+        try {
+            CuentaCorriente cuenta = cuentaCorrienteDAO.buscarPorId(Integer.valueOf(matcher.group(1)));
+            if (cuenta == null || cuenta.getCliente() == null || cuenta.getCliente().getPersona() == null) {
+                return descripcion;
+            }
+            Persona persona = cuenta.getCliente().getPersona();
+            String nombre = (safe(persona.getNombre()) + " " + safe(persona.getApellido())).trim();
+            return nombre.isEmpty() || descripcion.contains(nombre)
+                    ? descripcion : descripcion + " - Cliente: " + nombre;
+        } catch (Exception ex) {
+            AppLog.warn(FormInformesCajaMovimientos.class,
+                    "No se pudo identificar el cliente del cobro de cuenta corriente", ex);
+            return descripcion;
+        }
     }
 
     private static String normalizarDescripcion(String descripcion, Recibo recibo) {
