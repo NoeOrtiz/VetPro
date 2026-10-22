@@ -66,7 +66,7 @@ public class FormMascota extends javax.swing.JPanel {
         // La búsqueda y la paginación comparten un único filtro global.
         paginacionMascotas = new veterinaria.util.PaginacionTablas(
                 tableMascotas, txtBusqueda, 15, 2, 3, 4, 5, 6, 7, 9, 10, 11);
-        panelPaginacionMascotas.add(paginacionMascotas.getControles(), java.awt.BorderLayout.EAST);
+        panelPaginacionMascotas.add(paginacionMascotas.getControles(), java.awt.BorderLayout.CENTER);
         javax.swing.JButton limpiarBusqueda = paginacionMascotas.getBotonLimpiar();
         txtBusqueda.setLayout(new java.awt.BorderLayout());
         txtBusqueda.add(limpiarBusqueda, java.awt.BorderLayout.EAST);
