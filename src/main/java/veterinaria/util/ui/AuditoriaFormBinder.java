@@ -106,6 +106,12 @@ public class AuditoriaFormBinder {
                 return false;
             }
         });
+        // La fecha y la hora deben permanecer legibles, incluso al redimensionar.
+        tableAuditoria.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        int[] anchos = {175, 115, 105, 115, 105, 480, 95};
+        for (int i = 0; i < anchos.length; i++) {
+            tableAuditoria.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+        }
     }
 
     private void cargarCombos() {
