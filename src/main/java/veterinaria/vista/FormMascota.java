@@ -61,6 +61,14 @@ public class FormMascota extends javax.swing.JPanel {
         List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 10);
         operarTablas.aplicarFiltroYResaltado(tableMascotas, txtBusqueda, columnasObjetivo);
         cargarDatosTablaMascota();
+        // Mantener visibles todas las columnas mediante desplazamiento horizontal
+        // cuando el ancho disponible no alcanza (sin comprimir ni recortar datos).
+        tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        int[] anchos = {95, 0, 115, 90, 175, 150, 95, 200, 90, 155, 100, 100};
+        for (int i = 0; i < anchos.length && i < tableMascotas.getColumnModel().getColumnCount(); i++) {
+            if (i == 1) continue; // ID interno oculto
+            tableMascotas.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+        }
         panelDatos.setVisible(false);
 
         // -------------------- Impresión PDF (patrón similar a FormHospitalizaciones / FormUsuario) --------------------
