@@ -217,9 +217,9 @@ public class ManejoTablas {
         sorter.setRowFilter(filtroFinal);
 
         if (filtroTexto != null) {
-            table.setDefaultRenderer(Object.class, new ResaltarCoincidenciasRenderer(q, columnasObjetivoVista));
+            instalarRendererBusqueda(table, q, columnasObjetivoVista);
         } else {
-            table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer());
+            instalarRendererBusqueda(table, "", columnasObjetivoVista);
         }
     }
 
@@ -257,7 +257,20 @@ public class ManejoTablas {
         RowFilter<Object, Object> filtro = RowFilter.regexFilter("(?i)" + java.util.regex.Pattern.quote(q), colsModel);
         sorter.setRowFilter(filtro);
 
-        table.setDefaultRenderer(Object.class, new ResaltarCoincidenciasRenderer(q, columnasObjetivoVista));
+        instalarRendererBusqueda(table, q, columnasObjetivoVista);
+    }
+
+    private static void instalarRendererBusqueda(JTable table, String consulta, List<Integer> columnas) {
+        // Un renderer por columna evita que los estilos personalizados de la tabla
+        // sustituyan el resaltado al buscar.
+        for (int i = 0; i < table.getColumnModel().getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = table.getColumnModel().getColumn(i);
+            int indiceModelo = columna.getModelIndex();
+            if (columnas != null && columnas.contains(indiceModelo)) {
+                columna.setCellRenderer(consulta.isEmpty() ? null : new ResaltarCoincidenciasRenderer(consulta, columnas));
+            }
+        }
+        table.repaint();
     }
 
     private static int[] toModelColumns(JTable table, List<Integer> viewCols) {
