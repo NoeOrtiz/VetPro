@@ -60,92 +60,48 @@ public class AuditoriaListadoPdfReporte extends AbstractPdfReporte {
 
         pdf.down(14f);
 
-        int colFecha = 0;
-        int colUsuario = 1;
-        int colAccion = 2;
-        int colEntidad = 3;
-        int colEntidadId = 4;
-        int colModulo = 5;
-        int colResultado = 6;
-
-        final int fontSize = 9;
-
-        // Antes era 11
-        final float lineH = 12f;
-
-        // Nuevos anchos
-        final float[] w = {
-            95f, // Fecha/Hora
-            65f, // Usuario
-            60f, // Acción
-            65f, // Entidad
-            60f, // Módulo
-            235f, // Descripción
-            45f // Resultado
-        };
-
+        final String[] titulos = {"FECHA/HORA", "USUARIO", "ACCIÓN", "ENTIDAD", "MÓDULO", "DESCRIPCIÓN", "RESULTADO"};
+        final float[] pesos = {125f, 95f, 70f, 75f, 75f, 230f, 65f};
+        final int fontSize = 8;
+        final float lineH = 11f;
+        float suma = 0f;
+        for (float peso : pesos) suma += peso;
+        final float[] anchos = new float[pesos.length];
+        final float[] posiciones = new float[pesos.length];
         float x = pdf.getMargin();
-        float y = pdf.getY();
-
-        pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, x, y, "Fecha/Hora");
-        x += w[0];
-
-        pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, x, y, "Usuario");
-        x += w[1];
-
-        pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, x, y, "Acción");
-        x += w[2];
-
-        pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, x, y, "Entidad");
-        x += w[3];
-
-        pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, x, y, "Módulo");
-        x += w[4];
-
-        pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, x, y, "Descripción");
-        x += w[5];
-
-        pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, x, y, "Resultado.");
-
-        pdf.down(10f);
+        for (int i = 0; i < pesos.length; i++) {
+            anchos[i] = pesos[i] * pdf.getUsableWidth() / suma;
+            posiciones[i] = x;
+            x += anchos[i];
+        }
+        pdf.ensureSpace(40f);
+        for (int i = 0; i < titulos.length; i++) {
+            pdf.text(PdfStyle.TXT_BOLD_FONT, fontSize, posiciones[i], pdf.getY(), titulos[i]);
+        }
+        pdf.down(13f);
         pdf.line();
-        pdf.down(5f);
 
         for (int r = 0; r < m.getRowCount(); r++) {
-
-            pdf.ensureSpace(15f);
-
-            x = pdf.getMargin();
-            y = pdf.getY();
-
-            pdf.text(PdfStyle.TXT_FONT, fontSize, x, y,
-                    safe(m.getValueAt(r, colFecha)));
-            x += w[0];
-
-            pdf.text(PdfStyle.TXT_FONT, fontSize, x, y,
-                    safe(m.getValueAt(r, colUsuario)));
-            x += w[1];
-
-            pdf.text(PdfStyle.TXT_FONT, fontSize, x, y,
-                    safe(m.getValueAt(r, colAccion)));
-            x += w[2];
-
-            pdf.text(PdfStyle.TXT_FONT, fontSize, x, y,
-                    safe(m.getValueAt(r, colEntidad)));
-            x += w[3];
-
-            pdf.text(PdfStyle.TXT_FONT, fontSize, x, y,
-                    safe(m.getValueAt(r, colEntidadId)));
-            x += w[4];
-
-            pdf.text(PdfStyle.TXT_FONT, fontSize, x, y,
-                    safe(m.getValueAt(r, colModulo)));
-            x += w[5];
-
-            pdf.text(PdfStyle.TXT_FONT, fontSize, x, y,
-                    safe(m.getValueAt(r, colResultado)));
-
-            pdf.down(lineH);
+            java.util.List<java.util.List<String>> celdas = new java.util.ArrayList<>();
+            int lineas = 1;
+            for (int c = 0; c < titulos.length; c++) {
+                java.util.List<String> partes = pdf.wrapText(
+                        PdfStyle.TXT_FONT, fontSize, safe(m.getValueAt(r, c)),
+                        Math.max(20f, anchos[c] - 5f));
+                celdas.add(partes);
+                lineas = Math.max(lineas, partes.size());
+            }
+            pdf.ensureSpace(lineas * lineH + 8f);
+            for (int linea = 0; linea < lineas; linea++) {
+                for (int c = 0; c < titulos.length; c++) {
+                    if (linea < celdas.get(c).size()) {
+                        pdf.text(PdfStyle.TXT_FONT, fontSize, posiciones[c], pdf.getY(),
+                                celdas.get(c).get(linea));
+                    }
+                }
+                pdf.down(lineH);
+            }
+            pdf.down(3f);
         }
 
         pdf.down(8f);
