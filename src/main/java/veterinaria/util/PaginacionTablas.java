@@ -28,7 +28,7 @@ public final class PaginacionTablas {
     private final JTextField busqueda;
     private final int[] columnas;
     private final int tamano;
-    private final JPanel controles = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 2));
+    private final JPanel controles = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 2));
     private final JLabel estado = new JLabel();
     private final JButton primera = new JButton("«");
     private final JButton anterior = new JButton("‹");
@@ -118,8 +118,7 @@ public final class PaginacionTablas {
                     return visibles.contains(e.getIdentifier());
                 }
             });
-            estado.setText("Mostrando " + (total == 0 ? 0 : inicio + 1) + "–" + fin
-                    + " de " + total + "  ·  Página " + (pagina + 1) + "/" + paginas);
+            estado.setText("Página " + (pagina + 1) + " de " + paginas);
             primera.setEnabled(pagina > 0);
             anterior.setEnabled(pagina > 0);
             siguiente.setEnabled(pagina < paginas - 1);
