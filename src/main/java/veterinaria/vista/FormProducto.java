@@ -29,6 +29,9 @@ public class FormProducto extends javax.swing.JPanel {
     private final ProveedorControlador operandoProveedor = new ProveedorControlador();
     private final ManejoTablas operarTablas = new ManejoTablas();
     private ModeloTablaGenerico<Producto> modeloProductos;
+    private veterinaria.util.PaginacionTablas paginacionProductos;
+    private final javax.swing.JPanel panelPaginacionProductos =
+            new javax.swing.JPanel(new java.awt.BorderLayout());
     private final Validaciones validar = new Validaciones();
     private Proveedor proveedor = new Proveedor();
     private Producto producto = new Producto();
@@ -43,14 +46,27 @@ public class FormProducto extends javax.swing.JPanel {
 
     public FormProducto() {
         initComponents();
-        javax.swing.JButton configurarPromocion = new javax.swing.JButton("Promo");
+        javax.swing.JButton configurarPromocion = new javax.swing.JButton("⋯");
         configurarPromocion.setToolTipText("Configurar promoción y vigencia del descuento");
         configurarPromocion.addActionListener(e -> configurarPromocionProducto());
         txtDescuento.putClientProperty("JTextField.trailingComponent", configurarPromocion);
-        txtDescuento.setToolTipText("Porcentaje de descuento opcional. Use Promo para activar una promoción automática.");
+        configurarPromocion.setToolTipText("Configurar promoción y fechas de vigencia");
+        configurarPromocion.setFocusable(false);
+        configurarPromocion.setMargin(new java.awt.Insets(0, 3, 0, 3));
+        txtDescuento.setToolTipText("Descuento opcional (%). Botón ⋯: promoción automática.");
 
         PermisoUI.aplicar(this);
         tableProductos.getTableHeader().setReorderingAllowed(false);
+        paginacionProductos = new veterinaria.util.PaginacionTablas(
+                tableProductos, txtBusqueda, 15, 2, 3, 4, 5, 6, 7, 8, 9);
+        panelPaginacionProductos.add(paginacionProductos.getControles(),
+                java.awt.BorderLayout.CENTER);
+        txtBusqueda.setLayout(new java.awt.BorderLayout());
+        txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
+        if (tableProductos instanceof veterinaria.vista.table.AutoTable) {
+            ((veterinaria.vista.table.AutoTable) tableProductos).setAjustarAnchoAutomaticamente(false);
+        }
+        tableProductos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         initListeners();
         cargarCombosBoxs();
         cargarComboEstadoProducto();
@@ -499,8 +515,8 @@ public class FormProducto extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        tableProductos.setMinimumSize(new java.awt.Dimension(848, 220));
-        tableProductos.setPreferredSize(new java.awt.Dimension(848, 220));
+        tableProductos.setMinimumSize(new java.awt.Dimension(0, 0));
+        tableProductos.setPreferredScrollableViewportSize(new java.awt.Dimension(1000, 300));
         tableProductos.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(tableProductos);
 
@@ -522,6 +538,7 @@ public class FormProducto extends javax.swing.JPanel {
                 .addComponent(btnImprimirLista)
                 .addContainerGap())
             .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 873, Short.MAX_VALUE)
+            .addComponent(panelPaginacionProductos)
             .addGroup(jpListaProductosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpListaProductosLayout.createSequentialGroup()
                     .addContainerGap()
@@ -535,7 +552,10 @@ public class FormProducto extends javax.swing.JPanel {
                     .addComponent(lbListProd)
                     .addComponent(btnImprimirLista))
                 .addGap(18, 18, 18)
-                .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE))
+                .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelPaginacionProductos, javax.swing.GroupLayout.PREFERRED_SIZE,
+                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(jpListaProductosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jpListaProductosLayout.createSequentialGroup()
                     .addGap(40, 40, 40)
@@ -1108,6 +1128,9 @@ public class FormProducto extends javax.swing.JPanel {
 
         // Simplemente le pasamos la lista de productos al modelo genérico de forma limpia y segura
         modeloProductos.cargarDatos(productos);
+        if (paginacionProductos != null) {
+            paginacionProductos.actualizar();
+        }
 
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
@@ -1328,8 +1351,8 @@ public class FormProducto extends javax.swing.JPanel {
 
         jcbEstadoProducto.addActionListener(evt -> cargarProductosEnTabla());
 
-        List<Integer> columnasObjetivo = Arrays.asList(2, 3, 5, 13);
-        operarTablas.aplicarFiltroYResaltado(tableProductos, txtBusqueda, columnasObjetivo);
+        // El filtro global y el resaltado son responsabilidad de PaginacionTablas.
+        // No instalar un segundo TableRowSorter que anule la paginación.
     }
 
     private void mostrarPanelLista() {
