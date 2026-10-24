@@ -2903,6 +2903,10 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         }
     }
 
+    private static String formatoPesos(BigDecimal importe) {
+        return "$ " + MoneyUtil.format(importe);
+    }
+
     private void cargarProductosEnTabla(List<VentaProducto> listaProductos) {
         DefaultTableModel modelo = (DefaultTableModel) tableVentas.getModel();
         modelo.setRowCount(0);
@@ -2943,21 +2947,21 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
             Object[] fila = new Object[]{
                 producto.getCodigo(),
                 producto.getNombre(),
-                totalUnitario, // si querés mostrar formateado, ver nota abajo
-                totalIva,
-                totalDescuento,
+                formatoPesos(totalUnitario),
+                formatoPesos(totalIva),
+                formatoPesos(totalDescuento),
                 productoCarga.getCantidadProducto(),
-                totalProducto
+                formatoPesos(totalProducto)
             };
 
             modelo.addRow(fila);
         }
 
 // Mostrar montos formateados (usa tu MoneyUtil del Punto 2)
-        txtSubtotalVenta.setText(MoneyUtil.format(acumulaSubTotal));
-        txtDescuentoVenta.setText(MoneyUtil.format(acumulaDescuento));
-        txtIvaVenta.setText(MoneyUtil.format(acumulaIva));
-        txtTotalVenta.setText(MoneyUtil.format(acumulaTotalTabla));
+        txtSubtotalVenta.setText(formatoPesos(acumulaSubTotal));
+        txtDescuentoVenta.setText(formatoPesos(acumulaDescuento));
+        txtIvaVenta.setText(formatoPesos(acumulaIva));
+        txtTotalVenta.setText(formatoPesos(acumulaTotalTabla));
 
         operandoTablas.asegurarSeleccionUnica(tableVentas);
     }
