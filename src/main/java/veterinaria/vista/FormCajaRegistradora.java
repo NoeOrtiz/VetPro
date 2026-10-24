@@ -2854,15 +2854,22 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         BigDecimal porGanancia = obtenerPorcentajeGananciaProducto(producto)
                 .divide(BigDecimal.valueOf(100)); // ej: 40 -> 0.40
 
-        // Cálculos unitarios
-        BigDecimal descuentoUnitario = precio.multiply(porDescuento);
-        BigDecimal ivaUnitario = precio.multiply(porIva);
+        // Cálculos unitarios: costo + ganancia = precio de venta antes de impuestos.
+        // El descuento reduce la base imponible antes de aplicar IVA.
         BigDecimal gananciaUnitario = precio.multiply(porGanancia);
+        BigDecimal precioVentaAntesIva = precio.add(gananciaUnitario);
+        BigDecimal descuentoUnitario = precioVentaAntesIva.multiply(porDescuento);
+        BigDecimal baseImponible = precioVentaAntesIva.subtract(descuentoUnitario);
+        BigDecimal ivaUnitario = baseImponible.multiply(porIva);
 
-        BigDecimal totalUnitario = precio
-                .add(gananciaUnitario)
-                .add(ivaUnitario)
-                .subtract(descuentoUnitario);
+        // Redondear los componentes unitarios conforme a Configuración.
+        // Mantener la identidad subtotal - descuento + IVA = total.
+        gananciaUnitario = gananciaUnitario.setScale(decVentas, rmVentas);
+        precioVentaAntesIva = precio.add(gananciaUnitario);
+        descuentoUnitario = precioVentaAntesIva.multiply(porDescuento).setScale(decVentas, rmVentas);
+        baseImponible = precioVentaAntesIva.subtract(descuentoUnitario);
+        ivaUnitario = baseImponible.multiply(porIva).setScale(decVentas, rmVentas);
+        BigDecimal totalUnitario = baseImponible.add(ivaUnitario).setScale(decVentas, rmVentas);
 
         // Setters (AHORA COINCIDEN LOS TIPOS)
         productoAVender.setPrecioBase(precio);
