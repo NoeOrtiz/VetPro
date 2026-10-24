@@ -1688,7 +1688,10 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 boolean aplicarDescuento = false;
                 BigDecimal porcentajeDisponible = porcentajeProducto(producto.getDescuento(),
                         "descuento", producto.getNombre(), false);
-                if (!yaAgregado && porcentajeDisponible.signum() > 0) {
+                boolean promocionVigente = producto.tienePromocionVigente(java.time.LocalDate.now());
+                if (!yaAgregado && promocionVigente && porcentajeDisponible.signum() > 0) {
+                    aplicarDescuento = true;
+                } else if (!yaAgregado && porcentajeDisponible.signum() > 0) {
                     int respuesta = JOptionPane.showConfirmDialog(this,
                             "El producto \"" + producto.getNombre() + "\" tiene un descuento disponible del "
                             + porcentajeDisponible.stripTrailingZeros().toPlainString()
