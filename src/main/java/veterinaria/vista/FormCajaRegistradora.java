@@ -130,7 +130,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
      */
     private void configurarCamposMonetarios() {
         // Campos donde el usuario escribe montos
-        aplicarFiltroMonetario(txtMontoInicialCaja);
+        // Aceptar formato argentino de miles y decimales en apertura.\n        normalizarEnFocusLost(txtMontoInicialCaja);
         aplicarFiltroMonetario(txtMontoCierreCaja);
         // Este campo acepta formato argentino (7.602,00); el filtro antiguo lo corrompía.
         configurarMontoVentaConFormatoAutomatico();
@@ -1633,7 +1633,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         jpRegistrarVentas.setVisible(false);
         jpRegistrarCompras.setVisible(false);
         jpAperturaCaja.setVisible(true);
-        txtMontoInicialCaja.setText("0.00");
+        txtMontoInicialCaja.setText("0,00");
     }//GEN-LAST:event_btnAbrirCajaActionPerformed
 
     private void btnVentasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVentasActionPerformed
