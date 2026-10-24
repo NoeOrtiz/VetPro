@@ -742,7 +742,17 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     private static String normalizarDescripcion(String descripcion, Recibo recibo) {
         if (recibo != null && recibo.getIdRecibo() != null && descripcion != null
                 && descripcion.toLowerCase(java.util.Locale.ROOT).contains("venta")) {
-            return "Venta - Recibo N.º " + recibo.getIdRecibo();
+            String cliente = "Consumidor Final";
+            try {
+                if (recibo.getCliente() != null && recibo.getCliente().getPersona() != null) {
+                    Persona p = recibo.getCliente().getPersona();
+                    String nombre = (safe(p.getNombre()) + " " + safe(p.getApellido())).trim();
+                    if (!nombre.isEmpty()) cliente = nombre;
+                }
+            } catch (Exception ex) {
+                AppLog.warn(FormInformesCajaMovimientos.class, "No se pudo resolver cliente de venta", ex);
+            }
+            return "Venta a " + cliente + " - Recibo N.º " + recibo.getIdRecibo();
         }
         return descripcion != null ? descripcion : "";
     }
