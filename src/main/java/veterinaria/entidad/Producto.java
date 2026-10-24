@@ -42,6 +42,15 @@ public class Producto implements Serializable {
     @Column(name = "descuento")
     private String descuento = "0";
 
+    @Column(name = "promocion_activa")
+    private Boolean promocionActiva = false;
+
+    @Column(name = "promocion_inicio")
+    private java.time.LocalDate promocionInicio;
+
+    @Column(name = "promocion_fin")
+    private java.time.LocalDate promocionFin;
+
     @Column(name = "umedida")
     private String umedida;
 
@@ -92,6 +101,17 @@ public class Producto implements Serializable {
         this.stockMinimo = (stockMinimo == null ? 0 : stockMinimo);
         this.proveedor = proveedor;
         this.estado = (estado == null ? "Activo" : estado);
+    }
+
+    public boolean isPromocionActiva() { return Boolean.TRUE.equals(promocionActiva); }
+    public void setPromocionActiva(boolean valor) { this.promocionActiva = valor; }
+    public java.time.LocalDate getPromocionInicio() { return promocionInicio; }
+    public void setPromocionInicio(java.time.LocalDate fecha) { this.promocionInicio = fecha; }
+    public java.time.LocalDate getPromocionFin() { return promocionFin; }
+    public void setPromocionFin(java.time.LocalDate fecha) { this.promocionFin = fecha; }
+    public boolean tienePromocionVigente(java.time.LocalDate fecha) {
+        return isPromocionActiva() && promocionInicio != null && promocionFin != null
+                && !fecha.isBefore(promocionInicio) && !fecha.isAfter(promocionFin);
     }
 
     // Getters y Setters tradicionales
