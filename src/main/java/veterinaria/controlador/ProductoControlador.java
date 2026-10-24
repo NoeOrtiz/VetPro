@@ -36,7 +36,13 @@ public class ProductoControlador {
 
     public boolean validarYGuardarProducto(Producto producto, boolean esNuevo, String codigoOriginal) throws IllegalArgumentException {
 
-        // 0. Calculamos el precio de venta antes de validar y guardar
+        // No calcular ni persistir precios con el placeholder del combo de IVA.
+        String iva = producto.getIva() == null ? "" : producto.getIva().trim().replace(",", ".");
+        if (!"21.0".equals(iva) && !"10.5".equals(iva) && !"0.0".equals(iva)) {
+            throw new IllegalArgumentException(
+                    "Seleccione un porcentaje de IVA válido (21 %, 10,5 % o 0 %) antes de guardar.");
+        }
+        producto.setIva(iva);
         calcularYAsignarPrecioVenta(producto);
 
         // 1. Validaciones de campos obligatorios y reglas de negocio
