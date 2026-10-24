@@ -57,12 +57,6 @@ public class FormProducto extends javax.swing.JPanel {
 
         PermisoUI.aplicar(this);
         tableProductos.getTableHeader().setReorderingAllowed(false);
-        paginacionProductos = new veterinaria.util.PaginacionTablas(
-                tableProductos, txtBusqueda, 15, 2, 3, 4, 5, 6, 7, 8, 9);
-        panelPaginacionProductos.add(paginacionProductos.getControles(),
-                java.awt.BorderLayout.CENTER);
-        txtBusqueda.setLayout(new java.awt.BorderLayout());
-        txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
         if (tableProductos instanceof veterinaria.vista.table.AutoTable) {
             ((veterinaria.vista.table.AutoTable) tableProductos).setAjustarAnchoAutomaticamente(false);
         }
@@ -95,6 +89,15 @@ public class FormProducto extends javax.swing.JPanel {
 
         jpDatosProducto.setVisible(false);
         cargarProductosEnTabla();
+        // Crear la paginación DESPUÉS de configurar el modelo definitivo.
+        // Si se crea antes, el sorter puede conservar el modelo vacío inicial.
+        paginacionProductos = new veterinaria.util.PaginacionTablas(
+                tableProductos, txtBusqueda, 15, 2, 3, 4, 5, 6, 7, 8, 9);
+        panelPaginacionProductos.add(paginacionProductos.getControles(),
+                java.awt.BorderLayout.CENTER);
+        txtBusqueda.setLayout(new java.awt.BorderLayout());
+        txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
+        paginacionProductos.actualizar();
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
 
