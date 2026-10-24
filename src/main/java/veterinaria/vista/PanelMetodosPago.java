@@ -26,7 +26,7 @@ public class PanelMetodosPago extends JPanel {
 
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[][]{},
-            new String[]{"ID", "Nombre", "Descripción"}
+            new String[]{"ID", "Nombre", "Descripción", "Recargo (%)", "Descuento (%)", "Estado"}
     ) {
         @Override public boolean isCellEditable(int row, int col) { return false; }
         @Override public Class<?> getColumnClass(int col) {
@@ -85,7 +85,8 @@ public class PanelMetodosPago extends JPanel {
         model.setRowCount(0);
         List<MetodoPago> lista = dao.buscarTodos();
         for (MetodoPago m : lista) {
-            model.addRow(new Object[]{m.getIdMetodoPago(), m.getNombre(), m.getDescripcion()});
+            model.addRow(new Object[]{m.getIdMetodoPago(), m.getNombre(), m.getDescripcion(),
+                    m.getRecargoPorcentaje(), m.getDescuentoPorcentaje(), m.isActivo() ? "Activo" : "Inactivo"});
         }
 
         // Ocultar ID visualmente (se queda en el modelo)
@@ -100,10 +101,14 @@ public class PanelMetodosPago extends JPanel {
     private void crearMetodoPago() {
         JTextField txtNombre = new JTextField();
         JTextField txtDesc = new JTextField();
+        JTextField txtRecargo = new JTextField("0");
+        JTextField txtDescuento = new JTextField("0");
 
         Object[] form = {
             "Nombre:", txtNombre,
-            "Descripción:", txtDesc
+            "Descripción:", txtDesc,
+            "Recargo (%):", txtRecargo,
+            "Descuento (%):", txtDescuento
         };
 
         int op = JOptionPane.showConfirmDialog(this, form, "Agregar método de pago",
@@ -130,6 +135,7 @@ public class PanelMetodosPago extends JPanel {
         if (!confirmarCreacionMetodoPago(nombre, desc)) return;
 
         MetodoPago nuevo = new MetodoPago(null, nombre, desc);
+        if (!asignarPorcentajes(nuevo, txtRecargo, txtDescuento)) return;
         boolean ok = dao.crear(nuevo);
 
         if (!ok) {
@@ -159,6 +165,8 @@ public class PanelMetodosPago extends JPanel {
 
         JTextField txtNombre = new JTextField(m.getNombre());
         JTextField txtDesc = new JTextField(m.getDescripcion() == null ? "" : m.getDescripcion());
+        JTextField txtRecargo = new JTextField(m.getRecargoPorcentaje().toPlainString());
+        JTextField txtDescuento = new JTextField(m.getDescuentoPorcentaje().toPlainString());
 
         Object[] form = {
             "Nombre:", txtNombre,
@@ -179,10 +187,19 @@ public class PanelMetodosPago extends JPanel {
             return;
         }
 
-        if (!confirmarEdicionMetodoPago(m.getNombre(), nombre, m.getDescripcion(), desc)) return;
+        // Confirmar también cuando solo se modifican porcentajes.
+        if (m.getNombre().equals(nombre) && java.util.Objects.equals(m.getDescripcion(), desc)
+                && m.getRecargoPorcentaje().compareTo(leerPorcentajeSeguro(txtRecargo)) == 0
+                && m.getDescuentoPorcentaje().compareTo(leerPorcentajeSeguro(txtDescuento)) == 0) {
+            JOptionPane.showMessageDialog(this, "No se detectaron cambios para guardar.");
+            return;
+        }
+        if (JOptionPane.showConfirmDialog(this, "¿Guardar los cambios del método de pago?",
+                "Confirmar", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
 
         m.setNombre(nombre);
         m.setDescripcion(desc);
+        if (!asignarPorcentajes(m, txtRecargo, txtDescuento)) return;
 
         boolean ok = dao.actualizar(m);
         if (!ok) {
@@ -192,6 +209,30 @@ public class PanelMetodosPago extends JPanel {
         }
 
         refrescarTabla();
+    }
+
+    private java.math.BigDecimal leerPorcentajeSeguro(JTextField campo) {
+        try {
+            java.math.BigDecimal valor = new java.math.BigDecimal(campo.getText().trim().replace(",", "."));
+            if (valor.signum() < 0 || valor.compareTo(new java.math.BigDecimal("100")) > 0
+                    || valor.scale() > 3) throw new NumberFormatException();
+            return valor;
+        } catch (Exception ex) {
+            return new java.math.BigDecimal("-1");
+        }
+    }
+
+    private boolean asignarPorcentajes(MetodoPago metodo, JTextField recargo, JTextField descuento) {
+        java.math.BigDecimal r = leerPorcentajeSeguro(recargo);
+        java.math.BigDecimal d = leerPorcentajeSeguro(descuento);
+        if (r.signum() < 0 || d.signum() < 0) {
+            JOptionPane.showMessageDialog(this, "Ingresá porcentajes entre 0 y 100, con hasta 3 decimales.",
+                    "Porcentaje inválido", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        metodo.setRecargoPorcentaje(r);
+        metodo.setDescuentoPorcentaje(d);
+        return true;
     }
 
     private boolean confirmarCreacionMetodoPago(String nombre, String descripcion) {
