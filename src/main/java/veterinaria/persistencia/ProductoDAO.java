@@ -151,6 +151,9 @@ public class ProductoDAO {
             managed.setPrecioCosto(producto.getPrecioCosto());
             managed.setIva(producto.getIva());
             managed.setDescuento(producto.getDescuento());
+            managed.setPromocionActiva(producto.isPromocionActiva());
+            managed.setPromocionInicio(producto.getPromocionInicio());
+            managed.setPromocionFin(producto.getPromocionFin());
             managed.setUmedida(producto.getUmedida());
             managed.setProveedor(producto.getProveedor());
             managed.setEstado(producto.getEstado());
