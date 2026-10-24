@@ -883,7 +883,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Código", "Producto", "Precio Unidad", "IVA ($)", "Descuento ($)", "Cantidad", "Total"
+                "Código", "Producto", "Precio Unit. s/IVA", "IVA ($)", "Descuento ($)", "Cantidad", "Total"
             }
         ) {
             boolean[] canEdit = new boolean [] {
@@ -2986,7 +2986,7 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
             Object[] fila = new Object[]{
                 producto.getCodigo(),
                 producto.getNombre(),
-                formatoPesos(totalUnitario),
+                formatoPesos(precioBase.add(gananciaUnitario)),
                 formatoPesos(totalIva),
                 formatoPesos(totalDescuento),
                 productoCarga.getCantidadProducto(),
