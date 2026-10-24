@@ -1680,9 +1680,14 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
 
         Integer stockProducto = producto.getStock();
         if (validarStockProducto(stockProducto, cantidadProducto, idProductoSelec)) {
-            calcularMontosProductoUnitario(productoAVender, idProductoSelec, cantidadProducto);
-            controlarProductosIgualesEnTabla();
-            cargarProductosEnTabla(listaProductosAVender);
+            try {
+                calcularMontosProductoUnitario(productoAVender, idProductoSelec, cantidadProducto);
+                controlarProductosIgualesEnTabla();
+                cargarProductosEnTabla(listaProductosAVender);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(),
+                        "Datos del producto", JOptionPane.WARNING_MESSAGE);
+            }
         } else {
             JOptionPane.showMessageDialog(this, "No existe suficiente stock para agregar a la venta.");
         }
@@ -2800,6 +2805,29 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         }
     }
 
+    private static BigDecimal porcentajeProducto(String valor, String campo, String nombreProducto,
+            boolean obligatorio) {
+        String dato = valor == null ? "" : valor.trim();
+        if (dato.isEmpty()) {
+            if (!obligatorio) return BigDecimal.ZERO;
+            throw new IllegalArgumentException("El producto \"" + nombreProducto
+                    + "\" no tiene un porcentaje de IVA válido. Corrija el IVA en Productos antes de vender.");
+        }
+        // Solo se admiten porcentajes numéricos, con coma o punto decimal.
+        // No convertir textos como "Seleccionar % IVA" en cero: ocultaría un error de carga.
+        if (!dato.matches("[0-9]+([.,][0-9]+)?")) {
+            throw new IllegalArgumentException("El producto \"" + nombreProducto + "\" tiene "
+                    + campo + " inválido (\"" + dato + "\"). Corríjalo en Productos antes de vender.");
+        }
+        BigDecimal porcentaje = new BigDecimal(dato.replace(',', '.'));
+        if (porcentaje.compareTo(BigDecimal.ZERO) < 0
+                || porcentaje.compareTo(BigDecimal.valueOf(100)) > 0) {
+            throw new IllegalArgumentException("El porcentaje de " + campo
+                    + " del producto \"" + nombreProducto + "\" debe estar entre 0 y 100.");
+        }
+        return porcentaje;
+    }
+
     private void calcularMontosProductoUnitario(VentaProducto productoAVender, Integer idProducto, Integer cantidadVenta) {
 
         producto = operandoProducto.buscarProductoPorId(idProducto);
@@ -2814,16 +2842,14 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         BigDecimal precio = MoneyUtil.of(producto.getPrecioCosto());
 
         // Porcentajes (ej: "21" -> 0.21)
-        BigDecimal porDescuento = producto.getDescuento() != null && !producto.getDescuento().isEmpty()
-                ? new BigDecimal(producto.getDescuento()).divide(BigDecimal.valueOf(100))
-                : BigDecimal.ZERO;
+        BigDecimal porDescuento = porcentajeProducto(producto.getDescuento(), "descuento", producto.getNombre(), false)
+                .movePointLeft(2);
 
         int decVentas = configService.getInt(ConfiguracionService.KEY_VENTAS_DECIMALES, ConfiguracionService.DEFAULT_VENTAS_DECIMALES);
         RoundingMode rmVentas = configService.getRoundingModeVentas();
 
-        BigDecimal porIva = producto.getIva() != null && !producto.getIva().isEmpty()
-                ? new BigDecimal(producto.getIva()).divide(BigDecimal.valueOf(100))
-                : BigDecimal.ZERO;
+        BigDecimal porIva = porcentajeProducto(producto.getIva(), "IVA", producto.getNombre(), true)
+                .movePointLeft(2);
 
         BigDecimal porGanancia = obtenerPorcentajeGananciaProducto(producto)
                 .divide(BigDecimal.valueOf(100)); // ej: 40 -> 0.40
