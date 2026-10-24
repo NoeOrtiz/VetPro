@@ -138,24 +138,35 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         aplicarFiltroMonetario(txtTotalFacturaCompra);
         aplicarFiltroMonetario(txtMontoFacturaCompra);
 
-        // Mostrar importes de las tablas de venta y pagos con formato argentino,
-        // manteniendo los valores numéricos originales para los cálculos.
-        javax.swing.table.DefaultTableCellRenderer dineroRenderer = new javax.swing.table.DefaultTableCellRenderer() {
+        // Alinear y separar visualmente todas las columnas de la venta.
+        // El espacio interior evita que Descuento y Cantidad se vean unidos.
+        javax.swing.table.DefaultTableCellRenderer ventasCentrado =
+                new javax.swing.table.DefaultTableCellRenderer() {
             @Override
-            public void setValue(Object value) {
-                if (value instanceof Number) {
-                    setText(MoneyUtil.format(BigDecimal.valueOf(((Number) value).doubleValue())));
-                } else {
-                    setText(value == null ? "" : value.toString());
+            public java.awt.Component getTableCellRendererComponent(
+                    javax.swing.JTable tabla, Object valor, boolean seleccionado,
+                    boolean foco, int fila, int columna) {
+                super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
+                setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+                setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 9, 0, 9));
+                if (valor instanceof Number && columna != 5) {
+                    setText(formatoPesos(BigDecimal.valueOf(((Number) valor).doubleValue())));
                 }
-                setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+                return this;
             }
         };
-        for (int columna : new int[]{2, 3, 4, 6}) {
-            if (columna < tableVentas.getColumnCount()) {
-                tableVentas.getColumnModel().getColumn(columna).setCellRenderer(dineroRenderer);
-            }
+        tableVentas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        tableVentas.setIntercellSpacing(new java.awt.Dimension(8, 2));
+        for (int columna = 0; columna < tableVentas.getColumnCount(); columna++) {
+            tableVentas.getColumnModel().getColumn(columna).setCellRenderer(ventasCentrado);
         }
+        javax.swing.table.DefaultTableCellRenderer cabeceraCentrada =
+                (javax.swing.table.DefaultTableCellRenderer) tableVentas.getTableHeader().getDefaultRenderer();
+        cabeceraCentrada.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+
+        javax.swing.table.DefaultTableCellRenderer dineroRenderer =
+                new javax.swing.table.DefaultTableCellRenderer();
+        dineroRenderer.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         if (tableFormaDePago.getColumnCount() > 1) {
             tableFormaDePago.getColumnModel().getColumn(1).setCellRenderer(dineroRenderer);
         }
