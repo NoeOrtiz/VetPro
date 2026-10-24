@@ -60,14 +60,31 @@ public class PanelMetodosPago extends JPanel {
 
         add(top, BorderLayout.NORTH);
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setPreferredSize(new Dimension(800, 420));
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        JPanel tableArea = new JPanel(new BorderLayout());
-        tableArea.add(scroll, BorderLayout.NORTH);
-        JPanel content = new JPanel(new BorderLayout(8, 8));
-        content.add(tableArea, BorderLayout.CENTER);
-        content.add(acciones, BorderLayout.SOUTH);
-        add(content, BorderLayout.NORTH);
+        // La tabla ocupa el área central y se adapta al tamaño de la ventana.
+        add(scroll, BorderLayout.CENTER);
+        add(acciones, BorderLayout.SOUTH);
+
+        table.setRowHeight(30);
+        table.setFillsViewportHeight(true);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        table.setShowVerticalLines(false);
+        table.setIntercellSpacing(new Dimension(8, 2));
+        table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        javax.swing.table.DefaultTableCellRenderer centrado = new javax.swing.table.DefaultTableCellRenderer();
+        centrado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        javax.swing.table.DefaultTableCellRenderer izquierda = new javax.swing.table.DefaultTableCellRenderer();
+        izquierda.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        izquierda.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+        for (int c = 0; c < table.getColumnCount(); c++) {
+            table.getColumnModel().getColumn(c).setCellRenderer(c == 1 || c == 2 ? izquierda : centrado);
+        }
+        javax.swing.table.DefaultTableCellRenderer cabecera =
+                (javax.swing.table.DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
+        cabecera.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        table.getTableHeader().setPreferredSize(new Dimension(0, 34));
+        // Evitar que las descripciones largas parezcan datos cortados sin explicación.
+        table.setToolTipText("Seleccione un método y presione Modificar para configurar porcentajes.");
 
         wireEvents();
         refrescarTabla();
@@ -89,7 +106,7 @@ public class PanelMetodosPago extends JPanel {
                     m.getRecargoPorcentaje(), m.getDescuentoPorcentaje(), m.isActivo() ? "Activo" : "Inactivo"});
         }
 
-        // Ocultar ID visualmente (se queda en el modelo)
+        // Distribución proporcional: dar prioridad a la descripción.\n        int[] anchos = {0, 180, 320, 130, 130, 100};\n        for (int i = 1; i < anchos.length; i++) {\n            table.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);\n        }\n\n        // Ocultar ID visualmente (se queda en el modelo)
         try {
             javax.swing.table.TableColumn colId = table.getColumnModel().getColumn(0);
             colId.setMinWidth(0);
