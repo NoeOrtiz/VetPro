@@ -75,15 +75,21 @@ public class PanelMetodosPago extends JPanel {
         JScrollPane scroll = new JScrollPane(table);
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         // La tabla ocupa el área central y se adapta al tamaño de la ventana.
-        add(scroll, BorderLayout.CENTER);
-        add(acciones, BorderLayout.SOUTH);
+        scroll.setPreferredSize(new Dimension(800, 420));
+        JPanel contenido = new JPanel(new BorderLayout(0, 8));
+        contenido.add(scroll, BorderLayout.CENTER);
+        contenido.add(acciones, BorderLayout.SOUTH);
+        JPanel zonaSuperior = new JPanel(new BorderLayout());
+        zonaSuperior.add(contenido, BorderLayout.CENTER);
+        add(zonaSuperior, BorderLayout.NORTH);
 
-        table.setRowHeight(30);
-        table.setFillsViewportHeight(true);
+        table.setRowHeight(29);
+        table.setFillsViewportHeight(false);
         table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         table.setShowVerticalLines(false);
         table.setIntercellSpacing(new Dimension(8, 2));
         table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        table.setDefaultRenderer(Boolean.class, table.getDefaultRenderer(Boolean.class));
         model.addTableModelListener(e -> {
             if (e.getColumn() != 0 || e.getFirstRow() < 0
                     || e.getType() != javax.swing.event.TableModelEvent.UPDATE
@@ -101,7 +107,7 @@ public class PanelMetodosPago extends JPanel {
         izquierda.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         izquierda.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
         for (int c = 0; c < table.getColumnCount(); c++) {
-            table.getColumnModel().getColumn(c).setCellRenderer(c == 2 || c == 3 ? izquierda : centrado);
+            if (c != 0) table.getColumnModel().getColumn(c).setCellRenderer(c == 2 || c == 3 ? izquierda : centrado);
         }
         javax.swing.table.DefaultTableCellRenderer cabecera =
                 (javax.swing.table.DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
@@ -127,7 +133,7 @@ public class PanelMetodosPago extends JPanel {
         List<MetodoPago> lista = dao.buscarTodos();
         for (MetodoPago m : lista) {
             model.addRow(new Object[]{Boolean.FALSE, m.getIdMetodoPago(), m.getNombre(), m.getDescripcion(),
-                    m.getRecargoPorcentaje(), m.getDescuentoPorcentaje(), m.isActivo() ? "Activo" : "Inactivo"});
+                    formatoPorcentaje(m.getRecargoPorcentaje()), formatoPorcentaje(m.getDescuentoPorcentaje()), m.isActivo() ? "Activo" : "Inactivo"});
         }
 
         int[] anchos = {90, 0, 175, 300, 125, 125, 95};
@@ -138,6 +144,8 @@ public class PanelMetodosPago extends JPanel {
         idCol.setMinWidth(0);
         idCol.setMaxWidth(0);
         idCol.setPreferredWidth(0);
+        table.getColumnModel().getColumn(0).setCellRenderer(table.getDefaultRenderer(Boolean.class));
+        table.getColumnModel().getColumn(0).setCellEditor(table.getDefaultEditor(Boolean.class));
         table.getColumnModel().getColumn(0).setMinWidth(85);
         table.getColumnModel().getColumn(0).setMaxWidth(100);
     }
@@ -145,7 +153,7 @@ public class PanelMetodosPago extends JPanel {
     private void crearMetodoPago() {
         JTextField txtNombre = new JTextField();
         JTextField txtDesc = new JTextField();
-        JTextField txtRecargo = new JTextField("0");
+        JTextField txtRecargo = new JTextField("0,00");
         JTextField txtDescuento = new JTextField("0");
 
         Object[] form = {
@@ -209,8 +217,8 @@ public class PanelMetodosPago extends JPanel {
 
         JTextField txtNombre = new JTextField(m.getNombre());
         JTextField txtDesc = new JTextField(m.getDescripcion() == null ? "" : m.getDescripcion());
-        JTextField txtRecargo = new JTextField(m.getRecargoPorcentaje().toPlainString());
-        JTextField txtDescuento = new JTextField(m.getDescuentoPorcentaje().toPlainString());
+        JTextField txtRecargo = new JTextField(formatoPorcentaje(m.getRecargoPorcentaje()));
+        JTextField txtDescuento = new JTextField(formatoPorcentaje(m.getDescuentoPorcentaje()));
 
         Object[] form = {
             "Nombre:", txtNombre,
@@ -257,11 +265,16 @@ public class PanelMetodosPago extends JPanel {
         refrescarTabla();
     }
 
+    private String formatoPorcentaje(java.math.BigDecimal valor) {
+        return (valor == null ? java.math.BigDecimal.ZERO : valor)
+                .setScale(2, java.math.RoundingMode.HALF_UP).toPlainString().replace(".", ",");
+    }
+
     private java.math.BigDecimal leerPorcentajeSeguro(JTextField campo) {
         try {
             java.math.BigDecimal valor = new java.math.BigDecimal(campo.getText().trim().replace(",", "."));
             if (valor.signum() < 0 || valor.compareTo(new java.math.BigDecimal("100")) > 0
-                    || valor.scale() > 3) throw new NumberFormatException();
+                    || valor.scale() > 2) throw new NumberFormatException();
             return valor;
         } catch (Exception ex) {
             return new java.math.BigDecimal("-1");
@@ -272,7 +285,7 @@ public class PanelMetodosPago extends JPanel {
         java.math.BigDecimal r = leerPorcentajeSeguro(recargo);
         java.math.BigDecimal d = leerPorcentajeSeguro(descuento);
         if (r.signum() < 0 || d.signum() < 0) {
-            JOptionPane.showMessageDialog(this, "Ingresá porcentajes entre 0 y 100, con hasta 3 decimales.",
+            JOptionPane.showMessageDialog(this, "Ingresá porcentajes entre 0 y 100, con hasta 2 decimales.",
                     "Porcentaje inválido", JOptionPane.WARNING_MESSAGE);
             return false;
         }
