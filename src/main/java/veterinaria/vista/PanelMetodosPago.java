@@ -26,16 +26,29 @@ public class PanelMetodosPago extends JPanel {
 
     private final DefaultTableModel model = new DefaultTableModel(
             new Object[][]{},
-            new String[]{"ID", "Nombre", "Descripción", "Recargo (%)", "Descuento (%)", "Estado"}
+            new String[]{"Seleccionar", "ID", "Nombre", "Descripción", "Recargo (%)", "Descuento (%)", "Estado"}
     ) {
-        @Override public boolean isCellEditable(int row, int col) { return false; }
+        @Override public boolean isCellEditable(int row, int col) { return col == 0; }
         @Override public Class<?> getColumnClass(int col) {
-            if (col == 0) return Integer.class;
+            if (col == 0) return Boolean.class;
+            if (col == 1) return Integer.class;
             return String.class;
         }
     };
 
     private final JTable table = new JTable(model);
+
+    private int filaMarcada() {
+        for (int i = 0; i < model.getRowCount(); i++) {
+            if (Boolean.TRUE.equals(model.getValueAt(i, 0))) return i;
+        }
+        return -1;
+    }
+
+    private int filaObjetivo() {
+        int marcada = filaMarcada();
+        return marcada >= 0 ? marcada : table.getSelectedRow();
+    }
 
     private final JButton btnNuevo = new JButton("Agregar");
     private final JButton btnEditar = new JButton("Modificar");
@@ -71,13 +84,24 @@ public class PanelMetodosPago extends JPanel {
         table.setShowVerticalLines(false);
         table.setIntercellSpacing(new Dimension(8, 2));
         table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        model.addTableModelListener(e -> {
+            if (e.getColumn() != 0 || e.getFirstRow() < 0
+                    || e.getType() != javax.swing.event.TableModelEvent.UPDATE
+                    || !Boolean.TRUE.equals(model.getValueAt(e.getFirstRow(), 0))) return;
+            for (int i = 0; i < model.getRowCount(); i++) {
+                if (i != e.getFirstRow() && Boolean.TRUE.equals(model.getValueAt(i, 0))) {
+                    model.setValueAt(Boolean.FALSE, i, 0);
+                }
+            }
+            table.setRowSelectionInterval(e.getFirstRow(), e.getFirstRow());
+        });
         javax.swing.table.DefaultTableCellRenderer centrado = new javax.swing.table.DefaultTableCellRenderer();
         centrado.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         javax.swing.table.DefaultTableCellRenderer izquierda = new javax.swing.table.DefaultTableCellRenderer();
         izquierda.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         izquierda.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
         for (int c = 0; c < table.getColumnCount(); c++) {
-            table.getColumnModel().getColumn(c).setCellRenderer(c == 1 || c == 2 ? izquierda : centrado);
+            table.getColumnModel().getColumn(c).setCellRenderer(c == 2 || c == 3 ? izquierda : centrado);
         }
         javax.swing.table.DefaultTableCellRenderer cabecera =
                 (javax.swing.table.DefaultTableCellRenderer) table.getTableHeader().getDefaultRenderer();
@@ -102,17 +126,20 @@ public class PanelMetodosPago extends JPanel {
         model.setRowCount(0);
         List<MetodoPago> lista = dao.buscarTodos();
         for (MetodoPago m : lista) {
-            model.addRow(new Object[]{m.getIdMetodoPago(), m.getNombre(), m.getDescripcion(),
+            model.addRow(new Object[]{Boolean.FALSE, m.getIdMetodoPago(), m.getNombre(), m.getDescripcion(),
                     m.getRecargoPorcentaje(), m.getDescuentoPorcentaje(), m.isActivo() ? "Activo" : "Inactivo"});
         }
 
-        // Distribución proporcional: dar prioridad a la descripción.\n        int[] anchos = {0, 180, 320, 130, 130, 100};\n        for (int i = 1; i < anchos.length; i++) {\n            table.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);\n        }\n\n        // Ocultar ID visualmente (se queda en el modelo)
-        try {
-            javax.swing.table.TableColumn colId = table.getColumnModel().getColumn(0);
-            colId.setMinWidth(0);
-            colId.setMaxWidth(0);
-            colId.setPreferredWidth(0);
-        } catch (Exception ignore) {}
+        int[] anchos = {90, 0, 175, 300, 125, 125, 95};
+        for (int i = 0; i < anchos.length; i++) {
+            table.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+        }
+        javax.swing.table.TableColumn idCol = table.getColumnModel().getColumn(1);
+        idCol.setMinWidth(0);
+        idCol.setMaxWidth(0);
+        idCol.setPreferredWidth(0);
+        table.getColumnModel().getColumn(0).setMinWidth(85);
+        table.getColumnModel().getColumn(0).setMaxWidth(100);
     }
 
     private void crearMetodoPago() {
@@ -164,14 +191,14 @@ public class PanelMetodosPago extends JPanel {
     }
 
     private void editarMetodoPagoSeleccionado() {
-        int row = table.getSelectedRow();
+        int row = filaObjetivo();
         if (row < 0) {
             JOptionPane.showMessageDialog(this, "Seleccione un método de pago.", "Atención",
                     JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
-        Integer id = (Integer) model.getValueAt(row, 0);
+        Integer id = (Integer) model.getValueAt(row, 1);
         MetodoPago m = dao.buscarPorId(id);
         if (m == null) {
             JOptionPane.showMessageDialog(this, "No se encontró el registro seleccionado.", "Error",
@@ -187,7 +214,9 @@ public class PanelMetodosPago extends JPanel {
 
         Object[] form = {
             "Nombre:", txtNombre,
-            "Descripción:", txtDesc
+            "Descripción:", txtDesc,
+            "Recargo (%):", txtRecargo,
+            "Descuento (%):", txtDescuento
         };
 
         int op = JOptionPane.showConfirmDialog(this, form, "Modificar método de pago",
