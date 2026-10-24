@@ -1681,7 +1681,30 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         Integer stockProducto = producto.getStock();
         if (validarStockProducto(stockProducto, cantidadProducto, idProductoSelec)) {
             try {
-                calcularMontosProductoUnitario(productoAVender, idProductoSelec, cantidadProducto);
+                // El descuento habitual del producto es opcional en cada venta.
+                // No volver a consultar cuando el producto ya está en el carrito.
+                boolean yaAgregado = listaProductosAVender.stream()
+                        .anyMatch(v -> java.util.Objects.equals(v.getIdProducto(), idProductoSelec));
+                boolean aplicarDescuento = false;
+                BigDecimal porcentajeDisponible = porcentajeProducto(producto.getDescuento(),
+                        "descuento", producto.getNombre(), false);
+                if (!yaAgregado && porcentajeDisponible.signum() > 0) {
+                    int respuesta = JOptionPane.showConfirmDialog(this,
+                            "El producto \"" + producto.getNombre() + "\" tiene un descuento disponible del "
+                            + porcentajeDisponible.stripTrailingZeros().toPlainString()
+                            + " %. ¿Desea aplicarlo a esta venta?",
+                            "Descuento del producto", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (respuesta == JOptionPane.CLOSED_OPTION) return;
+                    aplicarDescuento = respuesta == JOptionPane.YES_OPTION;
+                }
+                if (yaAgregado) {
+                    aplicarDescuento = listaProductosAVender.stream()
+                            .filter(v -> java.util.Objects.equals(v.getIdProducto(), idProductoSelec))
+                            .findFirst().map(v -> v.getMontoDescuentoUnitario().signum() > 0).orElse(false);
+                }
+                calcularMontosProductoUnitario(productoAVender, idProductoSelec,
+                        cantidadProducto, aplicarDescuento);
                 controlarProductosIgualesEnTabla();
                 cargarProductosEnTabla(listaProductosAVender);
             } catch (IllegalArgumentException ex) {
@@ -2828,7 +2851,8 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         return porcentaje;
     }
 
-    private void calcularMontosProductoUnitario(VentaProducto productoAVender, Integer idProducto, Integer cantidadVenta) {
+    private void calcularMontosProductoUnitario(VentaProducto productoAVender, Integer idProducto,
+            Integer cantidadVenta, boolean aplicarDescuento) {
 
         producto = operandoProducto.buscarProductoPorId(idProducto);
         if (producto == null) {
@@ -2842,8 +2866,9 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         BigDecimal precio = MoneyUtil.of(producto.getPrecioCosto());
 
         // Porcentajes (ej: "21" -> 0.21)
-        BigDecimal porDescuento = porcentajeProducto(producto.getDescuento(), "descuento", producto.getNombre(), false)
-                .movePointLeft(2);
+        BigDecimal porDescuento = aplicarDescuento
+                ? porcentajeProducto(producto.getDescuento(), "descuento", producto.getNombre(), false).movePointLeft(2)
+                : BigDecimal.ZERO;
 
         int decVentas = configService.getInt(ConfiguracionService.KEY_VENTAS_DECIMALES, ConfiguracionService.DEFAULT_VENTAS_DECIMALES);
         RoundingMode rmVentas = configService.getRoundingModeVentas();
