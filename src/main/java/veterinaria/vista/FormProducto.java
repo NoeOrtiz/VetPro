@@ -34,11 +34,21 @@ public class FormProducto extends javax.swing.JPanel {
     private Producto producto = new Producto();
     private SesionUsuario sesion = Application.getSesionUsuario();
     private final RubroService rubroService = new RubroService();
+    private boolean promocionActivaFormulario;
+    private java.time.LocalDate promocionInicioFormulario;
+    private java.time.LocalDate promocionFinFormulario;
+
     private boolean listenerSeleccionUnicaInstalado = false;
     private final java.awt.event.ActionListener proveedorComboActionListener = e -> onProveedorSeleccionado();
 
     public FormProducto() {
         initComponents();
+        javax.swing.JButton configurarPromocion = new javax.swing.JButton("Promo");
+        configurarPromocion.setToolTipText("Configurar promoción y vigencia del descuento");
+        configurarPromocion.addActionListener(e -> configurarPromocionProducto());
+        txtDescuento.putClientProperty("JTextField.trailingComponent", configurarPromocion);
+        txtDescuento.setToolTipText("Porcentaje de descuento opcional. Use Promo para activar una promoción automática.");
+
         PermisoUI.aplicar(this);
         tableProductos.getTableHeader().setReorderingAllowed(false);
         initListeners();
@@ -801,6 +811,48 @@ public class FormProducto extends javax.swing.JPanel {
         return p;
     }
 
+    private void configurarPromocionProducto() {
+        javax.swing.JCheckBox activar = new javax.swing.JCheckBox("Aplicar automáticamente en Caja");
+        activar.setSelected(promocionActivaFormulario);
+        javax.swing.JTextField inicio = new javax.swing.JTextField(
+                promocionInicioFormulario == null ? "" : promocionInicioFormulario.toString(), 12);
+        javax.swing.JTextField fin = new javax.swing.JTextField(
+                promocionFinFormulario == null ? "" : promocionFinFormulario.toString(), 12);
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(0, 1, 4, 4));
+        panel.add(activar);
+        panel.add(new javax.swing.JLabel("Inicio (AAAA-MM-DD):"));
+        panel.add(inicio);
+        panel.add(new javax.swing.JLabel("Fin (AAAA-MM-DD):"));
+        panel.add(fin);
+        if (JOptionPane.showConfirmDialog(this, panel, "Promoción del producto",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return;
+        try {
+            java.time.LocalDate desde = inicio.getText().trim().isEmpty()
+                    ? null : java.time.LocalDate.parse(inicio.getText().trim());
+            java.time.LocalDate hasta = fin.getText().trim().isEmpty()
+                    ? null : java.time.LocalDate.parse(fin.getText().trim());
+            if (activar.isSelected()) {
+                if (desde == null || hasta == null || hasta.isBefore(desde)) {
+                    throw new IllegalArgumentException("Ingrese fechas válidas; el fin no puede ser anterior al inicio.");
+                }
+                if (obtenerDescuentoNormalizado() <= 0 || obtenerDescuentoNormalizado() > 100) {
+                    throw new IllegalArgumentException("Una promoción necesita un descuento entre 0 y 100 %.");
+                }
+            }
+            promocionActivaFormulario = activar.isSelected();
+            promocionInicioFormulario = desde;
+            promocionFinFormulario = hasta;
+            txtDescuento.putClientProperty("JComponent.outline",
+                    promocionActivaFormulario ? "warning" : null);
+        } catch (java.time.format.DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this, "Use fechas con formato AAAA-MM-DD.",
+                    "Promoción", JOptionPane.WARNING_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Promoción", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
     private double obtenerDescuentoNormalizado() {
         String descuentoTexto = txtDescuento.getText() != null ? txtDescuento.getText().trim() : "";
         if (descuentoTexto.isEmpty()) {
@@ -873,6 +925,9 @@ public class FormProducto extends javax.swing.JPanel {
         txtPrecio.setText(String.valueOf(producto.getPrecioCosto()));
         jcbIva.setSelectedItem(String.valueOf(producto.getIva()));
         txtDescuento.setText(String.valueOf(producto.getDescuento() != null ? producto.getDescuento() : "0"));
+        promocionActivaFormulario = producto.isPromocionActiva();
+        promocionInicioFormulario = producto.getPromocionInicio();
+        promocionFinFormulario = producto.getPromocionFin();
         jcbUMedida.setSelectedItem(producto.getUmedida());
         seleccionarProveedorEnCombo(producto.getProveedor() != null ? producto.getProveedor().getIdProveedor() : null);
         jcbEstado.setSelectedItem(producto.getEstado());
@@ -1081,6 +1136,10 @@ public class FormProducto extends javax.swing.JPanel {
     }
 
     private void limpiarCamposFormulario() {
+        promocionActivaFormulario = false;
+        promocionInicioFormulario = null;
+        promocionFinFormulario = null;
+        txtDescuento.putClientProperty("JComponent.outline", null);
         txtCodigo.setText("");
         txtCodigo.setEnabled(true);
         txtNombre.setText("");
@@ -1159,6 +1218,9 @@ public class FormProducto extends javax.swing.JPanel {
 
         p.setIva(valorCombo(jcbIva));
         p.setDescuento(obtenerDescuentoParaPersistencia());
+        p.setPromocionActiva(promocionActivaFormulario);
+        p.setPromocionInicio(promocionInicioFormulario);
+        p.setPromocionFin(promocionFinFormulario);
         p.setUmedida(valorCombo(jcbUMedida));
         p.setProveedor(obtenerProveedorSeleccionado());
         p.setEstado(valorCombo(jcbEstado));
