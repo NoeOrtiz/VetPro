@@ -37,6 +37,7 @@ public class FormProducto extends javax.swing.JPanel {
     private Producto producto = new Producto();
     private SesionUsuario sesion = Application.getSesionUsuario();
     private final RubroService rubroService = new RubroService();
+    private final javax.swing.JButton btnPromocion = new javax.swing.JButton("Promoción");
     private boolean promocionActivaFormulario;
     private java.time.LocalDate promocionInicioFormulario;
     private java.time.LocalDate promocionFinFormulario;
@@ -46,26 +47,11 @@ public class FormProducto extends javax.swing.JPanel {
 
     public FormProducto() {
         initComponents();
-        javax.swing.JButton configurarPromocion = new javax.swing.JButton("Promoción");
-        configurarPromocion.setToolTipText("Configurar promoción y vigencia del descuento");
-        configurarPromocion.addActionListener(e -> configurarPromocionProducto());
-        // Botón independiente: no invade el espacio para escribir el descuento.
-        configurarPromocion.setPreferredSize(new java.awt.Dimension(105, 28));
-        configurarPromocion.setFont(configurarPromocion.getFont().deriveFont(11f));
-        txtDescuento.putClientProperty("JTextField.trailingComponent", null);
-        txtDescuento.setLayout(new java.awt.BorderLayout());
-        // Ubicar el botón en la zona libre a la derecha del campo.
-        javax.swing.JPanel panelPromocion = new javax.swing.JPanel(new java.awt.FlowLayout(
-                java.awt.FlowLayout.LEFT, 0, 0));
-        panelPromocion.setOpaque(false);
-        panelPromocion.add(configurarPromocion);
-        lbDescuento.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 6, 0));
-        lbDescuento.add(configurarPromocion);
-        lbDescuento.setToolTipText("Descuento opcional o promoción con vigencia");
-        configurarPromocion.setToolTipText("Configurar promoción y fechas de vigencia");
-        configurarPromocion.setFocusable(false);
-        configurarPromocion.setMargin(new java.awt.Insets(0, 3, 0, 3));
-        txtDescuento.setToolTipText("Descuento opcional (%). Botón ⋯: promoción automática.");
+        btnPromocion.setToolTipText("Configurar promoción, descuento y vigencia");
+        btnPromocion.setFocusable(false);
+        btnPromocion.addActionListener(e -> configurarPromocionProducto());
+        txtDescuento.setToolTipText("Porcentaje de descuento opcional");
+        lbDescuento.setToolTipText("Descuento porcentual del producto");
 
         txtDescripcion.setToolTipText("Descripción completa del producto");
         txtDescripcion.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
@@ -377,6 +363,8 @@ public class FormProducto extends javax.swing.JPanel {
                 .addGroup(jpDatosProductoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpDatosProductoLayout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnPromocion, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -495,6 +483,7 @@ public class FormProducto extends javax.swing.JPanel {
                     .addGroup(jpDatosProductoLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(jpDatosProductoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnPromocion)
                             .addComponent(btnCancelar)
                             .addComponent(btnLimpiar)
                             .addComponent(btnGuardar))
