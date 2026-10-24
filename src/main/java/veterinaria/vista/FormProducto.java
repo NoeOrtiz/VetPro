@@ -46,15 +46,39 @@ public class FormProducto extends javax.swing.JPanel {
 
     public FormProducto() {
         initComponents();
-        javax.swing.JButton configurarPromocion = new javax.swing.JButton("⋯");
+        javax.swing.JButton configurarPromocion = new javax.swing.JButton("Promoción");
         configurarPromocion.setToolTipText("Configurar promoción y vigencia del descuento");
         configurarPromocion.addActionListener(e -> configurarPromocionProducto());
-        txtDescuento.putClientProperty("JTextField.trailingComponent", configurarPromocion);
+        // Botón independiente: no invade el espacio para escribir el descuento.
+        configurarPromocion.setPreferredSize(new java.awt.Dimension(105, 28));
+        configurarPromocion.setFont(configurarPromocion.getFont().deriveFont(11f));
+        txtDescuento.putClientProperty("JTextField.trailingComponent", null);
+        txtDescuento.setLayout(new java.awt.BorderLayout());
+        // Ubicar el botón en la zona libre a la derecha del campo.
+        javax.swing.JPanel panelPromocion = new javax.swing.JPanel(new java.awt.FlowLayout(
+                java.awt.FlowLayout.LEFT, 0, 0));
+        panelPromocion.setOpaque(false);
+        panelPromocion.add(configurarPromocion);
+        lbDescuento.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 6, 0));
+        lbDescuento.add(configurarPromocion);
+        lbDescuento.setToolTipText("Descuento opcional o promoción con vigencia");
         configurarPromocion.setToolTipText("Configurar promoción y fechas de vigencia");
         configurarPromocion.setFocusable(false);
         configurarPromocion.setMargin(new java.awt.Insets(0, 3, 0, 3));
         txtDescuento.setToolTipText("Descuento opcional (%). Botón ⋯: promoción automática.");
 
+        txtDescripcion.setToolTipText("Descripción completa del producto");
+        txtDescripcion.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void actualizar() { txtDescripcion.setToolTipText(txtDescripcion.getText()); }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizar(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizar(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizar(); }
+        });
+        jcbIva.setToolTipText("Porcentaje de IVA del producto");
+        jcbIva.addActionListener(e -> {
+            Object valor = jcbIva.getSelectedItem();
+            jcbIva.setToolTipText(valor == null ? "Seleccione IVA" : valor.toString());
+        });
         PermisoUI.aplicar(this);
         tableProductos.getTableHeader().setReorderingAllowed(false);
         if (tableProductos instanceof veterinaria.vista.table.AutoTable) {
@@ -947,7 +971,10 @@ public class FormProducto extends javax.swing.JPanel {
         txtDescripcion.setText(producto.getDescripcion());
         txtPrecio.setText(String.valueOf(producto.getPrecioCosto()));
         jcbIva.setSelectedItem(String.valueOf(producto.getIva()));
-        txtDescuento.setText(String.valueOf(producto.getDescuento() != null ? producto.getDescuento() : "0"));
+        // No sugerir un descuento precargado: solo mostrar el que realmente esté configurado.
+        String descuentoGuardado = producto.getDescuento();
+        txtDescuento.setText(descuentoGuardado == null || descuentoGuardado.trim().isEmpty()
+                || "0".equals(descuentoGuardado.trim()) ? "" : descuentoGuardado);
         promocionActivaFormulario = producto.isPromocionActiva();
         promocionInicioFormulario = producto.getPromocionInicio();
         promocionFinFormulario = producto.getPromocionFin();
@@ -985,7 +1012,7 @@ public class FormProducto extends javax.swing.JPanel {
     private void cargarCombosBoxs() {
         txtStockInicial.setText("0");
         txtStockMinimo.setText("0");
-        txtDescuento.setText("0");
+        txtDescuento.setText("");
 
         jcbRubro.removeAllItems();
         jcbRubro.addItem("Seleccionar Rubro");
