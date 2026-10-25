@@ -53,6 +53,28 @@ public class CuentaCorriente {
     @Column(name = "ultimaEdicion")
     private LocalDate ultimaEdicion;    
 
+    // Datos de suspensión y rehabilitación; se conserva el historial en Auditoría.
+    @Column(name = "fechaSuspension")
+    private LocalDate fechaSuspension;
+
+    @Column(name = "motivoSuspension", length = 255)
+    private String motivoSuspension;
+
+    @Column(name = "fechaRehabilitacion")
+    private LocalDate fechaRehabilitacion;
+
+    @Column(name = "motivoRehabilitacion", length = 255)
+    private String motivoRehabilitacion;
+
+    public LocalDate getFechaSuspension() { return fechaSuspension; }
+    public void setFechaSuspension(LocalDate fechaSuspension) { this.fechaSuspension = fechaSuspension; }
+    public String getMotivoSuspension() { return motivoSuspension; }
+    public void setMotivoSuspension(String motivoSuspension) { this.motivoSuspension = motivoSuspension; }
+    public LocalDate getFechaRehabilitacion() { return fechaRehabilitacion; }
+    public void setFechaRehabilitacion(LocalDate fechaRehabilitacion) { this.fechaRehabilitacion = fechaRehabilitacion; }
+    public String getMotivoRehabilitacion() { return motivoRehabilitacion; }
+    public void setMotivoRehabilitacion(String motivoRehabilitacion) { this.motivoRehabilitacion = motivoRehabilitacion; }
+
     public CuentaCorriente() {
     }
 
