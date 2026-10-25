@@ -8,6 +8,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import veterinaria.entidad.CajaMovimiento;
+import veterinaria.entidad.CajaSesion;
 import veterinaria.entidad.Cliente;
 import veterinaria.entidad.CuentaCorriente;
 import veterinaria.entidad.CuentaCorrienteMovimiento;
@@ -102,8 +103,26 @@ public class CobroCuentaCorrienteTxService {
         em.merge(cc);
 
         MetodoPago mpManaged = resolveMetodoPagoManaged(em, metodoPago);
+        if (mpManaged == null || mpManaged.getIdMetodoPago() == null || !mpManaged.isActivo()) {
+            throw new IllegalStateException("Debe seleccionar un método de pago activo.");
+        }
+        String nombreMetodo = mpManaged.getNombre() == null ? "" : mpManaged.getNombre().toLowerCase();
+        if (nombreMetodo.contains("cuenta corriente") || nombreMetodo.contains("cta cte")) {
+            throw new IllegalArgumentException("La Cuenta Corriente no es un medio de cobro.");
+        }
+        CajaSesion sesion = em.createQuery(
+                "SELECT s FROM CajaSesion s WHERE s.estado = :estado ORDER BY s.fechaApertura DESC",
+                CajaSesion.class)
+                .setParameter("estado", CajaSesion.Estado.ABIERTA)
+                .setMaxResults(1)
+                .getResultStream().findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "Debe abrir la caja antes de registrar el cobro."));
         CajaMovimiento movCaja = new CajaMovimiento();
         movCaja.setFecha(onlyDate(new Date()));
+        movCaja.setFechaHora(new Date());
+        movCaja.setCajaSesion(sesion);
+        movCaja.setAfectaEfectivo(mpManaged.isAfectaEfectivo());
         movCaja.setUsuario(usuario);
         movCaja.setRecibo(null);
         movCaja.setMetodoPago(mpManaged);
