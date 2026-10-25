@@ -1706,7 +1706,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                     int respuesta = JOptionPane.showConfirmDialog(this,
                             "El producto \"" + producto.getNombre() + "\" tiene una promoción vigente del "
                             + porcentajeDisponible.stripTrailingZeros().toPlainString()
-                            + " %.\\n¿Desea aplicar el descuento a esta venta?",
+                            + " %.\n¿Desea aplicar el descuento a esta venta?",
                             "Promoción del producto", JOptionPane.YES_NO_OPTION,
                             JOptionPane.QUESTION_MESSAGE);
                     if (respuesta == JOptionPane.CLOSED_OPTION) return;
