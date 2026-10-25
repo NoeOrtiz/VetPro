@@ -1853,13 +1853,13 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                         }
                         int respuestaAjuste = JOptionPane.showConfirmDialog(this,
                                 "Método: " + mpSeleccionado
-                                + "\\nDescuento (" + porcentajeDescuento.stripTrailingZeros().toPlainString()
+                                + "\nDescuento (" + porcentajeDescuento.stripTrailingZeros().toPlainString()
                                 + " %): $ " + MoneyUtil.format(descuento)
-                                + "\\nRecargo (" + porcentajeRecargo.stripTrailingZeros().toPlainString()
+                                + "\nRecargo (" + porcentajeRecargo.stripTrailingZeros().toPlainString()
                                 + " %): $ " + MoneyUtil.format(recargo)
-                                + "\\nTotal original: $ " + MoneyUtil.format(totalOriginal)
-                                + "\\nTotal ajustado: $ " + MoneyUtil.format(totalAjustado)
-                                + "\\n\\n¿Desea aplicar estos porcentajes?",
+                                + "\nTotal original: $ " + MoneyUtil.format(totalOriginal)
+                                + "\nTotal ajustado: $ " + MoneyUtil.format(totalAjustado)
+                                + "\n\n¿Desea aplicar estos porcentajes?",
                                 "Ajuste por método de pago", JOptionPane.YES_NO_OPTION,
                                 JOptionPane.QUESTION_MESSAGE);
                         if (respuestaAjuste == JOptionPane.CLOSED_OPTION) return;
