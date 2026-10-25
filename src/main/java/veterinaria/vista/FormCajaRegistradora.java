@@ -2793,8 +2793,12 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         MetodoPagoItem metodoPagoItem = new MetodoPagoItem(0, "Seleccionar");
         jcbMetodoDePago.addItem(metodoPagoItem);  // Añadir opción por defecto
 
+        boolean existeEfectivo = listaMetodoPagos.stream()
+                .anyMatch(mp -> mp != null && "efectivo".equalsIgnoreCase(mp.getNombre().trim()));
         for (MetodoPago metodoPago : listaMetodoPagos) {
             String nombre = metodoPago.getNombre();
+            // No mostrar dos opciones de efectivo, aunque persista el registro histórico.
+            if (existeEfectivo && "pago efectivo".equalsIgnoreCase(nombre.trim())) continue;
             // Cuenta Corriente es financiación/deuda, no un medio de pago real.
             if (esMetodoCuentaCorriente(nombre)) continue;
             metodoPagoItem = new MetodoPagoItem(metodoPago.getIdMetodoPago(), nombre);
@@ -2807,6 +2811,7 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         jcbMetodoDePagoCompra.removeAllItems();
         jcbMetodoDePagoCompra.addItem(new MetodoPagoItem(0, "Seleccionar"));
         for (MetodoPago mp : listaMetodoPagos) {
+            if (mp != null && existeEfectivo && "pago efectivo".equalsIgnoreCase(mp.getNombre().trim())) continue;
             if (mp != null && !esMetodoCuentaCorriente(mp.getNombre())) {
                 jcbMetodoDePagoCompra.addItem(new MetodoPagoItem(mp.getIdMetodoPago(), mp.getNombre()));
             }
