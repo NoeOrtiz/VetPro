@@ -68,6 +68,17 @@ public class ConfiguracionService {
     public static final String KEY_VENTAS_METODO_PAGO_DEFAULT_ID = "VENTAS_METODO_PAGO_DEFAULT_ID";
     public static final int DEFAULT_VENTAS_METODO_PAGO_DEFAULT_ID = 0;
 
+    // Política de mora para Cuenta Corriente. Los porcentajes se configuran
+    // expresamente: 0 evita generar intereses sin aprobación administrativa.
+    public static final String KEY_CC_MORA_PRIMER_TRAMO_DIAS = "CC_MORA_PRIMER_TRAMO_DIAS";
+    public static final String KEY_CC_MORA_SEGUNDO_TRAMO_DIAS = "CC_MORA_SEGUNDO_TRAMO_DIAS";
+    public static final String KEY_CC_MORA_SUSPENSION_DIAS = "CC_MORA_SUSPENSION_DIAS";
+    public static final String KEY_CC_MORA_PRIMER_TRAMO_PORC = "CC_MORA_PRIMER_TRAMO_PORC";
+    public static final String KEY_CC_MORA_SEGUNDO_TRAMO_PORC = "CC_MORA_SEGUNDO_TRAMO_PORC";
+    public static final int DEFAULT_CC_MORA_PRIMER_TRAMO_DIAS = 30;
+    public static final int DEFAULT_CC_MORA_SEGUNDO_TRAMO_DIAS = 60;
+    public static final int DEFAULT_CC_MORA_SUSPENSION_DIAS = 90;
+
     private static final ConfiguracionDAO DAO = new ConfiguracionDAO();
 
     private static volatile Map<String, String> CACHE = null;
