@@ -133,7 +133,7 @@ public class CuentaCorrienteService {
             }
             String estadoAnterior = cc.getEstado();
             if ("INACTIVO".equalsIgnoreCase(estadoAnterior) || "INACTIVA".equalsIgnoreCase(estadoAnterior)) return true;
-            cc.setEstado("INACTIVO");
+            cc.setEstado("Inactiva");
             auditarCambioEstado(em, cc, estadoAnterior, "INACTIVO");
             cc.setUltimaEdicion(LocalDate.now());
             em.merge(cc);
@@ -160,7 +160,7 @@ public class CuentaCorrienteService {
             }
             String estadoAnterior = cc.getEstado();
             if ("ACTIVO".equalsIgnoreCase(estadoAnterior) || "ACTIVA".equalsIgnoreCase(estadoAnterior)) return true;
-            cc.setEstado("ACTIVO");
+            cc.setEstado("Activa");
             cc.setFechaRehabilitacion(LocalDate.now());
             cc.setMotivoRehabilitacion("Rehabilitación autorizada por Administrador");
             auditarCambioEstado(em, cc, estadoAnterior, "ACTIVO");
