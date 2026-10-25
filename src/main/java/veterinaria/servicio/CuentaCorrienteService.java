@@ -161,6 +161,8 @@ public class CuentaCorrienteService {
             String estadoAnterior = cc.getEstado();
             if ("ACTIVO".equalsIgnoreCase(estadoAnterior) || "ACTIVA".equalsIgnoreCase(estadoAnterior)) return true;
             cc.setEstado("ACTIVO");
+            cc.setFechaRehabilitacion(LocalDate.now());
+            cc.setMotivoRehabilitacion("Rehabilitación autorizada por Administrador");
             auditarCambioEstado(em, cc, estadoAnterior, "ACTIVO");
             cc.setUltimaEdicion(LocalDate.now());
             em.merge(cc);
