@@ -1703,12 +1703,14 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                         "descuento", producto.getNombre(), false);
                 boolean promocionVigente = producto.tienePromocionVigente(java.time.LocalDate.now());
                 if (!yaAgregado && promocionVigente && porcentajeDisponible.signum() > 0) {
-                    aplicarDescuento = true;
-                    JOptionPane.showMessageDialog(this,
-                            "Promoción vigente: se aplicará automáticamente el descuento del "
-                            + porcentajeDisponible.stripTrailingZeros().toPlainString() + " % al producto \""
-                            + producto.getNombre() + "\".", "Promoción del producto",
-                            JOptionPane.INFORMATION_MESSAGE);
+                    int respuesta = JOptionPane.showConfirmDialog(this,
+                            "El producto \"" + producto.getNombre() + "\" tiene una promoción vigente del "
+                            + porcentajeDisponible.stripTrailingZeros().toPlainString()
+                            + " %.\\n¿Desea aplicar el descuento a esta venta?",
+                            "Promoción del producto", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE);
+                    if (respuesta == JOptionPane.CLOSED_OPTION) return;
+                    aplicarDescuento = respuesta == JOptionPane.YES_OPTION;
                 } else if (!yaAgregado && porcentajeDisponible.signum() > 0) {
                     int respuesta = JOptionPane.showConfirmDialog(this,
                             "El producto \"" + producto.getNombre() + "\" tiene un descuento disponible del "
