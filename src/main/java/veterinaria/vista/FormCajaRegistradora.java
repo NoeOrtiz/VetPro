@@ -1844,9 +1844,9 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                                 "El método de pago \"" + mpSeleccionado
                                 + "\" tiene un descuento configurado del "
                                 + descuentoPct.stripTrailingZeros().toPlainString()
-                                + " %.\\nDescuento: $ " + MoneyUtil.format(rebaja)
-                                + "\\nTotal con descuento: $ " + MoneyUtil.format(totalConDescuento)
-                                + "\\n\\n¿Desea aplicar este descuento?",
+                                + " %.\nDescuento: $ " + MoneyUtil.format(rebaja)
+                                + "\nTotal con descuento: $ " + MoneyUtil.format(totalConDescuento)
+                                + "\n\n¿Desea aplicar este descuento?",
                                 "Descuento por método de pago", JOptionPane.YES_NO_OPTION,
                                 JOptionPane.QUESTION_MESSAGE);
                         if (confirmar == JOptionPane.CLOSED_OPTION) return;
@@ -1857,6 +1857,11 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                                     MoneyUtil.parse(txtDescuentoVenta.getText()).add(rebaja)));
                             // Mantener el efectivo recibido original para calcular el vuelto correctamente.
                             pendiente = totalConDescuento;
+                            if (!"efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim())
+                                    && !"pago efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim())) {
+                                monto = totalConDescuento;
+                                txtMontoFormaDePago.setText(MoneyUtil.format(monto));
+                            }
                         }
                     } else {
                         JOptionPane.showMessageDialog(this,
@@ -1879,16 +1884,31 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                         + "\nVuelto a entregar: $ " + MoneyUtil.format(vuelto)
                         + "\n\n¿Confirmar el cobro?",
                         "Calcular vuelto", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-                if (confirmarVuelto != JOptionPane.YES_OPTION) return;
+                if (confirmarVuelto != JOptionPane.YES_OPTION) {
+                    revertirDescuentoMetodoPago();
+                    return;
+                }
                 // Registrar solo el importe aplicado a la venta, nunca el efectivo bruto recibido.
                 txtMontoFormaDePago.setText(MoneyUtil.format(pendiente));
             }
             cargarMetodoPagoTabla(mpSeleccionado.toString());
             calcularSaldoFormaDePago();
         } catch (Exception ex) {
+            revertirDescuentoMetodoPago();
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Método de pago", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnAgregarMetodoPagoActionPerformed
+
+    private void revertirDescuentoMetodoPago() {
+        if (descuentoMetodoPagoVenta.signum() == 0) return;
+        BigDecimal descuento = descuentoMetodoPagoVenta;
+        BigDecimal totalSinAjuste = MoneyUtil.parse(txtTotalVenta.getText()).add(descuento);
+        BigDecimal descuentoProductos = MoneyUtil.parse(txtDescuentoVenta.getText()).subtract(descuento);
+        txtTotalVenta.setText(formatoPesos(totalSinAjuste));
+        txtDescuentoVenta.setText(formatoPesos(descuentoProductos));
+        descuentoMetodoPagoVenta = BigDecimal.ZERO;
+        calcularSaldoFormaDePago();
+    }
 
     private void btnRegistrarVentaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRegistrarVentaActionPerformed
         Integer idCliente = obtenerIdClienteVentaSeleccionado();
@@ -1990,6 +2010,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     private void btnLimpiarPagosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarPagosActionPerformed
         DefaultTableModel modelo = (DefaultTableModel) tableFormaDePago.getModel();
         modelo.setRowCount(0);
+        revertirDescuentoMetodoPago();
         txtSaldoPendiente.setText(MoneyUtil.format(MoneyUtil.parse(txtTotalVenta.getText())));
         txtMontoFormaDePago.setText(MoneyUtil.format(MoneyUtil.parse(txtTotalVenta.getText())));
     }//GEN-LAST:event_btnLimpiarPagosActionPerformed
