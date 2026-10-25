@@ -946,10 +946,12 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        tableFormaDePago.setMinimumSize(new java.awt.Dimension(848, 220));
-        tableFormaDePago.setPreferredSize(new java.awt.Dimension(848, 220));
+        tableFormaDePago.setRowHeight(28);
+        tableFormaDePago.setFillsViewportHeight(false);
         tableFormaDePago.getTableHeader().setReorderingAllowed(false);
         scroll2.setViewportView(tableFormaDePago);
+        scroll2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroll2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         btnLimpiarPagos.setText("Limpiar Pagos");
         btnLimpiarPagos.addActionListener(new java.awt.event.ActionListener() {
@@ -980,7 +982,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         });
 
         txtSaldoPendiente.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        txtSaldoPendiente.setForeground(new java.awt.Color(255, 0, 0));
+        txtSaldoPendiente.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
         txtSaldoPendiente.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 txtSaldoPendienteMouseClicked(evt);
@@ -1702,6 +1704,11 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 boolean promocionVigente = producto.tienePromocionVigente(java.time.LocalDate.now());
                 if (!yaAgregado && promocionVigente && porcentajeDisponible.signum() > 0) {
                     aplicarDescuento = true;
+                    JOptionPane.showMessageDialog(this,
+                            "Promoción vigente: se aplicará automáticamente el descuento del "
+                            + porcentajeDisponible.stripTrailingZeros().toPlainString() + " % al producto \""
+                            + producto.getNombre() + "\".", "Promoción del producto",
+                            JOptionPane.INFORMATION_MESSAGE);
                 } else if (!yaAgregado && porcentajeDisponible.signum() > 0) {
                     int respuesta = JOptionPane.showConfirmDialog(this,
                             "El producto \"" + producto.getNombre() + "\" tiene un descuento disponible del "
@@ -2461,8 +2468,8 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             String metodoEnTabla = (String) modelo.getValueAt(i, 0);
             if (metodoEnTabla.equals(metodoPagoCliente)) {
                 // Si el método de pago ya existe, actualiza el monto sumando el nuevo valor
-                Double montoActual = (Double) modelo.getValueAt(i, 1);
-                modelo.setValueAt(montoActual + monto, i, 1);
+                BigDecimal montoActual = MoneyUtil.parse(String.valueOf(modelo.getValueAt(i, 1)));
+                modelo.setValueAt(MoneyUtil.format(montoActual.add(BigDecimal.valueOf(monto))), i, 1);
                 metodoExistente = true;
                 break;
             }
@@ -2472,7 +2479,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         if (!metodoExistente) {
             Object[] fila = new Object[]{
                 metodoPagoCliente,
-                monto,
+                MoneyUtil.format(BigDecimal.valueOf(monto)),
                 descripcion
             };
             modelo.addRow(fila);
@@ -2623,6 +2630,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         }
         BigDecimal saldo = totalVenta.subtract(acumulaMontoPago);
         txtSaldoPendiente.setText(MoneyUtil.format(saldo));
+        txtSaldoPendiente.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
         txtMontoFormaDePago.setText(MoneyUtil.format(saldo));
     }
 
