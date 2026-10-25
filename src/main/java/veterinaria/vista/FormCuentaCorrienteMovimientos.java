@@ -1003,7 +1003,8 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
             protected Object[] doInBackground() {
                 List<CuentaCorrienteMovimiento> movimientos = operarCCMovimientos.obtenerMovimientosEnRango(idCuentaCorriente, sqlFechaDesde, sqlFechaHasta, tipo);
                 ordenarMovimientosRecientesPrimero(movimientos);
-                BigDecimal saldoTotal = operarCCMovimientos.obtenerSaldoActualSumando(idCuentaCorriente);
+                CuentaCorriente cuentaActual = operarCuentaCorriente.buscarCuentaCorrientePorId(idCuentaCorriente);
+                BigDecimal saldoTotal = cuentaActual != null ? cuentaActual.getSaldoActual() : BigDecimal.ZERO;
                 BigDecimal limite = obtenerLimiteCredito(idCuentaCorriente);
                 return new Object[]{movimientos, saldoTotal, limite};
             }
