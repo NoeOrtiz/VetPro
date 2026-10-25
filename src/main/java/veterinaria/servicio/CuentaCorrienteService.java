@@ -142,6 +142,14 @@ public class CuentaCorrienteService {
     }
 
     public boolean reactivarCuentaCorriente(Integer idCuentaCorriente) {
+        // La autorización debe comprobarse en el servicio, no solo ocultando
+        // el botón de la interfaz. Incluye futuras cuentas suspendidas por mora.
+        veterinaria.entidad.Usuario usuario = veterinaria.util.SesionUsuario.getInstancia().getUsuario();
+        if (usuario == null || usuario.getRol() == null
+                || !("Administrador".equalsIgnoreCase(usuario.getRol().getNombreRol())
+                || Integer.valueOf(1).equals(usuario.getRol().getIdRol()))) {
+            throw new SecurityException("Solo el Administrador puede rehabilitar una Cuenta Corriente.");
+        }
         return tx.runInTx(em -> {
             CuentaCorriente cc = em.find(CuentaCorriente.class, idCuentaCorriente);
             if (cc == null) return false;
