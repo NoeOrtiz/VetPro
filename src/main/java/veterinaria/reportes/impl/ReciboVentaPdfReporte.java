@@ -187,6 +187,11 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
             pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN,
                     "- $ " + MONEDA.format(descuentoPorPago));
             pdf.down(16f);
+        } else if (descuentoPorPago.signum() < 0) {
+            pdf.text(PdfStyle.TXT_FONT, 10, MARGIN, pdf.getY(), "Recargo por medio de pago");
+            pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN,
+                    "+ $ " + MONEDA.format(descuentoPorPago.abs()));
+            pdf.down(16f);
         }
         BigDecimal totalCobrado = BigDecimal.ZERO;
         if (metodosPago != null) {
