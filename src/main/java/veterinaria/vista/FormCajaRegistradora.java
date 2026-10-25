@@ -100,6 +100,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     private Long ultimoIdReciboRegistrado = null;
     // Ajuste del medio de pago: separado de descuentos/promociones del producto.
     private BigDecimal descuentoMetodoPagoVenta = BigDecimal.ZERO;
+    private BigDecimal recargoMetodoPagoVenta = BigDecimal.ZERO;
     private Timer relojTimer = null;
 
     public FormCajaRegistradora() {
@@ -1800,6 +1801,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         txtIvaVenta.setText("");
         txtTotalVenta.setText("");
         descuentoMetodoPagoVenta = BigDecimal.ZERO;
+        recargoMetodoPagoVenta = BigDecimal.ZERO;
         producto = new Producto();
         listaProductosAVender = new ArrayList<>();
         productoAVender = new VentaProducto();
@@ -1820,53 +1822,69 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             if (monto == null || monto.signum() <= 0) {
                 throw new IllegalArgumentException("El monto debe ser mayor a 0.");
             }
-            // Las promociones de productos y los descuentos por medio de pago son independientes.
-            // Por ahora el ajuste del medio de pago se aplica solo cuando cubre toda la venta,
-            // para evitar prorrateos incorrectos en pagos mixtos.
-            if (tableFormaDePago.getRowCount() == 0 && descuentoMetodoPagoVenta.signum() == 0) {
-                MetodoPago metodoConfigurado = operandoMetodoPago.buscarPorId(mpSeleccionado.getIdMetodoPago());
-                BigDecimal descuentoPct = metodoConfigurado == null
-                        ? BigDecimal.ZERO : metodoConfigurado.getDescuentoPorcentaje();
-                // Compatibilidad con el registro duplicado histórico "Pago Efectivo":
-                // en Caja se muestra "Efectivo", pero la configuración anterior puede estar en el alias.
+            // Los porcentajes pertenecen al método configurado, no al producto.
+            // Solo se ajusta la venta completa, nunca un pago parcial o mixto.
+            if (tableFormaDePago.getRowCount() == 0 && descuentoMetodoPagoVenta.signum() == 0
+                    && recargoMetodoPagoVenta.signum() == 0) {
+                MetodoPago configurado = operandoMetodoPago.buscarPorId(mpSeleccionado.getIdMetodoPago());
+                BigDecimal porcentajeDescuento = configurado == null
+                        ? BigDecimal.ZERO : configurado.getDescuentoPorcentaje();
+                BigDecimal porcentajeRecargo = configurado == null
+                        ? BigDecimal.ZERO : configurado.getRecargoPorcentaje();
+                // Alias histórico de efectivo, hasta unificar los registros de configuración.
                 if ("efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim())
-                        && descuentoPct.signum() == 0) {
+                        && porcentajeDescuento.signum() == 0 && porcentajeRecargo.signum() == 0) {
                     MetodoPago alias = operandoMetodoPago.obtenerMetodoDePagoPorNombre("Pago Efectivo");
-                    if (alias != null && alias.isActivo()) descuentoPct = alias.getDescuentoPorcentaje();
+                    if (alias != null && alias.isActivo()) {
+                        porcentajeDescuento = alias.getDescuentoPorcentaje();
+                        porcentajeRecargo = alias.getRecargoPorcentaje();
+                    }
                 }
-                if (descuentoPct.signum() > 0) {
+                if (porcentajeDescuento.signum() > 0 || porcentajeRecargo.signum() > 0) {
                     BigDecimal totalOriginal = MoneyUtil.parse(txtTotalVenta.getText());
-                    BigDecimal rebaja = totalOriginal.multiply(descuentoPct)
-                            .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
-                    BigDecimal totalConDescuento = totalOriginal.subtract(rebaja);
                     if (monto.compareTo(totalOriginal) >= 0) {
-                        int confirmar = JOptionPane.showConfirmDialog(this,
-                                "El método de pago \"" + mpSeleccionado
-                                + "\" tiene un descuento configurado del "
-                                + descuentoPct.stripTrailingZeros().toPlainString()
-                                + " %.\nDescuento: $ " + MoneyUtil.format(rebaja)
-                                + "\nTotal con descuento: $ " + MoneyUtil.format(totalConDescuento)
-                                + "\n\n¿Desea aplicar este descuento?",
-                                "Descuento por método de pago", JOptionPane.YES_NO_OPTION,
+                        BigDecimal descuento = totalOriginal.multiply(porcentajeDescuento)
+                                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                        BigDecimal recargo = totalOriginal.multiply(porcentajeRecargo)
+                                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+                        BigDecimal totalAjustado = totalOriginal.subtract(descuento).add(recargo);
+                        if (totalAjustado.signum() <= 0) {
+                            throw new IllegalArgumentException("La configuración genera un total de venta inválido.");
+                        }
+                        int respuestaAjuste = JOptionPane.showConfirmDialog(this,
+                                "Método: " + mpSeleccionado
+                                + "\\nDescuento (" + porcentajeDescuento.stripTrailingZeros().toPlainString()
+                                + " %): $ " + MoneyUtil.format(descuento)
+                                + "\\nRecargo (" + porcentajeRecargo.stripTrailingZeros().toPlainString()
+                                + " %): $ " + MoneyUtil.format(recargo)
+                                + "\\nTotal original: $ " + MoneyUtil.format(totalOriginal)
+                                + "\\nTotal ajustado: $ " + MoneyUtil.format(totalAjustado)
+                                + "\\n\\n¿Desea aplicar estos porcentajes?",
+                                "Ajuste por método de pago", JOptionPane.YES_NO_OPTION,
                                 JOptionPane.QUESTION_MESSAGE);
-                        if (confirmar == JOptionPane.CLOSED_OPTION) return;
-                        if (confirmar == JOptionPane.YES_OPTION) {
-                            descuentoMetodoPagoVenta = rebaja;
-                            txtTotalVenta.setText(formatoPesos(totalConDescuento));
+                        if (respuestaAjuste == JOptionPane.CLOSED_OPTION) return;
+                        if (respuestaAjuste == JOptionPane.YES_OPTION) {
+                            descuentoMetodoPagoVenta = descuento;
+                            recargoMetodoPagoVenta = recargo;
+                            txtTotalVenta.setText(formatoPesos(totalAjustado));
                             txtDescuentoVenta.setText(formatoPesos(
-                                    MoneyUtil.parse(txtDescuentoVenta.getText()).add(rebaja)));
-                            // Mantener el efectivo recibido original para calcular el vuelto correctamente.
-                            pendiente = totalConDescuento;
-                            if (!"efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim())
-                                    && !"pago efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim())) {
-                                monto = totalConDescuento;
+                                    MoneyUtil.parse(txtDescuentoVenta.getText()).add(descuento)));
+                            pendiente = totalAjustado;
+                            boolean efectivo = "efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim())
+                                    || "pago efectivo".equalsIgnoreCase(mpSeleccionado.toString().trim());
+                            if (!efectivo) {
+                                monto = totalAjustado;
+                                txtMontoFormaDePago.setText(MoneyUtil.format(monto));
+                            } else if (monto.compareTo(totalAjustado) < 0) {
+                                // El importe ingresado ya no cubre el nuevo total (recargo).
+                                monto = totalAjustado;
                                 txtMontoFormaDePago.setText(MoneyUtil.format(monto));
                             }
                         }
                     } else {
                         JOptionPane.showMessageDialog(this,
-                                "El descuento del método de pago solo se ofrece cuando cubre"
-                                + " el importe completo. Para pagos parciales no se aplicará.",
+                                "Los ajustes del método de pago solo se ofrecen cuando se cubre"
+                                + " el total de la venta. No se aplican a pagos parciales.",
                                 "Pago parcial", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
@@ -1900,13 +1918,15 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAgregarMetodoPagoActionPerformed
 
     private void revertirDescuentoMetodoPago() {
-        if (descuentoMetodoPagoVenta.signum() == 0) return;
-        BigDecimal descuento = descuentoMetodoPagoVenta;
-        BigDecimal totalSinAjuste = MoneyUtil.parse(txtTotalVenta.getText()).add(descuento);
-        BigDecimal descuentoProductos = MoneyUtil.parse(txtDescuentoVenta.getText()).subtract(descuento);
+        if (descuentoMetodoPagoVenta.signum() == 0 && recargoMetodoPagoVenta.signum() == 0) return;
+        BigDecimal totalSinAjuste = MoneyUtil.parse(txtTotalVenta.getText())
+                .add(descuentoMetodoPagoVenta).subtract(recargoMetodoPagoVenta);
+        BigDecimal descuentoProductos = MoneyUtil.parse(txtDescuentoVenta.getText())
+                .subtract(descuentoMetodoPagoVenta);
         txtTotalVenta.setText(formatoPesos(totalSinAjuste));
         txtDescuentoVenta.setText(formatoPesos(descuentoProductos));
         descuentoMetodoPagoVenta = BigDecimal.ZERO;
+        recargoMetodoPagoVenta = BigDecimal.ZERO;
         calcularSaldoFormaDePago();
     }
 
@@ -2651,11 +2671,12 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             return false;
         }
 
-        if (descuentoMetodoPagoVenta.signum() > 0) {
+        if (descuentoMetodoPagoVenta.signum() > 0 || recargoMetodoPagoVenta.signum() > 0) {
             try {
-                AuditoriaLogger.evento("DESCUENTO_METODO_PAGO",
+                AuditoriaLogger.evento("AJUSTE_METODO_PAGO",
                         "idRecibo=" + res.getIdRecibo() + " descuento=$"
-                        + MoneyUtil.format(descuentoMetodoPagoVenta), usuario);
+                        + MoneyUtil.format(descuentoMetodoPagoVenta) + " recargo=$"
+                        + MoneyUtil.format(recargoMetodoPagoVenta), usuario);
             } catch (Exception ex) {
                 AppLog.warning(FormCajaRegistradora.class,
                         "No se pudo registrar auditoría de descuento de método de pago", ex);
@@ -2814,6 +2835,7 @@ private BigDecimal obtenerPorcentajeGananciaProducto(Producto producto) {
         txtIvaVenta.setText("");
         txtTotalVenta.setText("");
         descuentoMetodoPagoVenta = BigDecimal.ZERO;
+        recargoMetodoPagoVenta = BigDecimal.ZERO;
         txtSaldoPendiente.setText("");
         txtMontoFormaDePago.setText("");
         txtSaldoCuentaCorriente.setText("");
