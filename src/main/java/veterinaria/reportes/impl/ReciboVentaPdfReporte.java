@@ -150,7 +150,9 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
                 BigDecimal ganancia = bd(rp.getGananciaUnitario());
                 BigDecimal precioBruto = unit.add(ganancia);
                 BigDecimal precioTotal = unit.add(iva).add(ganancia);
-                BigDecimal totalLinea = precioTotal.multiply(cant);
+                // El importe persistido incluye los descuentos de promoción del producto.
+                BigDecimal totalLinea = rp.getTotalCantidad() != null
+                        ? bd(rp.getTotalCantidad()) : precioTotal.multiply(cant);
                 totalCalculado = totalCalculado.add(totalLinea);
 
                 pdf.text(PdfStyle.TXT_FONT, 9, xCod, pdf.getY(), recortar(cod, MAX_CODIGO_LEN));
@@ -179,6 +181,13 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
         pdf.down(16f);
 
         BigDecimal totalRecibo = recibo.getTotalRecibo() != null ? recibo.getTotalRecibo() : totalCalculado;
+        BigDecimal descuentoPorPago = totalCalculado.subtract(totalRecibo);
+        if (descuentoPorPago.signum() > 0) {
+            pdf.text(PdfStyle.TXT_FONT, 10, MARGIN, pdf.getY(), "Descuento por medio de pago");
+            pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN,
+                    "- $ " + MONEDA.format(descuentoPorPago));
+            pdf.down(16f);
+        }
         BigDecimal totalCobrado = BigDecimal.ZERO;
         if (metodosPago != null) {
             for (ReciboMetodoPago mp : metodosPago) {
