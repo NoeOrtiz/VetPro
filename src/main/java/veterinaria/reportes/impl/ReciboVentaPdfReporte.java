@@ -67,6 +67,15 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
     @Override
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
         Recibo recibo = getRecibo(request);
+        if (recibo.getUsuario() != null) {
+            String emisor = recibo.getUsuario().getNombreUsuario();
+            if (recibo.getUsuario().getPersona() != null) {
+                String nombre = (safe(recibo.getUsuario().getPersona().getNombre()) + " "
+                        + safe(recibo.getUsuario().getPersona().getApellido())).trim();
+                if (!nombre.isEmpty()) emisor = nombre;
+            }
+            request.put("emisor", emisor);
+        }
         String nroVisual = nroVisual(recibo);
 
         float pageW = pdf.getPageW();
@@ -147,9 +156,9 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
                 pdf.text(PdfStyle.TXT_FONT, 9, xCod, pdf.getY(), recortar(cod, MAX_CODIGO_LEN));
                 pdf.text(PdfStyle.TXT_FONT, 9, xProd, pdf.getY(), recortar(nom, MAX_PRODUCTO_LEN));
                 pdf.text(PdfStyle.TXT_FONT, 9, xCant, pdf.getY(), MONEDA.format(cant));
-                pdf.text(PdfStyle.TXT_FONT, 9, xUnit, pdf.getY(), MONEDA.format(precioBruto));
-                pdf.text(PdfStyle.TXT_FONT, 9, xIva, pdf.getY(), MONEDA.format(iva));
-                pdf.text(PdfStyle.TXT_FONT, 9, xTot, pdf.getY(), MONEDA.format(totalLinea));
+                pdf.text(PdfStyle.TXT_FONT, 9, xUnit, pdf.getY(), "$ " + MONEDA.format(precioBruto));
+                pdf.text(PdfStyle.TXT_FONT, 9, xIva, pdf.getY(), "$ " + MONEDA.format(iva));
+                pdf.text(PdfStyle.TXT_FONT, 9, xTot, pdf.getY(), "$ " + MONEDA.format(totalLinea));
                 pdf.down(12f);
 
                 if (pdf.getY() < 140f) {
@@ -177,7 +186,7 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
                 BigDecimal monto = bd(mp.getMonto());
                 totalCobrado = totalCobrado.add(monto);
                 pdf.text(PdfStyle.TXT_FONT, 10, MARGIN, pdf.getY(), "• " + metodo);
-                pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN, MONEDA.format(monto));
+                pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN, "$ " + MONEDA.format(monto));
                 pdf.down(14f);
             }
         }
@@ -186,7 +195,7 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
         BigDecimal montoFinanciado = totalRecibo.subtract(totalCobrado);
         if (montoFinanciado.signum() > 0) {
             pdf.text(PdfStyle.TXT_FONT, 10, MARGIN, pdf.getY(), "• Cuenta Corriente (saldo financiado)");
-            pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN, MONEDA.format(montoFinanciado));
+            pdf.textRight(PdfStyle.TXT_FONT, 10, pageW - MARGIN, "$ " + MONEDA.format(montoFinanciado));
             pdf.down(14f);
         }
 
@@ -195,7 +204,7 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
         pdf.down(16f);
 
         pdf.text(PDType1Font.HELVETICA_BOLD, 14, MARGIN, pdf.getY(), "TOTAL DE LA VENTA");
-        pdf.textRight(PDType1Font.HELVETICA_BOLD, 14, pageW - MARGIN, MONEDA.format(totalRecibo));
+        pdf.textRight(PDType1Font.HELVETICA_BOLD, 14, pageW - MARGIN, "$ " + MONEDA.format(totalRecibo));
         pdf.down(22f);
 
         pdf.down(40f);
@@ -214,6 +223,12 @@ public class ReciboVentaPdfReporte extends AbstractPdfReporte {
         float anchoCargo = pdf.textWidth(PDType1Font.HELVETICA, 9, cargo);
         pdf.text(PDType1Font.HELVETICA, 9, (pdf.getPageW() - anchoCargo) / 2, pdf.getY(), cargo);
         pdf.down(25f);
+
+        String avisoFiscal = "NO VALIDO COMO FACTURA";
+        float anchoAviso = pdf.textWidth(PDType1Font.HELVETICA_BOLD, 11, avisoFiscal);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 11, (pdf.getPageW() - anchoAviso) / 2,
+                pdf.getY(), avisoFiscal);
+        pdf.down(20f);
 
         String mensaje = "Gracias por confiar en Dogtor Cat";
         float anchoMensaje = pdf.textWidth(PDType1Font.HELVETICA, 9, mensaje);
