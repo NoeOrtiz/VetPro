@@ -507,6 +507,13 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
      * apertura/cierre, enfatiza usuario + monto + descripción.
      */
     private String buildDetalleMovimiento(CajaMovimiento mov) {
+        if (mov.getIdMovimiento() != null && mov.getIdMovimiento() <= -1000000000L) {
+            return "Venta a Cuenta Corriente (informativa)\\n"
+                    + "Fecha: " + formatFecha(mov.getFecha()) + "\\n"
+                    + "Importe financiado: $ " + formatMoney(mov.getMonto()) + "\\n"
+                    + "Recibo: " + (mov.getRecibo() != null ? mov.getRecibo().getIdRecibo() : "-") + "\\n"
+                    + "No representa un ingreso de dinero en Caja.";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("Movimiento ID: ").append(mov.getIdMovimiento()).append("\n");
         sb.append("Fecha: ").append(formatFecha(mov.getFecha())).append("\n");
