@@ -29,8 +29,13 @@ public class TableGradientCell extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
         super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        highlighted = isSelected || (table.getColumnCount() > 0
-                && Boolean.TRUE.equals(table.getValueAt(row, 0)));
+        // En tablas con checkbox, solo la casilla marcada determina el resaltado.
+        // La selección interna de JTable no debe dejar otra fila pintada.
+        boolean tieneCheckbox = table.getColumnCount() > 0
+                && table.getColumnClass(table.convertColumnIndexToModel(0)) == Boolean.class;
+        highlighted = tieneCheckbox
+                ? Boolean.TRUE.equals(table.getValueAt(row, 0))
+                : isSelected;
         Rectangle bounds = table.getCellRect(row, column, true);
         offsetX = -bounds.x;
         tableWidth = Math.max(1, table.getWidth());
