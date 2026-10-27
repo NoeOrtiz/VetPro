@@ -36,6 +36,9 @@ public class ManejoTablas {
                     || e.getColumn() != 0) {
                 return;
             }
+            // El degradado ocupa varias columnas: repintar toda la tabla
+            // también cuando se desmarca una fila, no solo el checkbox.
+            javax.swing.SwingUtilities.invokeLater(table::repaint);
             int filaModelo = e.getFirstRow();
             TableModel modelo = table.getModel();
             if (filaModelo < 0 || filaModelo >= modelo.getRowCount()
