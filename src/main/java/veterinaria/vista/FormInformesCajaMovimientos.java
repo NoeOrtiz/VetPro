@@ -817,7 +817,12 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                 && descripcion.toLowerCase(java.util.Locale.ROOT).contains("venta")) {
             String cliente = "Consumidor Final";
             try {
-                if (recibo.getCliente() != null && recibo.getCliente().getPersona() != null) {
+                // El recibo de la tabla puede estar desacoplado de Hibernate.
+                // No acceder a asociaciones LAZY sin sesión activa.
+                if (recibo.getCliente() != null
+                        && org.hibernate.Hibernate.isInitialized(recibo.getCliente())
+                        && org.hibernate.Hibernate.isInitialized(recibo.getCliente().getPersona())
+                        && recibo.getCliente().getPersona() != null) {
                     Persona p = recibo.getCliente().getPersona();
                     String nombre = (safe(p.getNombre()) + " " + safe(p.getApellido())).trim();
                     if (!nombre.isEmpty()) cliente = nombre;
