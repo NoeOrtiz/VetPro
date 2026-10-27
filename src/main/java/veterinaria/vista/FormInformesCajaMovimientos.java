@@ -336,7 +336,14 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                         false);
                 informativo.setFechaHora(fecha);
                 informativo.setRecibo(m.getRecibo());
-                informativo.setUsuario(m.getRecibo().getUsuario());
+                // Resolver Usuario y Persona antes de cerrar EntityManager:
+                // de lo contrario el informe dispara LazyInitializationException.
+                Usuario usuarioVenta = m.getRecibo().getUsuario();
+                if (usuarioVenta != null) {
+                    org.hibernate.Hibernate.initialize(usuarioVenta);
+                    org.hibernate.Hibernate.initialize(usuarioVenta.getPersona());
+                }
+                informativo.setUsuario(usuarioVenta);
                 informativo.setAfectaEfectivo(false);
                 destino.add(informativo);
             }
