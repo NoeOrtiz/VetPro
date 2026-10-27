@@ -49,6 +49,12 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     private final DateTimeFormatter dtfFecha = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private List<CajaMovimiento> movimientosActuales = new ArrayList<>();
+    private static final int FILAS_POR_PAGINA = 12;
+    private int paginaActual = 0;
+    private final javax.swing.JLabel etiquetaPagina = new javax.swing.JLabel("Página 0 de 0");
+    private final javax.swing.JButton botonAnterior = new javax.swing.JButton("◀ Anterior");
+    private final javax.swing.JButton botonSiguiente = new javax.swing.JButton("Siguiente ▶");
+
 
     public FormInformesCajaMovimientos() {
         initComponents();
@@ -128,6 +134,23 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         titulo.add(jSeparator3, java.awt.BorderLayout.SOUTH);
         jpListaOperaciones.add(titulo, java.awt.BorderLayout.NORTH);
         jpListaOperaciones.add(scroll1, java.awt.BorderLayout.CENTER);
+        javax.swing.JPanel navegacion = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 3));
+        navegacion.add(botonAnterior);
+        navegacion.add(etiquetaPagina);
+        navegacion.add(botonSiguiente);
+        jpListaOperaciones.add(navegacion, java.awt.BorderLayout.SOUTH);
+        botonAnterior.addActionListener(e -> {
+            if (paginaActual > 0) {
+                paginaActual--;
+                cargarEnTabla(movimientosActuales);
+            }
+        });
+        botonSiguiente.addActionListener(e -> {
+            if ((paginaActual + 1) * FILAS_POR_PAGINA < movimientosActuales.size()) {
+                paginaActual++;
+                cargarEnTabla(movimientosActuales);
+            }
+        });
         scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
@@ -417,8 +440,22 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
         BigDecimal totalCreditos = BigDecimal.ZERO;
         BigDecimal totalDebitos = BigDecimal.ZERO;
-
+        // Los totales corresponden a TODO el período filtrado, no solo a la página.
         for (CajaMovimiento m : movimientos) {
+            boolean informativo = m.getIdMovimiento() != null && m.getIdMovimiento() <= -1000000000L;
+            if (informativo || m.getTipoMovimiento() == null || m.getMonto() == null) continue;
+            if (m.getTipoMovimiento() == TipoMovimiento.CREDITO) totalCreditos = totalCreditos.add(m.getMonto());
+            if (m.getTipoMovimiento() == TipoMovimiento.DEBITO) totalDebitos = totalDebitos.add(m.getMonto());
+        }
+        int paginas = (movimientos.size() + FILAS_POR_PAGINA - 1) / FILAS_POR_PAGINA;
+        paginaActual = Math.max(0, Math.min(paginaActual, Math.max(0, paginas - 1)));
+        etiquetaPagina.setText("Página " + (paginas == 0 ? 0 : paginaActual + 1)
+                + " de " + paginas + "  ·  " + movimientos.size() + " operaciones");
+        botonAnterior.setEnabled(paginaActual > 0);
+        botonSiguiente.setEnabled(paginaActual + 1 < paginas);
+        int inicio = paginaActual * FILAS_POR_PAGINA;
+        int fin = Math.min(inicio + FILAS_POR_PAGINA, movimientos.size());
+        for (CajaMovimiento m : movimientos.subList(inicio, fin)) {
             String fecha = "-";
             fecha = formatFecha(m.getFecha());
             boolean informativoCC = m.getIdMovimiento() != null && m.getIdMovimiento() <= -1000000000L;
@@ -458,18 +495,6 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
             model.addRow(new Object[]{m.getIdMovimiento(), Boolean.FALSE, fecha, tipo, monto, usuario, metodo, recibo, desc});
 
-            // totales (según TipoMovimiento)
-            TipoMovimiento tm = m.getTipoMovimiento();
-            BigDecimal mv = m.getMonto() != null ? m.getMonto() : BigDecimal.ZERO;
-            if (tm != null && !informativoCC) {
-                String t = tm.name();
-                if (t.contains("CREDITO")) {
-                    totalCreditos = totalCreditos.add(mv);
-                }
-                if (t.contains("DEBITO")) {
-                    totalDebitos = totalDebitos.add(mv);
-                }
-            }
         }
 
         setTotales(totalCreditos, totalDebitos);
