@@ -19,18 +19,43 @@ import java.util.function.Supplier;
 public class ManejoTablas {
 
     public void asegurarSeleccionUnica(JTable table) {
-        if (table == null || table.getModel() == null) {
+        if (table == null || table.getModel() == null || table.getModel().getColumnCount() == 0) {
             return;
         }
+        // Instalar una sola vez por tabla: las recargas no deben acumular listeners.
+        final String key = "vetpro.seleccionUnica.instalada";
+        if (Boolean.TRUE.equals(table.getClientProperty(key))) {
+            return;
+        }
+        table.putClientProperty(key, Boolean.TRUE);
 
+        final boolean[] actualizando = {false};
         table.getModel().addTableModelListener(e -> {
-            if (e.getColumn() == 0) {  // Columna del checkbox (columna 0)
-                int rowCount = table.getRowCount();
-                for (int i = 0; i < rowCount; i++) {
-                    if (i != e.getFirstRow() && Boolean.TRUE.equals(table.getValueAt(i, 0))) {
-                        table.setValueAt(false, i, 0);  // Deselecciona cualquier otra fila
+            if (actualizando[0]
+                    || e.getType() != javax.swing.event.TableModelEvent.UPDATE
+                    || e.getColumn() != 0) {
+                return;
+            }
+            int filaModelo = e.getFirstRow();
+            TableModel modelo = table.getModel();
+            if (filaModelo < 0 || filaModelo >= modelo.getRowCount()
+                    || !Boolean.TRUE.equals(modelo.getValueAt(filaModelo, 0))) {
+                return;
+            }
+            actualizando[0] = true;
+            try {
+                // Desmarcar otras filas sin volver a procesar sus eventos.
+                for (int i = 0; i < modelo.getRowCount(); i++) {
+                    if (i != filaModelo && Boolean.TRUE.equals(modelo.getValueAt(i, 0))) {
+                        modelo.setValueAt(Boolean.FALSE, i, 0);
                     }
                 }
+                int filaVista = table.convertRowIndexToView(filaModelo);
+                if (filaVista >= 0) {
+                    table.getSelectionModel().setSelectionInterval(filaVista, filaVista);
+                }
+            } finally {
+                actualizando[0] = false;
             }
         });
     }
