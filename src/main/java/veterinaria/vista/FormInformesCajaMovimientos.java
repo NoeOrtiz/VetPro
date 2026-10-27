@@ -16,6 +16,11 @@ import veterinaria.controlador.CajaMovimientoControlador;
 import veterinaria.entidad.CajaMovimiento;
 import veterinaria.entidad.CajaMovimiento.TipoMovimiento;
 import veterinaria.entidad.CajaSesion;
+import veterinaria.entidad.CuentaCorrienteMovimiento;
+import veterinaria.persistencia.JPAUtil;
+import javax.persistence.EntityManager;
+import java.time.LocalDate;
+import java.util.Calendar;
 import veterinaria.entidad.MetodoPago;
 import veterinaria.entidad.Persona;
 import veterinaria.entidad.Recibo;
@@ -277,6 +282,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
             movimientosActuales = new ArrayList<>(cajaMovimientoControlador.obtenerMovimientosFiltrados(tipo, desde, hasta));
             agregarEventosSesion(movimientosActuales, tipo, desde, hasta);
+            agregarVentasCuentaCorrienteInformativas(movimientosActuales, tipo, desde, hasta);
             movimientosActuales.sort((a, b) -> {
                 Date fa = a.getFechaHora() != null ? a.getFechaHora() : a.getFecha();
                 Date fb = b.getFechaHora() != null ? b.getFechaHora() : b.getFecha();
@@ -292,6 +298,49 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             }
         } catch (Exception ex) {
             showException("Error al buscar movimientos", ex);
+        }
+    }
+
+    /**
+     * Operaciones informativas: ventas financiadas sin entrada de dinero.
+     * Se consultan del libro de cuenta corriente, nunca se persisten en Caja.
+     */
+    private void agregarVentasCuentaCorrienteInformativas(List<CajaMovimiento> destino,
+            TipoMovimiento filtro, Date desde, Date hasta) {
+        // La categoría informativa solo corresponde a la vista Todos.
+        if (filtro != null) {
+            return;
+        }
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            String jpql = "SELECT m FROM CuentaCorrienteMovimiento m "
+                    + "WHERE m.tipoMovimiento = :tipo AND m.recibo IS NOT NULL";
+            if (desde != null) jpql += " AND m.fechaMovimiento >= :desde";
+            if (hasta != null) jpql += " AND m.fechaMovimiento <= :hasta";
+            javax.persistence.TypedQuery<CuentaCorrienteMovimiento> q =
+                    em.createQuery(jpql, CuentaCorrienteMovimiento.class);
+            q.setParameter("tipo", CuentaCorrienteMovimiento.TipoMovimiento.DEBITO);
+            if (desde != null) {
+                q.setParameter("desde", desde.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            }
+            if (hasta != null) {
+                q.setParameter("hasta", hasta.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+            }
+            for (CuentaCorrienteMovimiento m : q.getResultList()) {
+                if (m.getIdMovimiento() == null || m.getFechaMovimiento() == null) continue;
+                Date fecha = Date.from(m.getFechaMovimiento().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                CajaMovimiento informativo = new CajaMovimiento(
+                        -1000000000L - m.getIdMovimiento(), m.getMonto(),
+                        TipoMovimiento.CREDITO, fecha, null,
+                        "INFORMATIVO - Venta a Cuenta Corriente (sin ingreso de dinero)",
+                        false);
+                informativo.setFechaHora(fecha);
+                informativo.setRecibo(m.getRecibo());
+                informativo.setAfectaEfectivo(false);
+                destino.add(informativo);
+            }
+        } finally {
+            em.close();
         }
     }
 
@@ -364,7 +413,9 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         for (CajaMovimiento m : movimientos) {
             String fecha = "-";
             fecha = formatFecha(m.getFecha());
-            String tipo = m.getTipoMovimiento() != null ? formatoTipo(m.getTipoMovimiento()) : "-";
+            boolean informativoCC = m.getIdMovimiento() != null && m.getIdMovimiento() <= -1000000000L;
+            String tipo = informativoCC ? "Cuenta Corriente (informativo)"
+                    : (m.getTipoMovimiento() != null ? formatoTipo(m.getTipoMovimiento()) : "-");
             String monto = "$ " + formatMoney(m.getMonto());
 
             Usuario u = m.getUsuario();
@@ -399,7 +450,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             // totales (según TipoMovimiento)
             TipoMovimiento tm = m.getTipoMovimiento();
             BigDecimal mv = m.getMonto() != null ? m.getMonto() : BigDecimal.ZERO;
-            if (tm != null) {
+            if (tm != null && !informativoCC) {
                 String t = tm.name();
                 if (t.contains("CREDITO")) {
                     totalCreditos = totalCreditos.add(mv);
@@ -645,6 +696,10 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         if (mov == null) {
             JOptionPane.showMessageDialog(this, "Seleccione un movimiento en la tabla.",
                     "Imprimir", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        if (mov.getIdMovimiento() != null && mov.getIdMovimiento() <= -1000000000L) {
+            JOptionPane.showMessageDialog(this, "Esta venta es informativa. Consulte el recibo o los movimientos de Cuenta Corriente para imprimir su comprobante.", "Cuenta Corriente", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         ReporteRequest req = new ReporteRequest().put("movimiento", mov)
