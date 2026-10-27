@@ -742,6 +742,27 @@ public class FormCuentaCorrienteMovimientos extends javax.swing.JPanel {
         // En Swing, el MouseListener puede dispararse antes de que la selección se actualice
         // (especialmente en el primer click). Por eso usamos el modelo de selección.
         tableCCClientes.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        // La selección visual y el checkbox deben representar la misma cuenta.
+        // Evita que una fila anterior permanezca resaltada al elegir otra.
+        tableCCClientes.getModel().addTableModelListener(e -> {
+            if (e.getType() != javax.swing.event.TableModelEvent.UPDATE || e.getColumn() != 0) {
+                return;
+            }
+            int filaModelo = e.getFirstRow();
+            if (filaModelo < 0 || filaModelo >= tableCCClientes.getModel().getRowCount()) {
+                return;
+            }
+            boolean marcada = Boolean.TRUE.equals(tableCCClientes.getModel().getValueAt(filaModelo, 0));
+            if (marcada) {
+                int filaVista = tableCCClientes.convertRowIndexToView(filaModelo);
+                if (filaVista >= 0) {
+                    tableCCClientes.setRowSelectionInterval(filaVista, filaVista);
+                }
+            } else if (tableCCClientes.getSelectedRow() >= 0
+                    && tableCCClientes.convertRowIndexToModel(tableCCClientes.getSelectedRow()) == filaModelo) {
+                tableCCClientes.clearSelection();
+            }
+        });
         tableCCClientes.getSelectionModel().addListSelectionListener(e -> {
             if (e.getValueIsAdjusting()) {
                 return;
