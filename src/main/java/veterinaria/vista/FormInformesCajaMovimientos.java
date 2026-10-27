@@ -336,6 +336,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                         false);
                 informativo.setFechaHora(fecha);
                 informativo.setRecibo(m.getRecibo());
+                informativo.setUsuario(m.getRecibo().getUsuario());
                 informativo.setAfectaEfectivo(false);
                 destino.add(informativo);
             }
@@ -422,12 +423,15 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             String usuario = nombreUsuario(u);
 
             MetodoPago mp = m.getMetodoPago();
-            String metodo = mp != null ? safe(mp.getNombre()) : "N/A";
+            String metodo = informativoCC ? "Cuenta Corriente"
+                    : (mp != null ? safe(mp.getNombre()) : "N/A");
 
             Recibo r = m.getRecibo();
             String recibo = (r != null && r.getIdRecibo() != null) ? ("Recibo N.º " + r.getIdRecibo()) : "-";
 
-            String desc = normalizarDescripcion(safe(m.getDescripcion()), r);
+            String desc = informativoCC
+                    ? "Venta a Cuenta Corriente - " + recibo
+                    : normalizarDescripcion(safe(m.getDescripcion()), r);
             if (r != null && r.getIdRecibo() != null) {
                 try {
                     Recibo detalle = reciboDAO.obtenerReciboConDetalles(r.getIdRecibo());
