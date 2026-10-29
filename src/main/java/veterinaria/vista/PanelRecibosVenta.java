@@ -81,6 +81,12 @@ public class PanelRecibosVenta extends JPanel {
         tabla.getTableHeader().setReorderingAllowed(false);
         tabla.getColumnModel().getColumn(0).setPreferredWidth(85);
         tabla.getColumnModel().getColumn(0).setMaxWidth(110);
+        // Usar el renderer propio de VetPRO: pinta cada fila según su casilla,
+        // sin depender del rango de selección que conserve JTable.
+        for (int columna = 1; columna < tabla.getColumnCount(); columna++) {
+            tabla.getColumnModel().getColumn(columna).setCellRenderer(
+                    new veterinaria.vista.table.TableGradientCell());
+        }
 
         JPanel listado = new JPanel(new BorderLayout(0, 6));
         listado.add(new JScrollPane(tabla,
@@ -139,6 +145,7 @@ public class PanelRecibosVenta extends JPanel {
             }
         } finally {
             ajustandoSeleccion = false;
+            tabla.repaint();
         }
     }
 
