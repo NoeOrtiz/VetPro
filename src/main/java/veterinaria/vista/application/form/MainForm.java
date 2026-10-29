@@ -362,8 +362,16 @@ public class MainForm extends JLayeredPane {
         panelBody.removeAll(); // Limpiar el contenido anterior
         TableLayoutSupport.prepare(component);
 
-        // ¡LA SOLUCIÓN AQUÍ! 
-        // Envolvemos el formulario en un JScrollPane antes de agregarlo al panelBody
+        // Informes de Caja gestiona sus propias pestañas, tabla y paginación.
+        // Evitar un scroll externo que desplaza los controles fuera de pantalla.
+        if (component instanceof FormInformesCajaMovimientos) {
+            panelBody.add(component, BorderLayout.CENTER);
+            panelBody.revalidate();
+            panelBody.repaint();
+            return;
+        }
+
+        // Los demás formularios conservan su desplazamiento habitual.
         javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(component);
         scrollPane.setBorder(null); // Le quitamos el borde para que no rompa tu estética FlatLaf
         scrollPane.getVerticalScrollBar().setUnitIncrement(16); // Scroll más suave al usar la ruedita
