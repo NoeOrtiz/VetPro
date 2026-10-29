@@ -37,6 +37,8 @@ public class CuentaCorrienteDAO {
             );
             query.setParameter("id", idCuentaCorriente);
             return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
         } finally {
             if (em != null) {
                 em.close();
