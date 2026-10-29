@@ -53,27 +53,26 @@ public class PanelRecibosVenta extends JPanel {
         JButton btnBuscar = new JButton("Buscar",
                 new FlatSVGIcon("veterinaria/icon/svg/buscar.svg", 0.7f));
         filtros.add(btnBuscar);
+        JButton btnVer = new JButton("Ver recibo");
+        btnVer.setToolTipText("Abrir el comprobante PDF seleccionado");
+        filtros.add(btnVer);
         encabezado.add(filtros, BorderLayout.SOUTH);
         add(encabezado, BorderLayout.NORTH);
 
         tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-        tabla.setRowHeight(30);
+        tabla.setRowHeight(26);
         tabla.setFillsViewportHeight(true);
         tabla.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         tabla.getTableHeader().setReorderingAllowed(false);
 
         JPanel listado = new JPanel(new BorderLayout(0, 8));
-        listado.add(new JScrollPane(tabla), BorderLayout.CENTER);
+        JScrollPane desplazamientoTabla = new JScrollPane(tabla);
+        desplazamientoTabla.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        listado.add(desplazamientoTabla, BorderLayout.CENTER);
         paginacion = new PaginacionTablas(tabla, new JTextField(), 15, 0, 1, 2, 3);
         listado.add(paginacion.getControles(), BorderLayout.SOUTH);
         add(listado, BorderLayout.CENTER);
-
-        JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 2));
-        JButton btnVer = new JButton("Ver recibo",
-                new FlatSVGIcon("veterinaria/icon/svg/ver_recibo.svg", 0.7f));
-        btnVer.setToolTipText("Abrir PDF para consultar, guardar o imprimir");
-        acciones.add(btnVer);
-        add(acciones, BorderLayout.SOUTH);
 
         btnBuscar.addActionListener(e -> cargar());
         buscar.addActionListener(e -> cargar());
