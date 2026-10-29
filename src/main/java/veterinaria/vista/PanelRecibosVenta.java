@@ -118,6 +118,31 @@ public class PanelRecibosVenta extends JPanel {
             }
         });
 
+        // Al modificar el filtro (incluso al vaciarlo), quitar la selección anterior.
+        // Se difiere para no alterar el modelo durante la notificación del documento.
+        buscar.getDocument().addDocumentListener(new DocumentListener() {
+            private void limpiarSeleccion() {
+                SwingUtilities.invokeLater(() -> {
+                    if (tabla.isEditing()) tabla.getCellEditor().stopCellEditing();
+                    ajustandoSeleccion = true;
+                    try {
+                        tabla.clearSelection();
+                        for (int i = 0; i < modelo.getRowCount(); i++) {
+                            if (Boolean.TRUE.equals(modelo.getValueAt(i, 0))) {
+                                modelo.setValueAt(Boolean.FALSE, i, 0);
+                            }
+                        }
+                    } finally {
+                        ajustandoSeleccion = false;
+                        tabla.repaint();
+                    }
+                });
+            }
+            @Override public void insertUpdate(DocumentEvent e) { limpiarSeleccion(); }
+            @Override public void removeUpdate(DocumentEvent e) { limpiarSeleccion(); }
+            @Override public void changedUpdate(DocumentEvent e) { limpiarSeleccion(); }
+        });
+
         btnVer.addActionListener(e -> abrirRecibo());
         tabla.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
