@@ -91,21 +91,24 @@ public class PanelRecibosVenta extends JPanel {
         listado.add(paginacion.getControles(), BorderLayout.SOUTH);
         add(listado, BorderLayout.CENTER);
 
+        // La casilla y el resaltado de JTable representan una única selección.
         modelo.addTableModelListener(e -> {
             if (ajustandoSeleccion || e.getType() != javax.swing.event.TableModelEvent.UPDATE
                     || e.getColumn() != 0 || e.getFirstRow() < 0) return;
-            int seleccionada = e.getFirstRow();
-            if (seleccionada >= modelo.getRowCount()
-                    || !Boolean.TRUE.equals(modelo.getValueAt(seleccionada, 0))) return;
-            ajustandoSeleccion = true;
-            try {
-                for (int i = 0; i < modelo.getRowCount(); i++) {
-                    if (i != seleccionada && Boolean.TRUE.equals(modelo.getValueAt(i, 0))) {
-                        modelo.setValueAt(false, i, 0);
-                    }
-                }
-            } finally {
-                ajustandoSeleccion = false;
+            int filaModelo = e.getFirstRow();
+            if (filaModelo >= modelo.getRowCount()) return;
+            if (Boolean.TRUE.equals(modelo.getValueAt(filaModelo, 0))) {
+                seleccionarUnico(filaModelo);
+            } else if (tabla.getSelectedRow() >= 0
+                    && tabla.convertRowIndexToModel(tabla.getSelectedRow()) == filaModelo) {
+                tabla.clearSelection();
+            }
+        });
+        tabla.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting() || ajustandoSeleccion) return;
+            int vista = tabla.getSelectedRow();
+            if (vista >= 0) {
+                seleccionarUnico(tabla.convertRowIndexToModel(vista));
             }
         });
 
@@ -118,6 +121,25 @@ public class PanelRecibosVenta extends JPanel {
             }
         });
         SwingUtilities.invokeLater(this::cargar);
+    }
+
+    private void seleccionarUnico(int filaModelo) {
+        if (filaModelo < 0 || filaModelo >= modelo.getRowCount() || ajustandoSeleccion) return;
+        ajustandoSeleccion = true;
+        try {
+            for (int i = 0; i < modelo.getRowCount(); i++) {
+                boolean debeMarcarse = i == filaModelo;
+                if (!Boolean.valueOf(debeMarcarse).equals(modelo.getValueAt(i, 0))) {
+                    modelo.setValueAt(debeMarcarse, i, 0);
+                }
+            }
+            int vista = tabla.convertRowIndexToView(filaModelo);
+            if (vista >= 0 && vista < tabla.getRowCount()) {
+                tabla.getSelectionModel().setSelectionInterval(vista, vista);
+            }
+        } finally {
+            ajustandoSeleccion = false;
+        }
     }
 
     private void cargar() {
@@ -144,22 +166,12 @@ public class PanelRecibosVenta extends JPanel {
     }
 
     private void abrirRecibo() {
-        int filaModelo = -1;
-        for (int i = 0; i < modelo.getRowCount(); i++) {
-            if (Boolean.TRUE.equals(modelo.getValueAt(i, 0))
-                    && tabla.convertRowIndexToView(i) >= 0) {
-                filaModelo = i;
-                break;
-            }
-        }
-        if (filaModelo < 0) {
-            int filaVista = tabla.getSelectedRow();
-            if (filaVista >= 0) filaModelo = tabla.convertRowIndexToModel(filaVista);
-        }
-        if (filaModelo < 0) {
+        int filaVista = tabla.getSelectedRow();
+        if (filaVista < 0) {
             JOptionPane.showMessageDialog(this, "Seleccioná un recibo de la tabla.");
             return;
         }
+        int filaModelo = tabla.convertRowIndexToModel(filaVista);
         String numero = modelo.getValueAt(filaModelo, 1).toString();
         long id = Long.parseLong(numero.substring(3));
         try {
