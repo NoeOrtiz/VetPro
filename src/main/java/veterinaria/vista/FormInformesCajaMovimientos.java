@@ -148,14 +148,25 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     private void initListeners() {
         btnBuscarMovimientos.addActionListener(e -> buscarMovimientos());
         tableCajaMovimientos.getModel().addTableModelListener(e -> {
-            if (e.getColumn() != 1 || e.getFirstRow() < 0) return;
-            int selected = e.getFirstRow();
-            javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tableCajaMovimientos.getModel();
-            if (!Boolean.TRUE.equals(model.getValueAt(selected, 1))) return;
-            for (int i = 0; i < model.getRowCount(); i++) {
-                if (i != selected && Boolean.TRUE.equals(model.getValueAt(i, 1))) model.setValueAt(Boolean.FALSE, i, 1);
+            if (e.getType() != javax.swing.event.TableModelEvent.UPDATE
+                    || e.getColumn() != 1 || e.getFirstRow() < 0) {
+                return;
             }
-            tableCajaMovimientos.setRowSelectionInterval(selected, selected);
+            javax.swing.table.TableModel model = tableCajaMovimientos.getModel();
+            int selected = e.getFirstRow();
+            if (selected >= model.getRowCount()
+                    || !Boolean.TRUE.equals(model.getValueAt(selected, 1))) {
+                return;
+            }
+            for (int i = 0; i < model.getRowCount(); i++) {
+                if (i != selected && Boolean.TRUE.equals(model.getValueAt(i, 1))) {
+                    model.setValueAt(Boolean.FALSE, i, 1);
+                }
+            }
+            int viewRow = tableCajaMovimientos.convertRowIndexToView(selected);
+            if (viewRow >= 0 && viewRow < tableCajaMovimientos.getRowCount()) {
+                tableCajaMovimientos.setRowSelectionInterval(viewRow, viewRow);
+            }
         });
 
         // Botón "Ver" para detalle
