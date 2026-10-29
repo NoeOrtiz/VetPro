@@ -90,6 +90,20 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
 
         // totales
         resetTotales();
+
+        // Dos consultas dentro de Informes de Caja, sin crear un nuevo menú
+        // ni alterar los controles existentes de Movimientos.
+        javax.swing.JPanel panelMovimientos = new javax.swing.JPanel(
+                new java.awt.BorderLayout(0, 4));
+        panelMovimientos.add(jpHeader, java.awt.BorderLayout.NORTH);
+        panelMovimientos.add(jpListaOperaciones, java.awt.BorderLayout.CENTER);
+        panelMovimientos.add(jpBotonesTotalesInferior, java.awt.BorderLayout.SOUTH);
+        javax.swing.JTabbedPane secciones = new javax.swing.JTabbedPane();
+        secciones.addTab("Movimientos de Caja", panelMovimientos);
+        secciones.addTab("Recibos de Venta", new PanelRecibosVenta());
+        removeAll();
+        setLayout(new java.awt.BorderLayout());
+        add(secciones, java.awt.BorderLayout.CENTER);
     }
 
     /** Sustituye las restricciones fijas del diseñador por una composición adaptable. */
