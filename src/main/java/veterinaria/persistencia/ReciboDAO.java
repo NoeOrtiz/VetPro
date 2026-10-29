@@ -97,4 +97,41 @@ public class ReciboDAO {
         }
     }
 
+
+    /**
+     * Consulta histórica de recibos. Proyección de solo lectura para evitar
+     * asociaciones LAZY y no modificar registros de ventas.
+     */
+    public List<Object[]> buscarRecibos(String texto) {
+        EntityManager em = getEntityManager();
+        try {
+            String filtro = texto == null ? "" : texto.trim().toLowerCase(java.util.Locale.ROOT);
+            String jpql = "SELECT r.idRecibo, r.fecha, p.nombre, p.apellido, r.totalRecibo, r.tipo "
+                    + "FROM Recibo r LEFT JOIN r.cliente c LEFT JOIN c.persona p "
+                    + "WHERE LOWER(r.tipo) = 'venta' ";
+            Long id = null;
+            try {
+                String numerico = filtro.toUpperCase(java.util.Locale.ROOT)
+                        .replace("RC-", "").replaceAll("[^0-9]", "");
+                if (!numerico.isEmpty() && filtro.matches("(?i)(rc-)?[0-9]+")) {
+                    id = Long.valueOf(numerico);
+                }
+            } catch (NumberFormatException ignore) {
+                // El texto se interpreta como nombre de cliente.
+            }
+            if (id != null) {
+                jpql += "AND r.idRecibo = :id ";
+            } else if (!filtro.isEmpty()) {
+                jpql += "AND (LOWER(COALESCE(p.nombre, '')) LIKE :texto "
+                        + "OR LOWER(COALESCE(p.apellido, '')) LIKE :texto) ";
+            }
+            jpql += "ORDER BY r.fecha DESC, r.idRecibo DESC";
+            javax.persistence.TypedQuery<Object[]> query = em.createQuery(jpql, Object[].class);
+            if (id != null) query.setParameter("id", id);
+            else if (!filtro.isEmpty()) query.setParameter("texto", "%" + filtro + "%");
+            return query.setMaxResults(500).getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }
