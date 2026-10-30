@@ -263,6 +263,14 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // El ID sigue en el modelo para selección interna, pero no se muestra al usuario.
         tableCajaMovimientos.removeColumn(tableCajaMovimientos.getColumnModel().getColumn(0));
         tableCajaMovimientos.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        // La selección visual sigue el checkbox, no un rango antiguo de JTable.
+        // Usamos el mismo degradado horizontal que Recibos de Venta.
+        veterinaria.vista.table.TableGradientCell rendererSeleccion =
+                new veterinaria.vista.table.TableGradientCell();
+        for (int columna = 1; columna < tableCajaMovimientos.getColumnCount() - 1; columna++) {
+            tableCajaMovimientos.getColumnModel().getColumn(columna)
+                    .setCellRenderer(rendererSeleccion);
+        }
         configurarColumnasInforme();
         limpiarTabla();
     }
