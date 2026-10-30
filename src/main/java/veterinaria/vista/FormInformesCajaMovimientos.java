@@ -266,7 +266,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // La selección visual sigue el checkbox, no un rango antiguo de JTable.
         // Usamos el mismo degradado horizontal que Recibos de Venta.
         veterinaria.vista.table.TableGradientCell rendererSeleccion =
-                new veterinaria.vista.table.TableGradientCell();
+                new veterinaria.vista.table.TableGradientCell(1);
         for (int columna = 1; columna < tableCajaMovimientos.getColumnCount() - 1; columna++) {
             tableCajaMovimientos.getColumnModel().getColumn(columna)
                     .setCellRenderer(rendererSeleccion);
