@@ -81,6 +81,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         paginacionMovimientos = new veterinaria.util.PaginacionTablas(
                 tableCajaMovimientos, busquedaPaginador, 15, 2, 3, 4, 5, 6, 7, 8);
         jpListaOperaciones.add(paginacionMovimientos.getControles(), java.awt.BorderLayout.SOUTH);
+        paginacionMovimientos.activarTamanoAdaptable();
         initListeners();
 
         // defaults: hoy
@@ -245,7 +246,9 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     }
 
     private void configurarColumnasInforme() {
-        int[] anchos = {88, 105, 95, 110, 125, 190, 120};
+        // Priorizar la lectura completa de Tipo y dejar el espacio flexible
+        // para Descripción. Método no necesita 190 px en todos los casos.
+        int[] anchos = {88, 105, 150, 110, 120, 150, 110};
         for (int i = 0; i < anchos.length && i < tableCajaMovimientos.getColumnCount() - 1; i++) {
             tableCajaMovimientos.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         }
