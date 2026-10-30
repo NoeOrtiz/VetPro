@@ -28,6 +28,8 @@ public final class PaginacionTablas {
     private final JTextField busqueda;
     private final int[] columnas;
     private final int tamano;
+    private boolean adaptable;
+    private boolean recalculoPendiente;
     private final JPanel controles = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 2));
     private final JLabel estado = new JLabel();
     private final JButton primera = new JButton("«");
@@ -78,6 +80,45 @@ public final class PaginacionTablas {
         actualizar();
     }
 
+    /**
+     * Activa paginación por altura visible. Es optativa para no modificar
+     * el comportamiento de las pantallas que siguen usando tamaño fijo.
+     */
+    public void activarTamanoAdaptable() {
+        if (adaptable) return;
+        adaptable = true;
+        javax.swing.JViewport viewport = (javax.swing.JViewport)
+                SwingUtilities.getAncestorOfClass(javax.swing.JViewport.class, tabla);
+        if (viewport == null) {
+            throw new IllegalStateException("La tabla debe estar dentro de un JScrollPane");
+        }
+        viewport.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) {
+                programarRecalculo();
+            }
+        });
+        tabla.addPropertyChangeListener("rowHeight", e -> programarRecalculo());
+        programarRecalculo();
+    }
+
+    private void programarRecalculo() {
+        if (recalculoPendiente) return;
+        recalculoPendiente = true;
+        SwingUtilities.invokeLater(() -> {
+            recalculoPendiente = false;
+            actualizar();
+        });
+    }
+
+    private int filasPorPagina() {
+        if (!adaptable) return tamano;
+        javax.swing.JViewport viewport = (javax.swing.JViewport)
+                SwingUtilities.getAncestorOfClass(javax.swing.JViewport.class, tabla);
+        if (viewport == null || viewport.getExtentSize().height <= 0) return tamano;
+        int alturaFila = Math.max(1, tabla.getRowHeight() + tabla.getRowMargin());
+        return Math.max(1, viewport.getExtentSize().height / alturaFila);
+    }
+
     public JPanel getControles() { return controles; }
     public JButton getBotonLimpiar() { return limpiar; }
     public void actualizar() {
@@ -100,10 +141,11 @@ public final class PaginacionTablas {
                 if (consulta.isEmpty() || coincide(modelo, fila, consulta)) coincidencias.add(fila);
             }
             int total = coincidencias.size();
-            int paginas = Math.max(1, (total + tamano - 1) / tamano);
+            int capacidad = filasPorPagina();
+            int paginas = Math.max(1, (total + capacidad - 1) / capacidad);
             pagina = Math.max(0, Math.min(pagina, paginas - 1));
-            int inicio = pagina * tamano;
-            int fin = Math.min(inicio + tamano, total);
+            int inicio = pagina * capacidad;
+            int fin = Math.min(inicio + capacidad, total);
             java.util.Set<Integer> visibles = new java.util.HashSet<>(coincidencias.subList(inicio, fin));
             // Nunca mantener una selección de checkbox en una página oculta.
             for (int fila = 0; fila < modelo.getRowCount(); fila++) {
