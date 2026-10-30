@@ -52,6 +52,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     // Reutiliza el mismo paginador de Pacientes, sin duplicar controles.
     private veterinaria.util.PaginacionTablas paginacionMovimientos;
     private final javax.swing.JTextField busquedaPaginador = new javax.swing.JTextField();
+    private boolean ajustandoSeleccionMovimientos;
 
 
     public FormInformesCajaMovimientos() {
@@ -163,25 +164,25 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     private void initListeners() {
         btnBuscarMovimientos.addActionListener(e -> buscarMovimientos());
         tableCajaMovimientos.getModel().addTableModelListener(e -> {
-            if (e.getType() != javax.swing.event.TableModelEvent.UPDATE
-                    || e.getColumn() != 1 || e.getFirstRow() < 0) {
-                return;
-            }
-            javax.swing.table.TableModel model = tableCajaMovimientos.getModel();
-            int selected = e.getFirstRow();
-            if (selected >= model.getRowCount()
-                    || !Boolean.TRUE.equals(model.getValueAt(selected, 1))) {
-                return;
-            }
-            for (int i = 0; i < model.getRowCount(); i++) {
-                if (i != selected && Boolean.TRUE.equals(model.getValueAt(i, 1))) {
-                    model.setValueAt(Boolean.FALSE, i, 1);
+            if (ajustandoSeleccionMovimientos
+                    || e.getType() != javax.swing.event.TableModelEvent.UPDATE
+                    || e.getColumn() != 1 || e.getFirstRow() < 0) return;
+            int fila = e.getFirstRow();
+            javax.swing.table.TableModel modelo = tableCajaMovimientos.getModel();
+            if (fila >= modelo.getRowCount()) return;
+            if (Boolean.TRUE.equals(modelo.getValueAt(fila, 1))) {
+                seleccionarMovimientoUnico(fila);
+            } else {
+                int vista = tableCajaMovimientos.getSelectedRow();
+                if (vista >= 0 && tableCajaMovimientos.convertRowIndexToModel(vista) == fila) {
+                    tableCajaMovimientos.clearSelection();
                 }
             }
-            int viewRow = tableCajaMovimientos.convertRowIndexToView(selected);
-            if (viewRow >= 0 && viewRow < tableCajaMovimientos.getRowCount()) {
-                tableCajaMovimientos.setRowSelectionInterval(viewRow, viewRow);
-            }
+        });
+        tableCajaMovimientos.getSelectionModel().addListSelectionListener(e -> {
+            if (e.getValueIsAdjusting() || ajustandoSeleccionMovimientos) return;
+            int vista = tableCajaMovimientos.getSelectedRow();
+            if (vista >= 0) seleccionarMovimientoUnico(tableCajaMovimientos.convertRowIndexToModel(vista));
         });
 
         // Botón "Ver" para detalle
@@ -196,6 +197,27 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                 }
             }
         });
+    }
+
+    private void seleccionarMovimientoUnico(int filaModelo) {
+        javax.swing.table.TableModel modelo = tableCajaMovimientos.getModel();
+        if (ajustandoSeleccionMovimientos || filaModelo < 0 || filaModelo >= modelo.getRowCount()) return;
+        ajustandoSeleccionMovimientos = true;
+        try {
+            for (int i = 0; i < modelo.getRowCount(); i++) {
+                boolean marcar = i == filaModelo;
+                if (!Boolean.valueOf(marcar).equals(modelo.getValueAt(i, 1))) {
+                    modelo.setValueAt(marcar, i, 1);
+                }
+            }
+            int vista = tableCajaMovimientos.convertRowIndexToView(filaModelo);
+            if (vista >= 0 && vista < tableCajaMovimientos.getRowCount()) {
+                tableCajaMovimientos.getSelectionModel().setSelectionInterval(vista, vista);
+            }
+        } finally {
+            ajustandoSeleccionMovimientos = false;
+            tableCajaMovimientos.repaint();
+        }
     }
 
     private static String formatoTipo(TipoMovimiento tipo) {
@@ -445,6 +467,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     }
 
     private void cargarEnTabla(List<CajaMovimiento> movimientos) {
+        tableCajaMovimientos.clearSelection();
         limpiarTabla();
         DefaultTableModel model = (DefaultTableModel) tableCajaMovimientos.getModel();
         if (movimientos == null) {
