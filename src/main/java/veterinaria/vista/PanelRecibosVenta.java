@@ -96,6 +96,7 @@ public class PanelRecibosVenta extends JPanel {
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), BorderLayout.CENTER);
         // La búsqueda y la paginación utilizan el mismo campo: filtro inmediato.
         paginacion = new PaginacionTablas(tabla, buscar, 15, 1, 2, 3, 4);
+        paginacion.activarTamanoAdaptable();
         listado.add(paginacion.getControles(), BorderLayout.SOUTH);
         add(listado, BorderLayout.CENTER);
 
