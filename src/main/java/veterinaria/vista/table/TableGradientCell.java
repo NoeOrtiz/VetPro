@@ -15,6 +15,7 @@ import javax.swing.table.DefaultTableCellRenderer;
  * No cambia fuente, ancho de columna ni altura de fila.
  */
 public class TableGradientCell extends DefaultTableCellRenderer {
+    private final int columnaCheckbox;
     private boolean highlighted;
     private int offsetX;
     private int tableWidth;
@@ -22,6 +23,11 @@ public class TableGradientCell extends DefaultTableCellRenderer {
     private Color end;
 
     public TableGradientCell() {
+        this(0);
+    }
+
+    public TableGradientCell(int columnaCheckbox) {
+        this.columnaCheckbox = columnaCheckbox;
         setOpaque(false);
     }
 
@@ -30,10 +36,11 @@ public class TableGradientCell extends DefaultTableCellRenderer {
             boolean isSelected, boolean hasFocus, int row, int column) {
         // El renderer no debe heredar el fondo de selección de JTable
         // cuando la casilla de esta fila está desmarcada.
-        boolean tieneCheckbox = table.getColumnCount() > 0
-                && table.getColumnClass(table.convertColumnIndexToModel(0)) == Boolean.class;
+        boolean tieneCheckbox = columnaCheckbox >= 0
+                && columnaCheckbox < table.getColumnCount()
+                && table.getColumnClass(table.convertColumnIndexToModel(columnaCheckbox)) == Boolean.class;
         highlighted = tieneCheckbox
-                ? Boolean.TRUE.equals(table.getValueAt(row, 0))
+                ? Boolean.TRUE.equals(table.getValueAt(row, columnaCheckbox))
                 : isSelected;
         super.getTableCellRendererComponent(table, value,
                 highlighted, hasFocus && highlighted, row, column);
