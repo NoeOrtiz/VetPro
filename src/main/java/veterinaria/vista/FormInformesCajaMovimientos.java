@@ -83,6 +83,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                 tableCajaMovimientos, busquedaPaginador, 15, 2, 3, 4, 5, 6, 7, 8);
         jpListaOperaciones.add(paginacionMovimientos.getControles(), java.awt.BorderLayout.SOUTH);
         paginacionMovimientos.activarTamanoAdaptable();
+        paginacionMovimientos.preservarRenderizadoresPersonalizados();
         initListeners();
 
         // defaults: hoy
