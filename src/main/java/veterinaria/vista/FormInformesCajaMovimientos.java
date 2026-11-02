@@ -268,12 +268,31 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // La selección visual sigue el checkbox, no un rango antiguo de JTable.
         // Usamos el mismo degradado horizontal que Recibos de Venta.
         veterinaria.vista.table.TableGradientCell rendererSeleccion =
-                new veterinaria.vista.table.TableGradientCell(1);
+                new veterinaria.vista.table.TableGradientCell(0);
         for (int columna = 1; columna < tableCajaMovimientos.getColumnCount() - 1; columna++) {
             tableCajaMovimientos.getColumnModel().getColumn(columna)
                     .setCellRenderer(rendererSeleccion);
         }
         configurarColumnasInforme();
+        // Altura uniforme: 15 filas caben sin que Descripción expanda filas
+        // y corte la última en el pie de la tabla.
+        tableCajaMovimientos.setRowHeight(25);
+        tableCajaMovimientos.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            @Override public void mouseMoved(java.awt.event.MouseEvent e) {
+                int fila = tableCajaMovimientos.rowAtPoint(e.getPoint());
+                int columna = tableCajaMovimientos.columnAtPoint(e.getPoint());
+                if (fila >= 0 && columna == tableCajaMovimientos.getColumnCount() - 1) {
+                    Object valor = tableCajaMovimientos.getValueAt(fila, columna);
+                    tableCajaMovimientos.setToolTipText(valor == null ? null
+                            : "<html><div style='width:360px'>"
+                            + valor.toString().replace("&", "&amp;")
+                                    .replace("<", "&lt;").replace(">", "&gt;")
+                            + "</div></html>");
+                } else {
+                    tableCajaMovimientos.setToolTipText(null);
+                }
+            }
+        });
         limpiarTabla();
     }
 
@@ -286,75 +305,10 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         }
         int descripcion = tableCajaMovimientos.getColumnCount() - 1;
         tableCajaMovimientos.getColumnModel().getColumn(descripcion)
-                .setCellRenderer(new DescripcionMultilineaRenderer());
+                .setCellRenderer(new veterinaria.vista.table.TableGradientCell(0));
         tableCajaMovimientos.getColumnModel().getColumn(descripcion).setPreferredWidth(420);
     }
 
-    private static final class DescripcionMultilineaRenderer extends javax.swing.JPanel implements TableCellRenderer {
-
-        private final JTextArea texto = new JTextArea();
-        private boolean resaltada;
-        private int desplazamientoX;
-        private int anchoTabla;
-        private java.awt.Color inicio;
-        private java.awt.Color fin;
-
-        private DescripcionMultilineaRenderer() {
-            super(new java.awt.BorderLayout());
-            setOpaque(false);
-            texto.setLineWrap(true);
-            texto.setWrapStyleWord(true);
-            texto.setEditable(false);
-            texto.setOpaque(false);
-            texto.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 6, 4, 6));
-            add(texto, java.awt.BorderLayout.CENTER);
-        }
-
-        @Override
-        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            texto.setText(value == null ? "" : value.toString());
-            texto.setFont(table.getFont());
-            resaltada = Boolean.TRUE.equals(table.getValueAt(row, 1));
-            java.awt.Color fondoTema = javax.swing.UIManager.getColor("Panel.background");
-            boolean oscuro = fondoTema != null
-                    && (fondoTema.getRed() * 299 + fondoTema.getGreen() * 587
-                    + fondoTema.getBlue() * 114) / 1000 < 128;
-            inicio = oscuro ? new java.awt.Color(169, 65, 44)
-                    : new java.awt.Color(255, 210, 157);
-            fin = oscuro ? new java.awt.Color(44, 105, 177)
-                    : new java.awt.Color(174, 207, 245);
-            texto.setForeground(resaltada
-                    ? (oscuro ? java.awt.Color.WHITE : new java.awt.Color(35, 39, 45))
-                    : table.getForeground());
-            setBackground(table.getBackground());
-            java.awt.Rectangle celda = table.getCellRect(row, column, true);
-            desplazamientoX = -celda.x;
-            anchoTabla = Math.max(1, table.getWidth());
-
-            int width = table.getColumnModel().getColumn(column).getWidth();
-            texto.setSize(Math.max(1, width - 12), Short.MAX_VALUE);
-            int requiredHeight = Math.max(table.getRowHeight(), texto.getPreferredSize().height);
-            if (table.getRowHeight(row) != requiredHeight) {
-                table.setRowHeight(row, requiredHeight);
-            }
-            return this;
-        }
-
-        @Override
-        protected void paintComponent(java.awt.Graphics g) {
-            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-            if (resaltada) {
-                g2.setPaint(new java.awt.GradientPaint(desplazamientoX, 0, inicio,
-                        desplazamientoX + anchoTabla, 0, fin));
-            } else {
-                g2.setColor(getBackground());
-            }
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    }
 
     private void limpiarTabla() {
         DefaultTableModel model = (DefaultTableModel) tableCajaMovimientos.getModel();
