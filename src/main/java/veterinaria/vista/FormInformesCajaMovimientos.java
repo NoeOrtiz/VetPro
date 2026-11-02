@@ -288,8 +288,9 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         tableCajaMovimientos.getColumnModel().getColumn(descripcion).setPreferredWidth(420);
     }
 
-    private static final class DescripcionMultilineaRenderer extends JTextArea implements TableCellRenderer {
+    private static final class DescripcionMultilineaRenderer extends javax.swing.JPanel implements TableCellRenderer {
 
+        private final JTextArea texto = new JTextArea();
         private boolean resaltada;
         private int desplazamientoX;
         private int anchoTabla;
@@ -297,19 +298,21 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         private java.awt.Color fin;
 
         private DescripcionMultilineaRenderer() {
-            setLineWrap(true);
-            setWrapStyleWord(true);
+            super(new java.awt.BorderLayout());
             setOpaque(false);
-            setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 6, 4, 6));
+            texto.setLineWrap(true);
+            texto.setWrapStyleWord(true);
+            texto.setEditable(false);
+            texto.setOpaque(false);
+            texto.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 6, 4, 6));
+            add(texto, java.awt.BorderLayout.CENTER);
         }
 
         @Override
         public java.awt.Component getTableCellRendererComponent(JTable table, Object value,
                 boolean isSelected, boolean hasFocus, int row, int column) {
-            setText(value == null ? "" : value.toString());
-            setFont(table.getFont());
-            // Mismo criterio que TableGradientCell: manda la casilla, no el
-            // resaltado temporal de JTable.
+            texto.setText(value == null ? "" : value.toString());
+            texto.setFont(table.getFont());
             resaltada = Boolean.TRUE.equals(table.getValueAt(row, 1));
             java.awt.Color fondoTema = javax.swing.UIManager.getColor("Panel.background");
             boolean oscuro = fondoTema != null
@@ -319,7 +322,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                     : new java.awt.Color(255, 210, 157);
             fin = oscuro ? new java.awt.Color(44, 105, 177)
                     : new java.awt.Color(174, 207, 245);
-            setForeground(resaltada
+            texto.setForeground(resaltada
                     ? (oscuro ? java.awt.Color.WHITE : new java.awt.Color(35, 39, 45))
                     : table.getForeground());
             setBackground(table.getBackground());
@@ -328,8 +331,8 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
             anchoTabla = Math.max(1, table.getWidth());
 
             int width = table.getColumnModel().getColumn(column).getWidth();
-            setSize(Math.max(width, 1), Short.MAX_VALUE);
-            int requiredHeight = Math.max(table.getRowHeight(), getPreferredSize().height);
+            texto.setSize(Math.max(1, width - 12), Short.MAX_VALUE);
+            int requiredHeight = Math.max(table.getRowHeight(), texto.getPreferredSize().height);
             if (table.getRowHeight(row) != requiredHeight) {
                 table.setRowHeight(row, requiredHeight);
             }
