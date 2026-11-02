@@ -82,7 +82,8 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         paginacionMovimientos = new veterinaria.util.PaginacionTablas(
                 tableCajaMovimientos, busquedaPaginador, 15, 2, 3, 4, 5, 6, 7, 8);
         jpListaOperaciones.add(paginacionMovimientos.getControles(), java.awt.BorderLayout.SOUTH);
-        paginacionMovimientos.activarTamanoAdaptable();
+        // Caja mantiene el límite acordado de 15 movimientos por página.
+        // La altura variable de Descripción no debe alterar la cantidad de páginas.
         paginacionMovimientos.preservarRenderizadoresPersonalizados();
         initListeners();
 
