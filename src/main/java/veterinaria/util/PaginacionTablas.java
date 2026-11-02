@@ -29,6 +29,7 @@ public final class PaginacionTablas {
     private final int[] columnas;
     private final int tamano;
     private boolean adaptable;
+    private boolean preservarRenderizadores;
     private boolean recalculoPendiente;
     private final JPanel controles = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 2));
     private final JLabel estado = new JLabel();
@@ -122,7 +123,15 @@ public final class PaginacionTablas {
             alturaFila = Math.max(alturaFila, tabla.getRowHeight(fila));
         }
         alturaFila += tabla.getRowMargin();
-        return Math.max(1, (viewport.getExtentSize().height - 4) / alturaFila);
+        // Reservar una fila de margen para el reajuste posterior de textos
+        // multilínea; nunca dejar una fila parcialmente visible.
+        int capacidad = Math.max(1, (viewport.getExtentSize().height - 4) / alturaFila);
+        return Math.max(1, capacidad - 1);
+    }
+
+    /** Evita que la búsqueda reemplace renderizadores especiales de una tabla. */
+    public void preservarRenderizadoresPersonalizados() {
+        preservarRenderizadores = true;
     }
 
     public JPanel getControles() { return controles; }
@@ -172,9 +181,9 @@ public final class PaginacionTablas {
             siguiente.setEnabled(pagina < paginas - 1);
             ultima.setEnabled(pagina < paginas - 1);
             limpiar.setVisible(!consulta.isEmpty());
-            // No sustituir los renderizadores propios cuando el filtro está vacío.
-            // En Caja, esto borraba el degradado y el renderer multilínea.
-            if (!consulta.isEmpty()) {
+            // Comportamiento original para el resto de las pantallas.
+            // Solo las que optan expresamente preservan sus renderizadores.
+            if (!preservarRenderizadores) {
                 ManejoTablas.resaltarBusqueda(tabla, busqueda.getText(), indices());
             }
         } finally {
