@@ -115,8 +115,14 @@ public final class PaginacionTablas {
         javax.swing.JViewport viewport = (javax.swing.JViewport)
                 SwingUtilities.getAncestorOfClass(javax.swing.JViewport.class, tabla);
         if (viewport == null || viewport.getExtentSize().height <= 0) return tamano;
-        int alturaFila = Math.max(1, tabla.getRowHeight() + tabla.getRowMargin());
-        return Math.max(1, viewport.getExtentSize().height / alturaFila);
+        // Las descripciones multilínea pueden aumentar la altura de una fila.
+        // Usar la altura real máxima evita mostrar una última fila recortada.
+        int alturaFila = Math.max(1, tabla.getRowHeight());
+        for (int fila = 0; fila < tabla.getRowCount(); fila++) {
+            alturaFila = Math.max(alturaFila, tabla.getRowHeight(fila));
+        }
+        alturaFila += tabla.getRowMargin();
+        return Math.max(1, (viewport.getExtentSize().height - 4) / alturaFila);
     }
 
     public JPanel getControles() { return controles; }
@@ -166,7 +172,11 @@ public final class PaginacionTablas {
             siguiente.setEnabled(pagina < paginas - 1);
             ultima.setEnabled(pagina < paginas - 1);
             limpiar.setVisible(!consulta.isEmpty());
-            ManejoTablas.resaltarBusqueda(tabla, busqueda.getText(), indices());
+            // No sustituir los renderizadores propios cuando el filtro está vacío.
+            // En Caja, esto borraba el degradado y el renderer multilínea.
+            if (!consulta.isEmpty()) {
+                ManejoTablas.resaltarBusqueda(tabla, busqueda.getText(), indices());
+            }
         } finally {
             actualizando = false;
         }
