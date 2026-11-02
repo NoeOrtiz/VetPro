@@ -116,17 +116,11 @@ public final class PaginacionTablas {
         javax.swing.JViewport viewport = (javax.swing.JViewport)
                 SwingUtilities.getAncestorOfClass(javax.swing.JViewport.class, tabla);
         if (viewport == null || viewport.getExtentSize().height <= 0) return tamano;
-        // Las descripciones multilínea pueden aumentar la altura de una fila.
-        // Usar la altura real máxima evita mostrar una última fila recortada.
-        int alturaFila = Math.max(1, tabla.getRowHeight());
-        for (int fila = 0; fila < tabla.getRowCount(); fila++) {
-            alturaFila = Math.max(alturaFila, tabla.getRowHeight(fila));
-        }
-        alturaFila += tabla.getRowMargin();
-        // Reservar una fila de margen para el reajuste posterior de textos
-        // multilínea; nunca dejar una fila parcialmente visible.
-        int capacidad = Math.max(1, (viewport.getExtentSize().height - 4) / alturaFila);
-        return Math.max(1, capacidad - 1);
+        // La capacidad se basa en la altura normal de la tabla, no en la
+        // fila multilínea más alta de todo el modelo. No descontar páginas
+        // artificialmente por un caso excepcional.
+        int alturaFila = Math.max(1, tabla.getRowHeight() + tabla.getRowMargin());
+        return Math.max(1, viewport.getExtentSize().height / alturaFila);
     }
 
     /** Evita que la búsqueda reemplace renderizadores especiales de una tabla. */
