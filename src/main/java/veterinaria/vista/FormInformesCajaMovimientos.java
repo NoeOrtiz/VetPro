@@ -69,8 +69,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // Distribución adaptable: evita que los botones se recorten y elimina
         // el desplazamiento horizontal cuando la ventana es angosta.
         javax.swing.SwingUtilities.invokeLater(() -> {
-            tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-            ajustarAnchosAlViewport();
+            tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
             tableCajaMovimientos.setFillsViewportHeight(true);
             if (tableCajaMovimientos.getParent() instanceof javax.swing.JViewport) {
                 javax.swing.JScrollPane panel = (javax.swing.JScrollPane) tableCajaMovimientos.getParent().getParent();
@@ -84,11 +83,6 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         paginacionMovimientos = new veterinaria.util.PaginacionTablas(
                 tableCajaMovimientos, busquedaPaginador, 15, 2, 3, 4, 5, 6, 7, 8);
         jpListaOperaciones.add(paginacionMovimientos.getControles(), java.awt.BorderLayout.SOUTH);
-        scroll1.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
-            @Override public void componentResized(java.awt.event.ComponentEvent e) {
-                ajustarAnchosAlViewport();
-            }
-        });
         // Caja mantiene el límite acordado de 15 movimientos por página.
         // La altura variable de Descripción no debe alterar la cantidad de páginas.
         paginacionMovimientos.preservarRenderizadoresPersonalizados();
@@ -328,107 +322,36 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     }
 
 
-    /**
-     * Distribuye las columnas según el ancho real de la pantalla, sin depender
-     * de la resolución ni de la escala de Windows. Las dos columnas de texto
-     * conservan un ancho útil y ajustan su altura por contenido.
-     */
-    private void ajustarAnchosAlViewport() {
-        int disponible = scroll1.getViewport().getExtentSize().width;
-        if (disponible <= 0 || tableCajaMovimientos.getColumnCount() != 8) return;
-        int[] minimos = {82, 102, 145, 102, 105, 116, 102, 190};
-        int suma = 0;
-        for (int n : minimos) suma += n;
-        int sobrante = Math.max(0, disponible - suma);
-        // Descripción recibe la mayor parte del espacio adicional.
-        int[] anchos = java.util.Arrays.copyOf(minimos, minimos.length);
-        anchos[7] += sobrante * 75 / 100;
-        anchos[2] += sobrante * 15 / 100;
-        anchos[5] += sobrante - (sobrante * 75 / 100) - (sobrante * 15 / 100);
-        javax.swing.table.TableColumnModel columnas = tableCajaMovimientos.getColumnModel();
-        for (int i = 0; i < anchos.length; i++) {
-            if (columnas.getColumn(i).getWidth() != anchos[i]) {
-                columnas.getColumn(i).setPreferredWidth(anchos[i]);
-                columnas.getColumn(i).setWidth(anchos[i]);
-            }
-        }
-        programarAjusteAlturas();
-    }
-
-    /** Reutiliza el criterio multilínea anterior, con la columna checkbox correcta. */
-    private static final class RendererMovimientoMultilinea extends javax.swing.JPanel implements TableCellRenderer {
-        private final JTextArea texto = new JTextArea();
-        private boolean resaltada;
-        private int desplazamientoX;
-        private int anchoTabla;
-        private java.awt.Color inicio;
-        private java.awt.Color fin;
-
-        RendererMovimientoMultilinea() {
-            super(new java.awt.BorderLayout());
-            setOpaque(false);
-            texto.setLineWrap(true);
-            texto.setWrapStyleWord(true);
-            texto.setEditable(false);
-            texto.setFocusable(false);
-            texto.setOpaque(false);
-            texto.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 5, 3, 5));
-            add(texto, java.awt.BorderLayout.CENTER);
-        }
+    /** Mantiene el degradado original y envuelve el texto según el ancho de la columna. */
+    private static final class RendererMovimientoMultilinea extends veterinaria.vista.table.TableGradientCell {
+        RendererMovimientoMultilinea() { super(0); }
 
         @Override
         public java.awt.Component getTableCellRendererComponent(JTable tabla, Object valor,
                 boolean seleccionado, boolean foco, int fila, int columna) {
-            texto.setText(valor == null ? "" : valor.toString());
-            texto.setFont(tabla.getFont());
-            resaltada = Boolean.TRUE.equals(tabla.getValueAt(fila, 0));
-            java.awt.Color fondo = javax.swing.UIManager.getColor("Panel.background");
-            boolean oscuro = fondo != null
-                    && (fondo.getRed() * 299 + fondo.getGreen() * 587
-                    + fondo.getBlue() * 114) / 1000 < 128;
-            inicio = oscuro ? new java.awt.Color(169, 65, 44) : new java.awt.Color(255, 210, 157);
-            fin = oscuro ? new java.awt.Color(44, 105, 177) : new java.awt.Color(174, 207, 245);
-            texto.setForeground(resaltada
-                    ? (oscuro ? java.awt.Color.WHITE : new java.awt.Color(35, 39, 45))
-                    : tabla.getForeground());
-            setBackground(tabla.getBackground());
-            java.awt.Rectangle celda = tabla.getCellRect(fila, columna, true);
-            desplazamientoX = -celda.x;
-            anchoTabla = Math.max(1, tabla.getWidth());
-            int ancho = Math.max(1, tabla.getColumnModel().getColumn(columna).getWidth());
-            setSize(ancho, Short.MAX_VALUE);
-            texto.setSize(Math.max(1, ancho - 10), Short.MAX_VALUE);
+            super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
+            String texto = valor == null ? "" : valor.toString();
+            texto = texto.replace("&", "&amp;").replace("<", "&lt;")
+                    .replace(">", "&gt;").replace("\"", "&quot;");
+            int ancho = Math.max(35, tabla.getColumnModel().getColumn(columna).getWidth() - 12);
+            setText("<html><div style='width:" + ancho + "px'>" + texto + "</div></html>");
+            setVerticalAlignment(javax.swing.SwingConstants.CENTER);
             return this;
-        }
-
-        @Override
-        protected void paintComponent(java.awt.Graphics g) {
-            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-            if (resaltada) {
-                g2.setPaint(new java.awt.GradientPaint(desplazamientoX, 0, inicio,
-                        desplazamientoX + anchoTabla, 0, fin));
-            } else {
-                g2.setColor(getBackground());
-            }
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
-            super.paintComponent(g);
         }
     }
 
-    /** Recalcula únicamente las filas visibles y no toca el paginador compartido. */
+    /** Ajusta únicamente las filas visibles; no altera el paginador compartido. */
     private void programarAjusteAlturas() {
         if (ajusteAlturasPendiente) return;
         ajusteAlturasPendiente = true;
         javax.swing.SwingUtilities.invokeLater(() -> {
             ajusteAlturasPendiente = false;
-            if (tableCajaMovimientos.getColumnCount() < 8) return;
             for (int fila = 0; fila < tableCajaMovimientos.getRowCount(); fila++) {
                 int alto = 25;
                 for (int columna : new int[]{2, tableCajaMovimientos.getColumnCount() - 1}) {
                     java.awt.Component comp = tableCajaMovimientos.prepareRenderer(
                             tableCajaMovimientos.getCellRenderer(fila, columna), fila, columna);
-                    alto = Math.max(alto, comp.getPreferredSize().height + 4);
+                    alto = Math.max(alto, comp.getPreferredSize().height + 6);
                 }
                 if (tableCajaMovimientos.getRowHeight(fila) != alto) {
                     tableCajaMovimientos.setRowHeight(fila, alto);
@@ -659,7 +582,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         if (paginacionMovimientos != null) paginacionMovimientos.actualizar();
         // El renderer multilínea ajusta la altura según el ancho real disponible.
         javax.swing.SwingUtilities.invokeLater(() -> {
-            ajustarAnchosAlViewport();
+            configurarColumnasInforme();
             programarAjusteAlturas();
             tableCajaMovimientos.revalidate();
             tableCajaMovimientos.repaint();
