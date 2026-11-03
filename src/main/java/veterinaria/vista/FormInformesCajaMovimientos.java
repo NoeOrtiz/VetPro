@@ -164,6 +164,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         jpListaOperaciones.add(titulo, java.awt.BorderLayout.NORTH);
         jpListaOperaciones.add(scroll1, java.awt.BorderLayout.CENTER);
         scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scroll1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
         tableCajaMovimientos.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         setLayout(new java.awt.BorderLayout(0, 4));
@@ -308,7 +309,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     private void configurarColumnasInforme() {
         // Priorizar la lectura completa de Tipo y dejar el espacio flexible
         // para Descripción. Método no necesita 190 px en todos los casos.
-        int[] anchos = {88, 105, 150, 110, 120, 150, 110};
+        int[] anchos = {102, 116, 230, 125, 145, 165, 140};
         for (int i = 0; i < anchos.length && i < tableCajaMovimientos.getColumnCount() - 1; i++) {
             tableCajaMovimientos.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         }
@@ -318,25 +319,70 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         int descripcion = tableCajaMovimientos.getColumnCount() - 1;
         tableCajaMovimientos.getColumnModel().getColumn(descripcion)
                 .setCellRenderer(new RendererMovimientoMultilinea());
-        tableCajaMovimientos.getColumnModel().getColumn(descripcion).setPreferredWidth(420);
+        tableCajaMovimientos.getColumnModel().getColumn(descripcion).setPreferredWidth(480);
     }
 
 
-    /** Mantiene el degradado original y envuelve el texto según el ancho de la columna. */
-    private static final class RendererMovimientoMultilinea extends veterinaria.vista.table.TableGradientCell {
-        RendererMovimientoMultilinea() { super(0); }
+    /**
+     * Renderizador de texto multilínea recuperado del historial del proyecto.
+     * No modifica la altura durante el pintado: se calcula por separado.
+     */
+    private static final class RendererMovimientoMultilinea extends javax.swing.JPanel implements TableCellRenderer {
+        private final JTextArea texto = new JTextArea();
+        private boolean resaltada;
+        private int desplazamientoX;
+        private int anchoTabla;
+        private java.awt.Color inicio;
+        private java.awt.Color fin;
+
+        RendererMovimientoMultilinea() {
+            super(new java.awt.BorderLayout());
+            setOpaque(false);
+            texto.setLineWrap(true);
+            texto.setWrapStyleWord(true);
+            texto.setEditable(false);
+            texto.setOpaque(false);
+            texto.setBorder(javax.swing.BorderFactory.createEmptyBorder(3, 5, 3, 5));
+            add(texto, java.awt.BorderLayout.CENTER);
+        }
 
         @Override
         public java.awt.Component getTableCellRendererComponent(JTable tabla, Object valor,
                 boolean seleccionado, boolean foco, int fila, int columna) {
-            super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
-            String texto = valor == null ? "" : valor.toString();
-            texto = texto.replace("&", "&amp;").replace("<", "&lt;")
-                    .replace(">", "&gt;").replace("\"", "&quot;");
-            int ancho = Math.max(35, tabla.getColumnModel().getColumn(columna).getWidth() - 12);
-            setText("<html><div style='width:" + ancho + "px'>" + texto + "</div></html>");
-            setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+            texto.setText(valor == null ? "" : valor.toString());
+            texto.setFont(tabla.getFont());
+            resaltada = Boolean.TRUE.equals(tabla.getValueAt(fila, 0));
+            java.awt.Color fondo = javax.swing.UIManager.getColor("Panel.background");
+            boolean oscuro = fondo != null
+                    && (fondo.getRed() * 299 + fondo.getGreen() * 587
+                    + fondo.getBlue() * 114) / 1000 < 128;
+            inicio = oscuro ? new java.awt.Color(169, 65, 44) : new java.awt.Color(255, 210, 157);
+            fin = oscuro ? new java.awt.Color(44, 105, 177) : new java.awt.Color(174, 207, 245);
+            texto.setForeground(resaltada
+                    ? (oscuro ? java.awt.Color.WHITE : new java.awt.Color(35, 39, 45))
+                    : tabla.getForeground());
+            setBackground(tabla.getBackground());
+            java.awt.Rectangle celda = tabla.getCellRect(fila, columna, true);
+            desplazamientoX = -celda.x;
+            anchoTabla = Math.max(1, tabla.getWidth());
+            int ancho = Math.max(1, tabla.getColumnModel().getColumn(columna).getWidth());
+            texto.setSize(Math.max(1, ancho - 10), Short.MAX_VALUE);
+            setSize(ancho, texto.getPreferredSize().height);
             return this;
+        }
+
+        @Override
+        protected void paintComponent(java.awt.Graphics g) {
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            if (resaltada) {
+                g2.setPaint(new java.awt.GradientPaint(desplazamientoX, 0, inicio,
+                        desplazamientoX + anchoTabla, 0, fin));
+            } else {
+                g2.setColor(getBackground());
+            }
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 
