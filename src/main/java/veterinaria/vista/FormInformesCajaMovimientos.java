@@ -53,6 +53,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
     private veterinaria.util.PaginacionTablas paginacionMovimientos;
     private final javax.swing.JTextField busquedaPaginador = new javax.swing.JTextField();
     private boolean ajustandoSeleccionMovimientos;
+    private boolean ajusteAlturasPendiente;
 
 
     public FormInformesCajaMovimientos() {
@@ -85,6 +86,15 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // Caja mantiene el límite acordado de 15 movimientos por página.
         // La altura variable de Descripción no debe alterar la cantidad de páginas.
         paginacionMovimientos.preservarRenderizadoresPersonalizados();
+        // Solo esta tabla recalcula sus filas al paginar o cambiar anchos.
+        tableCajaMovimientos.getRowSorter().addRowSorterListener(e -> programarAjusteAlturas());
+        tableCajaMovimientos.getColumnModel().addColumnModelListener(new javax.swing.event.TableColumnModelListener() {
+            @Override public void columnMarginChanged(javax.swing.event.ChangeEvent e) { programarAjusteAlturas(); }
+            @Override public void columnAdded(javax.swing.event.TableColumnModelEvent e) { programarAjusteAlturas(); }
+            @Override public void columnRemoved(javax.swing.event.TableColumnModelEvent e) { programarAjusteAlturas(); }
+            @Override public void columnMoved(javax.swing.event.TableColumnModelEvent e) { programarAjusteAlturas(); }
+            @Override public void columnSelectionChanged(javax.swing.event.ListSelectionEvent e) { }
+        });
         initListeners();
 
         // defaults: hoy
@@ -274,8 +284,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                     .setCellRenderer(rendererSeleccion);
         }
         configurarColumnasInforme();
-        // Altura uniforme: 15 filas caben sin que Descripción expanda filas
-        // y corte la última en el pie de la tabla.
+        // Altura base; las filas con textos extensos se expanden individualmente.
         tableCajaMovimientos.setRowHeight(25);
         tableCajaMovimientos.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             @Override public void mouseMoved(java.awt.event.MouseEvent e) {
@@ -303,12 +312,53 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         for (int i = 0; i < anchos.length && i < tableCajaMovimientos.getColumnCount() - 1; i++) {
             tableCajaMovimientos.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         }
+        // Tipo (p. ej. Cuenta Corriente informativa) y Descripción admiten varias líneas.
+        tableCajaMovimientos.getColumnModel().getColumn(2)
+                .setCellRenderer(new RendererMovimientoMultilinea());
         int descripcion = tableCajaMovimientos.getColumnCount() - 1;
         tableCajaMovimientos.getColumnModel().getColumn(descripcion)
-                .setCellRenderer(new veterinaria.vista.table.TableGradientCell(0));
+                .setCellRenderer(new RendererMovimientoMultilinea());
         tableCajaMovimientos.getColumnModel().getColumn(descripcion).setPreferredWidth(420);
     }
 
+
+    /** Mantiene el degradado original y envuelve el texto según el ancho de la columna. */
+    private static final class RendererMovimientoMultilinea extends veterinaria.vista.table.TableGradientCell {
+        RendererMovimientoMultilinea() { super(0); }
+
+        @Override
+        public java.awt.Component getTableCellRendererComponent(JTable tabla, Object valor,
+                boolean seleccionado, boolean foco, int fila, int columna) {
+            super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
+            String texto = valor == null ? "" : valor.toString();
+            texto = texto.replace("&", "&amp;").replace("<", "&lt;")
+                    .replace(">", "&gt;").replace("\"", "&quot;");
+            int ancho = Math.max(35, tabla.getColumnModel().getColumn(columna).getWidth() - 12);
+            setText("<html><div style='width:" + ancho + "px'>" + texto + "</div></html>");
+            setVerticalAlignment(javax.swing.SwingConstants.CENTER);
+            return this;
+        }
+    }
+
+    /** Ajusta únicamente las filas visibles; no altera el paginador compartido. */
+    private void programarAjusteAlturas() {
+        if (ajusteAlturasPendiente) return;
+        ajusteAlturasPendiente = true;
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            ajusteAlturasPendiente = false;
+            for (int fila = 0; fila < tableCajaMovimientos.getRowCount(); fila++) {
+                int alto = 25;
+                for (int columna : new int[]{2, tableCajaMovimientos.getColumnCount() - 1}) {
+                    java.awt.Component comp = tableCajaMovimientos.prepareRenderer(
+                            tableCajaMovimientos.getCellRenderer(fila, columna), fila, columna);
+                    alto = Math.max(alto, comp.getPreferredSize().height + 6);
+                }
+                if (tableCajaMovimientos.getRowHeight(fila) != alto) {
+                    tableCajaMovimientos.setRowHeight(fila, alto);
+                }
+            }
+        });
+    }
 
     private void limpiarTabla() {
         DefaultTableModel model = (DefaultTableModel) tableCajaMovimientos.getModel();
@@ -533,6 +583,7 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // El renderer multilínea ajusta la altura según el ancho real disponible.
         javax.swing.SwingUtilities.invokeLater(() -> {
             configurarColumnasInforme();
+            programarAjusteAlturas();
             tableCajaMovimientos.revalidate();
             tableCajaMovimientos.repaint();
         });
