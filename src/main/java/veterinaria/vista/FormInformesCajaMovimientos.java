@@ -129,6 +129,15 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         javax.swing.JTabbedPane secciones = new javax.swing.JTabbedPane();
         secciones.addTab("Movimientos de Caja", panelMovimientos);
         secciones.addTab("Recibos de Venta", new PanelRecibosVenta());
+        // Al salir de Movimientos, no conservar una operación marcada al regresar.
+        secciones.addChangeListener(e -> {
+            if (secciones.getSelectedIndex() != 0) {
+                if (tableCajaMovimientos.isEditing()) {
+                    tableCajaMovimientos.getCellEditor().stopCellEditing();
+                }
+                limpiarSeleccionAlPaginar();
+            }
+        });
         removeAll();
         setLayout(new java.awt.BorderLayout());
         add(secciones, java.awt.BorderLayout.CENTER);
