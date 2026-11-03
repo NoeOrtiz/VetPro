@@ -86,6 +86,20 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
         // Caja mantiene el límite acordado de 15 movimientos por página.
         // La altura variable de Descripción no debe alterar la cantidad de páginas.
         paginacionMovimientos.preservarRenderizadoresPersonalizados();
+        // Limpiar la selección solo al navegar entre páginas de este informe.
+        // El modelo mantiene los 15 registros por página y el degradado intactos.
+        for (java.awt.Component componente : paginacionMovimientos.getControles().getComponents()) {
+            if (componente instanceof javax.swing.JButton) {
+                javax.swing.JButton boton = (javax.swing.JButton) componente;
+                String accion = boton.getToolTipText();
+                if (accion != null && (accion.equals("Primera página")
+                        || accion.equals("Página anterior")
+                        || accion.equals("Página siguiente")
+                        || accion.equals("Última página"))) {
+                    boton.addActionListener(e -> limpiarSeleccionAlPaginar());
+                }
+            }
+        }
         // Solo esta tabla recalcula sus filas al paginar o cambiar anchos.
         tableCajaMovimientos.getRowSorter().addRowSorterListener(e -> programarAjusteAlturas());
         tableCajaMovimientos.getColumnModel().addColumnModelListener(new javax.swing.event.TableColumnModelListener() {
@@ -210,6 +224,22 @@ public class FormInformesCajaMovimientos extends javax.swing.JPanel {
                 }
             }
         });
+    }
+
+    private void limpiarSeleccionAlPaginar() {
+        ajustandoSeleccionMovimientos = true;
+        try {
+            javax.swing.table.TableModel modelo = tableCajaMovimientos.getModel();
+            for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+                if (Boolean.TRUE.equals(modelo.getValueAt(fila, 1))) {
+                    modelo.setValueAt(Boolean.FALSE, fila, 1);
+                }
+            }
+            tableCajaMovimientos.clearSelection();
+        } finally {
+            ajustandoSeleccionMovimientos = false;
+            tableCajaMovimientos.repaint();
+        }
     }
 
     private void seleccionarMovimientoUnico(int filaModelo) {
