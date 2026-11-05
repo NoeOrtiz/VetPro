@@ -105,6 +105,14 @@ public class FormProducto extends javax.swing.JPanel {
                 tableProductos, txtBusqueda, 15, 2, 3, 4, 5, 6, 7, 8, 9);
         panelPaginacionProductos.add(paginacionProductos.getControles(),
                 java.awt.BorderLayout.CENTER);
+        // La tabla de Productos usa filas uniformes: activar el paginador
+        // compartido una vez que Swing haya incorporado la vista al JScrollPane.
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            if (javax.swing.SwingUtilities.getAncestorOfClass(
+                    javax.swing.JViewport.class, tableProductos) != null) {
+                paginacionProductos.activarTamanoAdaptable();
+            }
+        });
         txtBusqueda.setLayout(new java.awt.BorderLayout());
         txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
         paginacionProductos.actualizar();
