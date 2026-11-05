@@ -29,6 +29,7 @@ public final class PaginacionTablas {
     private final int[] columnas;
     private final int tamano;
     private boolean adaptable;
+    private boolean busquedaPorPrefijo;
     private boolean preservarRenderizadores;
     private boolean recalculoPendiente;
     private final JPanel controles = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 2));
@@ -131,6 +132,13 @@ public final class PaginacionTablas {
         preservarRenderizadores = true;
     }
 
+    /** Limita la búsqueda a valores que comienzan con el texto ingresado. */
+    public void activarBusquedaPorPrefijo() {
+        busquedaPorPrefijo = true;
+        pagina = 0;
+        actualizar();
+    }
+
     public JPanel getControles() { return controles; }
     public JButton getBotonLimpiar() { return limpiar; }
     public void actualizar() {
@@ -198,7 +206,10 @@ public final class PaginacionTablas {
         for (int columna : columnas) {
             if (columna >= 0 && columna < modelo.getColumnCount()) {
                 Object valor = modelo.getValueAt(fila, columna);
-                if (valor != null && valor.toString().toLowerCase(Locale.ROOT).contains(consulta)) return true;
+                if (valor != null) {
+                    String texto = valor.toString().trim().toLowerCase(Locale.ROOT);
+                    if (busquedaPorPrefijo ? texto.startsWith(consulta) : texto.contains(consulta)) return true;
+                }
             }
         }
         return false;
