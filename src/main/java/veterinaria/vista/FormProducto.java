@@ -71,6 +71,12 @@ public class FormProducto extends javax.swing.JPanel {
             ((veterinaria.vista.table.AutoTable) tableProductos).setAjustarAnchoAutomaticamente(false);
         }
         tableProductos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        scroll.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) {
+                distribuirColumnasProductos();
+            }
+        });
+        javax.swing.SwingUtilities.invokeLater(this::distribuirColumnasProductos);
         initListeners();
         cargarCombosBoxs();
         cargarComboEstadoProducto();
@@ -1071,6 +1077,17 @@ public class FormProducto extends javax.swing.JPanel {
 
     private void onProveedorSeleccionado() {
         proveedor = obtenerProveedorSeleccionado();
+    }
+
+    private void distribuirColumnasProductos() {
+        if (tableProductos.getColumnCount() != 9) return;
+        int disponible = scroll.getViewport().getExtentSize().width;
+        if (disponible <= 0) return;
+        int[] porcentajes = {7, 7, 17, 10, 23, 10, 10, 10, 6};
+        javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
+        for (int i = 0; i < porcentajes.length; i++) {
+            cm.getColumn(i).setPreferredWidth(Math.max(45, disponible * porcentajes[i] / 100));
+        }
     }
 
     private void cargarProductosEnTabla() {
