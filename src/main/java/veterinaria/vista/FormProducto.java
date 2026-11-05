@@ -70,10 +70,7 @@ public class FormProducto extends javax.swing.JPanel {
         if (tableProductos instanceof veterinaria.vista.table.AutoTable) {
             ((veterinaria.vista.table.AutoTable) tableProductos).setAjustarAnchoAutomaticamente(false);
         }
-        // El método distribuirColumnasProductos asigna exactamente todo el ancho
-        // del viewport. El autoajuste ALL_COLUMNS redistribuía esos anchos
-        // y anulaba la distribución solicitada.
-        tableProductos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tableProductos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         scroll.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override public void componentResized(java.awt.event.ComponentEvent e) {
                 distribuirColumnasProductos();
@@ -1091,7 +1088,7 @@ public class FormProducto extends javax.swing.JPanel {
         // porque JTable puede conservar el ancho anterior de cada columna.
         // Orden: Seleccionar, Código, Nombre, Rubro, Descripción,
         // Precio Costo, Precio Venta, Unidad de Medida, Stock Actual.
-        int[] porcentajes = {9, 7, 17, 9, 25, 9, 9, 10, 5};
+        int[] porcentajes = {10, 7, 14, 9, 21, 10, 10, 12, 7};
         javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
         int asignado = 0;
         for (int i = 0; i < porcentajes.length; i++) {
