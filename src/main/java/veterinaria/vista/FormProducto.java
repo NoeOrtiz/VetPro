@@ -108,7 +108,8 @@ public class FormProducto extends javax.swing.JPanel {
         // Crear la paginación DESPUÉS de configurar el modelo definitivo.
         // Si se crea antes, el sorter puede conservar el modelo vacío inicial.
         paginacionProductos = new veterinaria.util.PaginacionTablas(
-                tableProductos, txtBusqueda, 15, 2, 3, 4, 5, 6, 7, 8, 9);
+                tableProductos, txtBusqueda, 15, 2, 3);
+        paginacionProductos.activarBusquedaPorPrefijo();
         panelPaginacionProductos.add(paginacionProductos.getControles(),
                 java.awt.BorderLayout.CENTER);
         // La tabla de Productos usa filas uniformes: activar el paginador
@@ -1083,9 +1084,13 @@ public class FormProducto extends javax.swing.JPanel {
         if (tableProductos.getColumnCount() != 9) return;
         int disponible = scroll.getViewport().getExtentSize().width;
         if (disponible <= 0) return;
-        int[] porcentajes = {7, 7, 17, 10, 23, 10, 10, 10, 6};
+        // Distribución como en el ajuste manual aprobado: Descripción recibe
+        // el mayor ancho; Seleccionar y Código se mantienen compactas.
+        int[] porcentajes = {9, 7, 15, 10, 25, 10, 10, 9, 5};
         javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
         for (int i = 0; i < porcentajes.length; i++) {
+            cm.getColumn(i).setMinWidth(40);
+            cm.getColumn(i).setMaxWidth(Integer.MAX_VALUE);
             cm.getColumn(i).setPreferredWidth(Math.max(45, disponible * porcentajes[i] / 100));
         }
     }
@@ -1176,6 +1181,9 @@ public class FormProducto extends javax.swing.JPanel {
 
         // Simplemente le pasamos la lista de productos al modelo genérico de forma limpia y segura
         modeloProductos.cargarDatos(productos);
+        // El modelo se recrea durante la carga: distribuir después de que
+        // Swing termine de instalar sus columnas visibles.
+        javax.swing.SwingUtilities.invokeLater(this::distribuirColumnasProductos);
         if (paginacionProductos != null) {
             paginacionProductos.actualizar();
         }
