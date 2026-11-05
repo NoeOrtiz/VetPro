@@ -672,7 +672,7 @@
                     <Column editable="false" title="Descripci&#xf3;n" type="java.lang.Object"/>
                     <Column editable="false" title="Precio Costo" type="java.lang.Object"/>
                     <Column editable="true" title="Precio Venta" type="java.lang.Object"/>
-                    <Column editable="false" title="U. de Medida" type="java.lang.Object"/>
+                    <Column editable="false" title="Unidad de Medida" type="java.lang.Object"/>
                     <Column editable="false" title="Stock Actual" type="java.lang.Object"/>
                     <Column editable="false" title="Estado" type="java.lang.Object"/>
                   </Table>

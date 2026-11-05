@@ -382,6 +382,8 @@ public class FormProducto extends javax.swing.JPanel {
                 .addGroup(jpDatosProductoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpDatosProductoLayout.createSequentialGroup()
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnPromocion, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -500,6 +502,7 @@ public class FormProducto extends javax.swing.JPanel {
                     .addGroup(jpDatosProductoLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(jpDatosProductoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnPromocion)
                             .addComponent(btnCancelar)
                             .addComponent(btnLimpiar)
                             .addComponent(btnGuardar))
@@ -529,7 +532,7 @@ public class FormProducto extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Seleccionar", "ID", "Código", "Nombre", "Rubro", "Descripción", "Precio Costo", "Precio Venta", "U. de Medida", "Stock Actual", "Estado"
+                "Seleccionar", "ID", "Código", "Nombre", "Rubro", "Descripción", "Precio Costo", "Precio Venta", "Unidad de Medida", "Stock Actual", "Estado"
             }
         ) {
             Class[] types = new Class [] {
@@ -547,8 +550,8 @@ public class FormProducto extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        tableProductos.setMinimumSize(new java.awt.Dimension(848, 220));
-        tableProductos.setPreferredSize(new java.awt.Dimension(848, 220));
+        tableProductos.setMinimumSize(new java.awt.Dimension(0, 0));
+        tableProductos.setPreferredScrollableViewportSize(new java.awt.Dimension(1000, 300));
         tableProductos.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(tableProductos);
 
@@ -570,6 +573,7 @@ public class FormProducto extends javax.swing.JPanel {
                 .addComponent(btnImprimirLista)
                 .addContainerGap())
             .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 873, Short.MAX_VALUE)
+            .addComponent(panelPaginacionProductos)
             .addGroup(jpListaProductosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpListaProductosLayout.createSequentialGroup()
                     .addContainerGap()
@@ -583,7 +587,10 @@ public class FormProducto extends javax.swing.JPanel {
                     .addComponent(lbListProd)
                     .addComponent(btnImprimirLista))
                 .addGap(18, 18, 18)
-                .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE))
+                .addComponent(scroll, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelPaginacionProductos, javax.swing.GroupLayout.PREFERRED_SIZE,
+                        javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
             .addGroup(jpListaProductosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jpListaProductosLayout.createSequentialGroup()
                     .addGap(40, 40, 40)
