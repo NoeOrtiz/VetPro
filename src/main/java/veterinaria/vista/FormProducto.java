@@ -1081,27 +1081,37 @@ public class FormProducto extends javax.swing.JPanel {
     }
 
     private void distribuirColumnasProductos() {
-        if (tableProductos.getColumnCount() != 9) return;
+        javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
+        // La columna ID sigue existiendo en el TableColumnModel, aunque
+        // ManejoTablas.ocultarColumnaId le asigne ancho cero.
+        // Hay diez columnas de modelo y nueve visibles.
+        if (cm.getColumnCount() != 10) return;
         int disponible = scroll.getViewport().getExtentSize().width;
         if (disponible <= 0) return;
-        // Anchos visibles reales: no alcanza con cambiar preferredWidth,
-        // porque JTable puede conservar el ancho anterior de cada columna.
-        // Orden: Seleccionar, Código, Nombre, Rubro, Descripción,
-        // Precio Costo, Precio Venta, Unidad de Medida, Stock Actual.
-        int[] porcentajes = {10, 7, 14, 9, 21, 10, 10, 12, 7};
-        javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
+
+        // Seleccionar, Código, Nombre, Rubro, Descripción, Precio Costo,
+        // Precio Venta, Unidad de Medida y Stock Actual.
+        int[] porcentajes = {9, 7, 17, 9, 25, 9, 9, 10, 5};
         int asignado = 0;
-        for (int i = 0; i < porcentajes.length; i++) {
+        int visible = 0;
+        for (int i = 0; i < cm.getColumnCount(); i++) {
             javax.swing.table.TableColumn columna = cm.getColumn(i);
+            if (columna.getModelIndex() == 1) {
+                columna.setMinWidth(0);
+                columna.setMaxWidth(0);
+                columna.setPreferredWidth(0);
+                columna.setWidth(0);
+                continue;
+            }
+            int ancho = visible == porcentajes.length - 1
+                    ? disponible - asignado
+                    : disponible * porcentajes[visible] / 100;
             columna.setMinWidth(40);
             columna.setMaxWidth(Integer.MAX_VALUE);
-            int ancho = i == porcentajes.length - 1
-                    ? disponible - asignado
-                    : disponible * porcentajes[i] / 100;
-            ancho = Math.max(40, ancho);
             columna.setPreferredWidth(ancho);
             columna.setWidth(ancho);
             asignado += ancho;
+            visible++;
         }
     }
 
