@@ -120,7 +120,10 @@ public final class PaginacionTablas {
         // fila multilínea más alta de todo el modelo. No descontar páginas
         // artificialmente por un caso excepcional.
         int alturaFila = Math.max(1, tabla.getRowHeight() + tabla.getRowMargin());
-        return Math.max(1, viewport.getExtentSize().height / alturaFila);
+        // El tamaño configurado es un máximo, nunca un mínimo obligatorio.
+        // Reservar margen para evitar que la última fila quede parcialmente visible.
+        int altoDisponible = Math.max(1, viewport.getExtentSize().height - 4);
+        return Math.max(1, Math.min(tamano, altoDisponible / alturaFila));
     }
 
     /** Evita que la búsqueda reemplace renderizadores especiales de una tabla. */
