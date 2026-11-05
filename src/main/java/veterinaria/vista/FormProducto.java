@@ -116,6 +116,10 @@ public class FormProducto extends javax.swing.JPanel {
         txtBusqueda.setLayout(new java.awt.BorderLayout());
         txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
         paginacionProductos.actualizar();
+        // Conservar los renderizadores existentes: ofrecer el contenido íntegro
+        // al pasar el mouse por columnas que pueden exceder su ancho.
+        veterinaria.util.ManejoTablas.tooltipValorEnColumnas(
+                tableProductos, java.util.Arrays.asList(3, 4, 5, 8));
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
 
