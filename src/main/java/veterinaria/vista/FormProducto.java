@@ -1084,14 +1084,24 @@ public class FormProducto extends javax.swing.JPanel {
         if (tableProductos.getColumnCount() != 9) return;
         int disponible = scroll.getViewport().getExtentSize().width;
         if (disponible <= 0) return;
-        // Distribución como en el ajuste manual aprobado: Descripción recibe
-        // el mayor ancho; Seleccionar y Código se mantienen compactas.
-        int[] porcentajes = {9, 7, 15, 10, 25, 10, 10, 9, 5};
+        // Anchos visibles reales: no alcanza con cambiar preferredWidth,
+        // porque JTable puede conservar el ancho anterior de cada columna.
+        // Orden: Seleccionar, Código, Nombre, Rubro, Descripción,
+        // Precio Costo, Precio Venta, Unidad de Medida, Stock Actual.
+        int[] porcentajes = {10, 7, 14, 9, 21, 10, 10, 12, 7};
         javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
+        int asignado = 0;
         for (int i = 0; i < porcentajes.length; i++) {
-            cm.getColumn(i).setMinWidth(40);
-            cm.getColumn(i).setMaxWidth(Integer.MAX_VALUE);
-            cm.getColumn(i).setPreferredWidth(Math.max(45, disponible * porcentajes[i] / 100));
+            javax.swing.table.TableColumn columna = cm.getColumn(i);
+            columna.setMinWidth(40);
+            columna.setMaxWidth(Integer.MAX_VALUE);
+            int ancho = i == porcentajes.length - 1
+                    ? disponible - asignado
+                    : disponible * porcentajes[i] / 100;
+            ancho = Math.max(40, ancho);
+            columna.setPreferredWidth(ancho);
+            columna.setWidth(ancho);
+            asignado += ancho;
         }
     }
 
