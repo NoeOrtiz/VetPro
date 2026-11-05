@@ -214,21 +214,13 @@ public final class PaginacionTablas {
 
     private void buscar() {
         pagina = 0;
-        SwingUtilities.invokeLater(this::actualizar);
+        SwingUtilities.invokeLater(() -> {
+            limpiarSeleccion();
+            actualizar();
+        });
     }
 
-    private void irA(int destino) {
-        int capacidad = filasPorPagina();
-        int total = 0;
-        TableModel modelo = tabla.getModel();
-        String consulta = busqueda.getText().trim().toLowerCase(Locale.ROOT);
-        for (int fila = 0; fila < modelo.getRowCount(); fila++) {
-            if (consulta.isEmpty() || coincide(modelo, fila, consulta)) total++;
-        }
-        int ultimaPagina = Math.max(0, (total - 1) / capacidad);
-        int nuevaPagina = Math.max(0, Math.min(destino, ultimaPagina));
-        if (nuevaPagina == pagina) return;
-
+    private void limpiarSeleccion() {
         // La casilla pertenece al modelo completo, no al filtro de la página.
         // Desmarcarla ANTES de navegar evita que reaparezca al regresar.
         if (tabla.isEditing() && tabla.getCellEditor() != null) {
@@ -250,6 +242,21 @@ public final class PaginacionTablas {
             }
         }
         tabla.clearSelection();
+    }
+
+    private void irA(int destino) {
+        int capacidad = filasPorPagina();
+        int total = 0;
+        TableModel modelo = tabla.getModel();
+        String consulta = busqueda.getText().trim().toLowerCase(Locale.ROOT);
+        for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+            if (consulta.isEmpty() || coincide(modelo, fila, consulta)) total++;
+        }
+        int ultimaPagina = Math.max(0, (total - 1) / capacidad);
+        int nuevaPagina = Math.max(0, Math.min(destino, ultimaPagina));
+        if (nuevaPagina == pagina) return;
+
+        limpiarSeleccion();
         pagina = nuevaPagina;
         actualizar();
     }
