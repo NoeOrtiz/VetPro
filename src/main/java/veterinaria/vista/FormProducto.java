@@ -70,7 +70,7 @@ public class FormProducto extends javax.swing.JPanel {
         if (tableProductos instanceof veterinaria.vista.table.AutoTable) {
             ((veterinaria.vista.table.AutoTable) tableProductos).setAjustarAnchoAutomaticamente(false);
         }
-        tableProductos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        tableProductos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         scroll.getViewport().addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override public void componentResized(java.awt.event.ComponentEvent e) {
                 distribuirColumnasProductos();
@@ -1083,29 +1083,10 @@ public class FormProducto extends javax.swing.JPanel {
         if (tableProductos.getColumnCount() != 9) return;
         int disponible = scroll.getViewport().getExtentSize().width;
         if (disponible <= 0) return;
-        // No comprimir importes ni textos por debajo de un mínimo legible.
-        // En ventanas estrechas se habilita desplazamiento horizontal.
-        int[] minimos = {78, 65, 145, 90, 185, 105, 105, 110, 85};
-        int[] pesosExtra = {0, 0, 3, 1, 6, 0, 0, 1, 0};
-        int base = 0;
-        int sumaPesos = 0;
-        for (int n : minimos) base += n;
-        for (int p : pesosExtra) sumaPesos += p;
-        int extra = Math.max(0, disponible - base);
+        int[] porcentajes = {7, 7, 17, 10, 23, 10, 10, 10, 6};
         javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
-        int[] adicionales = new int[minimos.length];
-        int asignado = 0;
-        for (int i = 0; i < minimos.length; i++) {
-            adicionales[i] = extra * pesosExtra[i] / sumaPesos;
-            asignado += adicionales[i];
-        }
-        adicionales[4] += extra - asignado;
-        for (int i = 0; i < minimos.length; i++) {
-            int agregado = adicionales[i];
-            int ancho = minimos[i] + agregado;
-            javax.swing.table.TableColumn col = cm.getColumn(i);
-            col.setPreferredWidth(ancho);
-            col.setWidth(ancho);
+        for (int i = 0; i < porcentajes.length; i++) {
+            cm.getColumn(i).setPreferredWidth(Math.max(45, disponible * porcentajes[i] / 100));
         }
     }
 
