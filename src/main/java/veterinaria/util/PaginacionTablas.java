@@ -206,10 +206,7 @@ public final class PaginacionTablas {
         for (int columna : columnas) {
             if (columna >= 0 && columna < modelo.getColumnCount()) {
                 Object valor = modelo.getValueAt(fila, columna);
-                if (valor != null) {
-                    String texto = valor.toString().trim().toLowerCase(Locale.ROOT);
-                    if (busquedaPorPrefijo ? texto.startsWith(consulta) : texto.contains(consulta)) return true;
-                }
+                if (ManejoTablas.coincideBusqueda(valor, consulta, busquedaPorPrefijo)) return true;
             }
         }
         return false;
