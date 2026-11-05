@@ -1082,16 +1082,14 @@ public class FormProducto extends javax.swing.JPanel {
 
     private void distribuirColumnasProductos() {
         javax.swing.table.TableColumnModel cm = tableProductos.getColumnModel();
-        // La columna ID sigue existiendo en el TableColumnModel, aunque
-        // ManejoTablas.ocultarColumnaId le asigne ancho cero.
-        // Hay diez columnas de modelo y nueve visibles.
-        if (cm.getColumnCount() != 10) return;
+        // El modelo contiene 11 columnas; ID (modelo 1) permanece oculta.
+        if (cm.getColumnCount() != 11) return;
         int disponible = scroll.getViewport().getExtentSize().width;
         if (disponible <= 0) return;
 
-        // Seleccionar, Código, Nombre, Rubro, Descripción, Precio Costo,
-        // Precio Venta, Unidad de Medida y Stock Actual.
-        int[] porcentajes = {9, 7, 17, 9, 25, 9, 9, 10, 5};
+        // Anchos proporcionales para las 10 columnas visibles, incluidos
+        // Stock y Estado. Se recalculan al cambiar el ancho del viewport.
+        int[] porcentajes = {9, 6, 15, 8, 21, 9, 9, 10, 6, 7};
         int asignado = 0;
         int visible = 0;
         for (int i = 0; i < cm.getColumnCount(); i++) {
@@ -1106,13 +1104,18 @@ public class FormProducto extends javax.swing.JPanel {
             int ancho = visible == porcentajes.length - 1
                     ? disponible - asignado
                     : disponible * porcentajes[visible] / 100;
-            columna.setMinWidth(40);
+            columna.setMinWidth(35);
             columna.setMaxWidth(Integer.MAX_VALUE);
             columna.setPreferredWidth(ancho);
             columna.setWidth(ancho);
             asignado += ancho;
             visible++;
         }
+        // Solo abreviamos encabezados visuales; los nombres del modelo
+        // permanecen intactos para búsquedas, reportes y lógica existente.
+        cm.getColumn(8).setHeaderValue("Unidad");
+        cm.getColumn(9).setHeaderValue("Stock");
+        tableProductos.getTableHeader().repaint();
     }
 
     private void cargarProductosEnTabla() {
@@ -1139,7 +1142,7 @@ public class FormProducto extends javax.swing.JPanel {
         // Lo ideal es que modeloProductos sea un atributo de tu clase FormProducto.
         if (modeloProductos == null) {
             String[] columnas = {
-                "Seleccionar", "ID", "Código", "Nombre", "Rubro", "Descripción", "Precio Costo", "Precio Venta", "Unidad de Medida", "Stock Actual"
+                "Seleccionar", "ID", "Código", "Nombre", "Rubro", "Descripción", "Precio Costo", "Precio Venta", "Unidad de Medida", "Stock Actual", "Estado"
             };
 
             modeloProductos = operarTablas.configurarTablaGenerica(tableProductos, columnas, (productoBucle, columnIndex) -> {
@@ -1191,6 +1194,8 @@ public class FormProducto extends javax.swing.JPanel {
                         return unidadMostrar;
                     case 9:
                         return stockMostrar;
+                    case 10:
+                        return productoBucle.getEstado();
                     default:
                         return null;
                 }
