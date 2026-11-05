@@ -154,6 +154,14 @@ public class ManejoTablas {
         });
     }
 
+    /** Comparación reutilizable para filtros de texto, sin instalar listeners ni sorters. */
+    public static boolean coincideBusqueda(Object valor, String consulta, boolean desdeInicio) {
+        if (valor == null || consulta == null) return false;
+        String texto = valor.toString().trim().toLowerCase(java.util.Locale.ROOT);
+        String criterio = consulta.trim().toLowerCase(java.util.Locale.ROOT);
+        return desdeInicio ? texto.startsWith(criterio) : texto.contains(criterio);
+    }
+
     public static void aplicarFiltroYResaltado(JTable table, JTextField txtBusqueda, List<Integer> columnasObjetivo) {
         if (table == null || txtBusqueda == null || columnasObjetivo == null) {
             return;
