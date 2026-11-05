@@ -210,7 +210,39 @@ public final class PaginacionTablas {
     }
 
     private void irA(int destino) {
-        pagina = destino;
+        int capacidad = filasPorPagina();
+        int total = 0;
+        TableModel modelo = tabla.getModel();
+        String consulta = busqueda.getText().trim().toLowerCase(Locale.ROOT);
+        for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+            if (consulta.isEmpty() || coincide(modelo, fila, consulta)) total++;
+        }
+        int ultimaPagina = Math.max(0, (total - 1) / capacidad);
+        int nuevaPagina = Math.max(0, Math.min(destino, ultimaPagina));
+        if (nuevaPagina == pagina) return;
+
+        // La casilla pertenece al modelo completo, no al filtro de la página.
+        // Desmarcarla ANTES de navegar evita que reaparezca al regresar.
+        if (tabla.isEditing() && tabla.getCellEditor() != null) {
+            tabla.getCellEditor().stopCellEditing();
+        }
+        int columnaSeleccion = -1;
+        for (int col = 0; col < modelo.getColumnCount(); col++) {
+            if (modelo.getColumnClass(col) == Boolean.class
+                    && "Seleccionar".equalsIgnoreCase(modelo.getColumnName(col))) {
+                columnaSeleccion = col;
+                break;
+            }
+        }
+        if (columnaSeleccion >= 0) {
+            for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+                if (Boolean.TRUE.equals(modelo.getValueAt(fila, columnaSeleccion))) {
+                    modelo.setValueAt(Boolean.FALSE, fila, columnaSeleccion);
+                }
+            }
+        }
+        tabla.clearSelection();
+        pagina = nuevaPagina;
         actualizar();
     }
 }
