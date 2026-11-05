@@ -1089,7 +1089,7 @@ public class FormProducto extends javax.swing.JPanel {
 
         // Anchos proporcionales para las 10 columnas visibles, incluidos
         // Stock y Estado. Se recalculan al cambiar el ancho del viewport.
-        int[] porcentajes = {9, 6, 15, 8, 21, 9, 9, 10, 6, 7};
+        int[] porcentajes = {9, 6, 15, 8, 25, 9, 9, 8, 5, 6};
         int asignado = 0;
         int visible = 0;
         for (int i = 0; i < cm.getColumnCount(); i++) {
