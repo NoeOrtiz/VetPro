@@ -357,10 +357,10 @@ public class ManejoTablas {
                     String antes = texto.substring(0, indice);
                     String coincidencia = texto.substring(indice, indice + query.length());
                     String despues = texto.substring(indice + query.length());
-                    setText("<html>" + escapeHtml(antes)
+                    setText("<html><span style='white-space:nowrap'>" + escapeHtml(antes)
                             + "<span style='color:#FFA500; font-weight:bold;'>"
                             + escapeHtml(coincidencia) + "</span>"
-                            + escapeHtml(despues) + "</html>");
+                            + escapeHtml(despues) + "</span></html>");
                 } else {
                     setText(texto);
                 }
