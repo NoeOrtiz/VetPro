@@ -14,9 +14,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import com.formdev.flatlaf.extras.FlatSVGIcon;
-import java.awt.Color;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
@@ -77,10 +74,6 @@ public class Menu extends JPanel {
             }
         }
         lightDarkMode.setMenuFull(menuFull);
-        if (botonSalir != null) {
-            botonSalir.setText(menuFull ? "Cerrar sesión" : "");
-            botonSalir.setHorizontalAlignment(menuFull ? JButton.LEFT : JButton.CENTER);
-        }
         toolBarAccentColor.setMenuFull(menuFull);
     }
 
@@ -148,18 +141,6 @@ public class Menu extends JPanel {
         add(header);
         // El perfil se muestra en el Home; el menú conserva únicamente navegación.
         add(scroll);
-        botonSalir = new JButton("Cerrar sesión");
-        FlatSVGIcon salirIcono = new FlatSVGIcon("veterinaria/menu/icon/14.svg");
-        FlatSVGIcon.ColorFilter salirFiltro = new FlatSVGIcon.ColorFilter();
-        salirFiltro.add(Color.decode("#969696"),
-                FlatUIUtils.getUIColor("Menu.icon.lightColor", Color.GRAY),
-                FlatUIUtils.getUIColor("Menu.icon.darkColor", Color.GRAY));
-        salirIcono.setColorFilter(salirFiltro);
-        botonSalir.setIcon(salirIcono);
-        botonSalir.putClientProperty(FlatClientProperties.STYLE,
-                "background:$Menu.background;foreground:$Menu.foreground;focusWidth:0;borderWidth:0;arc:10;iconTextGap:10");
-        botonSalir.addActionListener(e -> runEvent(14, 0));
-        add(botonSalir);
         add(lightDarkMode);
         add(toolBarAccentColor);
     }
@@ -171,7 +152,6 @@ public class Menu extends JPanel {
     private JScrollPane scroll;
     private JPanel panelMenu;
     private LightDarkMode lightDarkMode;
-    private JButton botonSalir;
     private ToolBarAccentColor toolBarAccentColor;
 
     private void createMenu() {
@@ -183,9 +163,7 @@ public class Menu extends JPanel {
             } else {
                 MenuItem menuItem = new MenuItem(this, menuItems[i], index, events);
                 aplicarPermisosMenu(menuItem, index);
-                if (index != 14) { // Salir tiene botón fijo al pie del menú.
-                    panelMenu.add(menuItem);
-                }
+                panelMenu.add(menuItem);
                 index++;
             }
         }
@@ -487,17 +465,12 @@ public class Menu extends JPanel {
                 int ldHeight = lightDarkMode.getPreferredSize().height;
                 int ldx = x + ldgap;
                 int ldy = y + height - ldHeight - ldgap - accentColorHeight;
-                int salirHeight = UIScale.scale(40);
-                int salirGap = UIScale.scale(8);
 
                 int menux = x;
                 int menuy = y + iconHeight + gap;
                 int menuWidth = width;
                 int menuHeight = height - (iconHeight + gap) - (ldHeight + ldgap * 2) - (accentColorHeight);
-                int scrollBottom = ldy - salirHeight - salirGap * 2;
-                scroll.setBounds(menux, menuy, menuWidth, Math.max(0, scrollBottom - menuy));
-                botonSalir.setBounds(x + ldgap, ldy - salirHeight - salirGap,
-                        ldWidth, salirHeight);
+                scroll.setBounds(menux, menuy, menuWidth, menuHeight - lightDarkMode.getPreferredSize().height);
 
                 lightDarkMode.setBounds(ldx, ldy, ldWidth, ldHeight);
 
