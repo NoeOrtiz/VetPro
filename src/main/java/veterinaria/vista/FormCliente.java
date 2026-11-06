@@ -82,6 +82,7 @@ public class FormCliente extends javax.swing.JPanel {
             cargarClientesEnTabla();
         });
         ocultarColumnaIdCliente();
+        instalarPaginacionCompartida();
         // List<Integer> indicesColumnasConTooltip = Arrays.asList(COL_DNI, COL_DIRECCION, COL_EMAIL, COL_TELEFONO, COL_RAZON_SOCIAL);
         //operarTablas.mouseTooltipText(tableClientes, indicesColumnasConTooltip);
         jpDatosPersonales.setVisible(false);
@@ -89,17 +90,38 @@ public class FormCliente extends javax.swing.JPanel {
 
     @SuppressWarnings("unchecked")
 
+    private veterinaria.util.PaginacionTablas paginacionCompartida;
+
+    private void instalarPaginacionCompartida() {
+        // El contenedor se instala fuera del código generado por NetBeans.
+        javax.swing.JPanel contenedor = new javax.swing.JPanel(new java.awt.BorderLayout());
+        ((javax.swing.GroupLayout) panelLista.getLayout()).replace(scroll, contenedor);
+        contenedor.add(scroll, java.awt.BorderLayout.CENTER);
+        paginacionCompartida = veterinaria.util.GestorTablas.paginar(
+                tableClientes, txtBusqueda,
+                new veterinaria.util.GestorTablas.Configuracion(
+                        new int[]{2, 3, 4, 6, 8, 9}, new int[]{2, 3, 4, 6, 8, 9}, 15));
+        paginacionCompartida.activarBusquedaPorPrefijo();
+        contenedor.add(paginacionCompartida.getControles(), java.awt.BorderLayout.SOUTH);
+        txtBusqueda.setLayout(new java.awt.BorderLayout());
+        txtBusqueda.add(paginacionCompartida.getBotonLimpiar(), java.awt.BorderLayout.EAST);
+        tableClientes.getColumnModel().getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
+        paginacionCompartida.actualizar();
+    }
+
     private void initListeners() {
         // Escucha cuando cambia el combo de estado superior para recargar la tabla
         jcbEstadoCliente.addActionListener(e -> cargarClientesEnTabla());
         // Columnas para filtro/búsqueda (Nombre, Apellido, DNI, Email, Razón Social, CUIT)
-        List<Integer> columnasObjetivo = Arrays.asList(COL_NOMBRE, COL_APELLIDO, COL_DNI, COL_EMAIL, COL_RAZON_SOCIAL, COL_CUIT);
-        operarTablas.aplicarFiltroYResaltado(tableClientes, txtBusqueda, columnasObjetivo);
+        // La búsqueda y la selección se administran desde GestorTablas.
+        veterinaria.util.GestorTablas.instalarSeleccion(tableClientes, () -> {
+            boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(tableClientes);
+            btnEditar.setEnabled(seleccion);
+            btnEliminar.setEnabled(seleccion);
+            btnImprimir.setVisible(seleccion);
+        });
 
-        // Visibilidad del botón Imprimir según selección (checkbox col 0)
-        tableClientes.getModel().addTableModelListener(e -> {
-            if (e.getType() == TableModelEvent.UPDATE && (e.getColumn() == 0 || e.getColumn() == TableModelEvent.ALL_COLUMNS)) {
-                SwingUtilities.invokeLater(this::actualizarBotonImprimir);
             }
         });
 
@@ -935,6 +957,7 @@ public class FormCliente extends javax.swing.JPanel {
 
         instalarDegradadoSeleccionClientes();
         actualizarTabla();
+        if (paginacionCompartida != null) paginacionCompartida.actualizar();
     }
 
     /**
@@ -949,6 +972,8 @@ public class FormCliente extends javax.swing.JPanel {
                 columns.getColumn(col).setCellRenderer(new TableGradientCell());
             }
         }
+        columns.getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         tableClientes.repaint();
     }
 
