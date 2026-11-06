@@ -1,6 +1,7 @@
 package veterinaria.vista;
 
 import java.awt.*;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 import java.awt.event.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -72,10 +73,10 @@ public class FormBienvenida extends JPanel {
 
         JPanel accesos = new JPanel(new GridLayout(2, 2, 16, 16));
         accesos.setOpaque(false);
-        accesos.add(acceso("Nueva Consulta", "Registrar una nueva atención", "✚", () -> abrir("FormConsulta", new FormConsulta())));
-        accesos.add(acceso("Agenda / Calendario", "Turnos y programación", "▦", () -> abrir("FormTurnosPeluqueria", new FormTurnosPeluqueria())));
-        accesos.add(acceso("Pacientes (Fichas)", "Gestionar mascotas", "♧", () -> abrir("FormMascota", new FormMascota())));
-        accesos.add(acceso("Inventario / Caja", "Productos y existencias", "▤", () -> abrir("FormProducto", new FormProducto())));
+        accesos.add(acceso("Nueva Consulta", "Registrar una nueva atención", "veterinaria/menu/icon/3.svg", () -> abrir("FormConsulta", new FormConsulta())));
+        accesos.add(acceso("Agenda / Calendario", "Turnos y programación", "veterinaria/menu/icon/10.svg", () -> abrir("FormTurnosPeluqueria", new FormTurnosPeluqueria())));
+        accesos.add(acceso("Pacientes (Fichas)", "Gestionar mascotas", "veterinaria/menu/icon/3.svg", () -> abrir("FormMascota", new FormMascota())));
+        accesos.add(acceso("Inventario / Caja", "Productos y existencias", "veterinaria/menu/icon/6.svg", () -> abrir("FormProducto", new FormProducto())));
         accesos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 310));
         contenido.add(accesos);
         contenido.add(Box.createVerticalStrut(18));
@@ -143,8 +144,8 @@ public class FormBienvenida extends JPanel {
                 new EmptyBorder(20, 20, 20, 20)));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setFocusPainted(false);
-        JLabel icono = new JLabel(simbolo, SwingConstants.CENTER);
-        icono.setFont(icono.getFont().deriveFont(Font.BOLD, 38f));
+        JLabel icono = new JLabel(new FlatSVGIcon(simbolo, 2.0f), SwingConstants.CENTER);
+        icono.setPreferredSize(new Dimension(60, 64));
         icono.setForeground(accent);
         b.add(icono, BorderLayout.WEST);
         JPanel textos = new JPanel();
