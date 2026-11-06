@@ -105,6 +105,9 @@ public class FormProducto extends javax.swing.JPanel {
 
         jpDatosProducto.setVisible(false);
         cargarProductosEnTabla();
+        // El checkbox también pinta el degradado de la fila seleccionada.
+        tableProductos.getColumnModel().getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         // Crear la paginación DESPUÉS de configurar el modelo definitivo.
         // Si se crea antes, el sorter puede conservar el modelo vacío inicial.
         paginacionProductos = veterinaria.util.GestorTablas.paginar(
