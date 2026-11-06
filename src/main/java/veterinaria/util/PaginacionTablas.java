@@ -27,6 +27,7 @@ public final class PaginacionTablas {
     private final JTable tabla;
     private final JTextField busqueda;
     private final int[] columnas;
+    private final int[] columnasResaltado;
     private final int tamano;
     private boolean adaptable;
     private boolean busquedaPorPrefijo;
@@ -43,6 +44,11 @@ public final class PaginacionTablas {
     private boolean actualizando;
 
     public PaginacionTablas(JTable tabla, JTextField busqueda, int tamano, int... columnasModelo) {
+        this(tabla, busqueda, tamano, columnasModelo, columnasModelo);
+    }
+
+    public PaginacionTablas(JTable tabla, JTextField busqueda, int tamano,
+            int[] columnasModelo, int[] columnasResaltado) {
         if (tabla == null || busqueda == null || tamano < 1) {
             throw new IllegalArgumentException("Tabla, búsqueda y tamaño válidos son obligatorios");
         }
@@ -50,6 +56,7 @@ public final class PaginacionTablas {
         this.busqueda = busqueda;
         this.tamano = tamano;
         this.columnas = Arrays.copyOf(columnasModelo, columnasModelo.length);
+        this.columnasResaltado = Arrays.copyOf(columnasResaltado, columnasResaltado.length);
         primera.setToolTipText("Primera página");
         anterior.setToolTipText("Página anterior");
         siguiente.setToolTipText("Página siguiente");
@@ -202,16 +209,16 @@ public final class PaginacionTablas {
             // Comportamiento original para el resto de las pantallas.
             // Solo las que optan expresamente preservan sus renderizadores.
             if (!preservarRenderizadores) {
-                ManejoTablas.resaltarBusqueda(tabla, busqueda.getText(), indices());
+                ManejoTablas.resaltarBusqueda(tabla, busqueda.getText(), indicesResaltado());
             }
         } finally {
             actualizando = false;
         }
     }
 
-    private List<Integer> indices() {
+    private List<Integer> indicesResaltado() {
         List<Integer> lista = new ArrayList<>();
-        for (int col : columnas) lista.add(col);
+        for (int col : columnasResaltado) lista.add(col);
         return lista;
     }
 
