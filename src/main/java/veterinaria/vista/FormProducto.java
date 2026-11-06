@@ -1235,23 +1235,10 @@ public class FormProducto extends javax.swing.JPanel {
         actualizarTabla();
     }
 
-    private void actualizarTabla() {     // Método para asegurar solamente selección de 1 fila para operar.
-        if (listenerSeleccionUnicaInstalado) {
-            return;
-        }
-
-        tableProductos.getModel().addTableModelListener(e -> {
-            if (e.getColumn() == 0) {
-                int rowCount = tableProductos.getRowCount();
-                for (int i = 0; i < rowCount; i++) {
-                    Object valor = tableProductos.getValueAt(i, 0);
-                    boolean seleccionado = valor instanceof Boolean && (Boolean) valor;
-                    if (i != e.getFirstRow() && seleccionado) {
-                        tableProductos.setValueAt(false, i, 0);
-                    }
-                }
-            }
-        });
+    private void actualizarTabla() {
+        // ModeloTablaGenerico ya garantiza una sola casilla seleccionada.
+        // No agregar otro TableModelListener: fireTableDataChanged() utiliza
+        // firstRow=0 y lastRow=Integer.MAX_VALUE, no una fila seleccionada.
         listenerSeleccionUnicaInstalado = true;
     }
 
