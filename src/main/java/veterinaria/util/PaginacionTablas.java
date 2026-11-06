@@ -221,15 +221,14 @@ public final class PaginacionTablas {
     }
 
     private void limpiarSeleccion() {
-        // La casilla pertenece al modelo completo, no al filtro de la página.
-        // Desmarcarla ANTES de navegar evita que reaparezca al regresar.
+        // La seleccion se guarda en el modelo completo, incluso en filas filtradas.
         if (tabla.isEditing() && tabla.getCellEditor() != null) {
             tabla.getCellEditor().stopCellEditing();
         }
+        TableModel modelo = tabla.getModel();
         int columnaSeleccion = -1;
         for (int col = 0; col < modelo.getColumnCount(); col++) {
-            if (modelo.getColumnClass(col) == Boolean.class
-                    && "Seleccionar".equalsIgnoreCase(modelo.getColumnName(col))) {
+            if ("Seleccionar".equalsIgnoreCase(modelo.getColumnName(col))) {
                 columnaSeleccion = col;
                 break;
             }
@@ -242,6 +241,7 @@ public final class PaginacionTablas {
             }
         }
         tabla.clearSelection();
+        tabla.repaint();
     }
 
     private void irA(int destino) {
