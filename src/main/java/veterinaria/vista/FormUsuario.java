@@ -69,6 +69,7 @@ public class FormUsuario extends javax.swing.JPanel {
         initListeners();
 
         actualizarForm();
+        instalarPaginacionCompartida();
 
         // Botones de impresión (patrón similar a FormHospitalizaciones)
         btnImprimir.setVisible(
@@ -663,6 +664,26 @@ public class FormUsuario extends javax.swing.JPanel {
         jpCamposFormularioUsuario.getAccessibleContext().setAccessibleDescription("");
     }// </editor-fold>//GEN-END:initComponents
 
+    private veterinaria.util.PaginacionTablas paginacionCompartida;
+
+    private void instalarPaginacionCompartida() {
+        // El contenedor se instala fuera del código generado por NetBeans.
+        javax.swing.JPanel contenedor = new javax.swing.JPanel(new java.awt.BorderLayout());
+        ((javax.swing.GroupLayout) jpListaUsuarios.getLayout()).replace(scroll, contenedor);
+        contenedor.add(scroll, java.awt.BorderLayout.CENTER);
+        paginacionCompartida = veterinaria.util.GestorTablas.paginar(
+                table, txtBusqueda,
+                new veterinaria.util.GestorTablas.Configuracion(
+                        new int[]{1, 2, 3, 6, 7}, new int[]{1, 2, 3, 6, 7}, 15));
+        paginacionCompartida.activarBusquedaPorPrefijo();
+        contenedor.add(paginacionCompartida.getControles(), java.awt.BorderLayout.SOUTH);
+        txtBusqueda.setLayout(new java.awt.BorderLayout());
+        txtBusqueda.add(paginacionCompartida.getBotonLimpiar(), java.awt.BorderLayout.EAST);
+        table.getColumnModel().getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
+        paginacionCompartida.actualizar();
+    }
+
     private void initListeners() {
         txtNombre.getDocument().addDocumentListener(new PersonalDataListener());
         txtApellido.getDocument().addDocumentListener(new PersonalDataListener());
@@ -682,13 +703,14 @@ public class FormUsuario extends javax.swing.JPanel {
         txtUsuario.setEnabled(false);
         habilitarDatosDeCuenta(false);
 
-        List<Integer> columnasObjetivo = Arrays.asList(1, 2, 3, 6, 7);
-        operarTablas.aplicarFiltroYResaltado(table, txtBusqueda, columnasObjetivo);
+        // La búsqueda y la selección se administran desde GestorTablas.
+        veterinaria.util.GestorTablas.instalarSeleccion(table, () -> {
+            boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(table);
+            btnEditar.setEnabled(seleccion);
+            btnEliminar.setEnabled(seleccion);
+            btnImprimir.setVisible(seleccion);
+        });
 
-        // Visibilidad del botón Imprimir según selección (checkbox col 0)
-        table.getModel().addTableModelListener(e -> {
-            if (e.getType() == TableModelEvent.UPDATE && (e.getColumn() == 0 || e.getColumn() == TableModelEvent.ALL_COLUMNS)) {
-                SwingUtilities.invokeLater(this::actualizarBotonImprimir);
             }
         });
 
@@ -1409,6 +1431,7 @@ public class FormUsuario extends javax.swing.JPanel {
             modelo.addRow(fila);
         }
         actualizarBotonImprimir();
+        if (paginacionCompartida != null) paginacionCompartida.actualizar();
     }
 
     private void habilitarCamposPersonales(boolean habilitar) {
