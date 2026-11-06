@@ -76,13 +76,13 @@ public class FormCliente extends javax.swing.JPanel {
         initCombos();
         SwingUtilities.invokeLater(() -> {
             cargarClientesEnTabla();
+            instalarPaginacionCompartida();
         });
         SwingUtilities.invokeLater(() -> {
             jcbEstadoCliente.setSelectedItem(EstadoCliente.ACTIVO.getDescripcion()); // Arranca en Activo por defecto
             cargarClientesEnTabla();
         });
         ocultarColumnaIdCliente();
-        instalarPaginacionCompartida();
         // List<Integer> indicesColumnasConTooltip = Arrays.asList(COL_DNI, COL_DIRECCION, COL_EMAIL, COL_TELEFONO, COL_RAZON_SOCIAL);
         //operarTablas.mouseTooltipText(tableClientes, indicesColumnasConTooltip);
         jpDatosPersonales.setVisible(false);
