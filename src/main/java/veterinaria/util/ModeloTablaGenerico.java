@@ -33,8 +33,14 @@ public class ModeloTablaGenerico<T> extends AbstractTableModel {
 
     /** Reinicia todas las casillas en una sola notificacion al JTable. */
     public void limpiarSelecciones() {
-        java.util.Arrays.fill(selecciones, false);
-        fireTableDataChanged();
+        // No anunciar un cambio de TODOS los datos: TableRowSorter puede
+        // reconstruir la vista y restaurar la seleccion durante la limpieza.
+        for (int fila = 0; fila < selecciones.length; fila++) {
+            if (selecciones[fila]) {
+                selecciones[fila] = false;
+                fireTableCellUpdated(fila, 0);
+            }
+        }
     }
 
     public T obtenerObjetoEn(int rowIndex) {
