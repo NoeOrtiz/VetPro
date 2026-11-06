@@ -1,7 +1,6 @@
 package veterinaria.util;
 
 import javax.swing.JTable;
-import javax.swing.SwingUtilities;
 import javax.swing.table.TableModel;
 
 /**
@@ -15,7 +14,7 @@ public final class GestorSeleccionTabla {
     public static void limpiar(JTable tabla) {
         if (tabla == null || tabla.getModel() == null) return;
         if (tabla.isEditing() && tabla.getCellEditor() != null) {
-            tabla.getCellEditor().stopCellEditing();
+            tabla.getCellEditor().cancelCellEditing();
         }
         TableModel modelo = tabla.getModel();
         int columna = columnaSeleccion(modelo);
