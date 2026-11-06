@@ -67,7 +67,11 @@ public final class PaginacionTablas {
         anterior.addActionListener(e -> irA(pagina - 1));
         siguiente.addActionListener(e -> irA(pagina + 1));
         ultima.addActionListener(e -> irA(Integer.MAX_VALUE));
-        limpiar.addActionListener(e -> busqueda.setText(""));
+        limpiar.addActionListener(e -> {
+            limpiarSeleccion();
+            busqueda.setText("");
+            actualizar();
+        });
         limpiar.setVisible(false);
         busqueda.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { buscar(); }
@@ -220,7 +224,7 @@ public final class PaginacionTablas {
         });
     }
 
-    private void limpiarSeleccion() {
+    public void limpiarSeleccion() {
         // La seleccion se guarda en el modelo completo, incluso en filas filtradas.
         if (tabla.isEditing() && tabla.getCellEditor() != null) {
             tabla.getCellEditor().stopCellEditing();
