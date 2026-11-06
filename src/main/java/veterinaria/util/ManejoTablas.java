@@ -302,20 +302,29 @@ public class ManejoTablas {
     }
 
     private static void instalarRendererBusqueda(JTable table, String consulta, List<Integer> columnas) {
-        // Un renderer por columna evita que los estilos personalizados de la tabla
-        // sustituyan el resaltado al buscar.
+        // Conservar el renderer ORIGINAL de cada columna. Poner null al
+        // limpiar reemplazaba un estilo personalizado por el renderer default.
+        final String key = "vetpro.rendererBusqueda.original";
+        @SuppressWarnings("unchecked")
+        java.util.Map<javax.swing.table.TableColumn, javax.swing.table.TableCellRenderer> originales =
+                (java.util.Map<javax.swing.table.TableColumn, javax.swing.table.TableCellRenderer>)
+                        table.getClientProperty(key);
+        if (originales == null) {
+            originales = new java.util.IdentityHashMap<>();
+            table.putClientProperty(key, originales);
+        }
         for (int i = 0; i < table.getColumnModel().getColumnCount(); i++) {
             javax.swing.table.TableColumn columna = table.getColumnModel().getColumn(i);
-            int indiceModelo = columna.getModelIndex();
-            if (columnas != null && columnas.contains(indiceModelo)) {
-                // Nunca descartar el renderer de FlatLaf cuando no hay búsqueda.
-                if (consulta.isEmpty()) {
-                    if (columna.getCellRenderer() instanceof ResaltarCoincidenciasRenderer) {
-                        columna.setCellRenderer(null);
-                    }
-                } else {
-                    columna.setCellRenderer(new ResaltarCoincidenciasRenderer(consulta, columnas));
+            if (columnas == null || !columnas.contains(columna.getModelIndex())) continue;
+            if (consulta.isEmpty()) {
+                if (columna.getCellRenderer() instanceof ResaltarCoincidenciasRenderer) {
+                    columna.setCellRenderer(originales.remove(columna));
                 }
+            } else {
+                if (!(columna.getCellRenderer() instanceof ResaltarCoincidenciasRenderer)) {
+                    originales.put(columna, columna.getCellRenderer());
+                }
+                columna.setCellRenderer(new ResaltarCoincidenciasRenderer(consulta, columnas));
             }
         }
         table.repaint();
