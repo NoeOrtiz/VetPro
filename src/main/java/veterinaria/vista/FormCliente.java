@@ -122,19 +122,6 @@ public class FormCliente extends javax.swing.JPanel {
             btnImprimir.setVisible(seleccion);
         });
 
-            }
-        });
-
-        // Asegurar selección única en checkbox
-        operarTablas.asegurarSeleccionUnica(tableClientes);
-
-        // Click en fila => marcar automáticamente el checkbox
-        tableClientes.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                seleccionarFilaDesdeClick(evt);
-            }
-        });
 
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
 
