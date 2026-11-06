@@ -42,6 +42,7 @@ public final class PaginacionTablas {
     private final JButton limpiar = new JButton("×");
     private int pagina;
     private boolean actualizando;
+    private boolean limpiandoBusqueda;
 
     public PaginacionTablas(JTable tabla, JTextField busqueda, int tamano, int... columnasModelo) {
         this(tabla, busqueda, tamano, columnasModelo, columnasModelo);
@@ -151,19 +152,25 @@ public final class PaginacionTablas {
      * de seleccion. No depende de un mouse listener ni del foco del buscador.
      */
     public void limpiarBusqueda() {
-        if (tabla.isEditing() && tabla.getCellEditor() != null) {
-            tabla.getCellEditor().cancelCellEditing();
-        }
-        busqueda.setText("");
-        pagina = 0;
-        GestorTablas.limpiarSeleccion(tabla);
-        actualizar();
-        // Los DocumentListener del buscador programan una actualizacion.
-        // Esta limpieza final se ejecuta despues de esos trabajos pendientes.
-        SwingUtilities.invokeLater(() -> {
-            GestorTablas.limpiarSeleccion(tabla);
+        if (limpiandoBusqueda) return;
+        limpiandoBusqueda = true;
+        try {
+            // Un cambio programatico del documento NO debe programar otra
+            // busqueda que compita con esta operacion.
+            if (tabla.isEditing() && tabla.getCellEditor() != null) {
+                tabla.getCellEditor().cancelCellEditing();
+            }
+            busqueda.setText("");
+            pagina = 0;
+            GestorSeleccionTabla.limpiar(tabla);
+            actualizar();
+            // setRowFilter puede modificar la seleccion de JTable.
+            // La limpieza visual es siempre el ultimo paso.
+            tabla.clearSelection();
             tabla.repaint();
-        });
+        } finally {
+            limpiandoBusqueda = false;
+        }
     }
 
     public JPanel getControles() { return controles; }
@@ -249,10 +256,14 @@ public final class PaginacionTablas {
     }
 
     private void buscar() {
+        if (limpiandoBusqueda) return;
         pagina = 0;
+        // El documento notifica antes de finalizar su propia modificacion.
         SwingUtilities.invokeLater(() -> {
+            if (limpiandoBusqueda) return;
             limpiarSeleccion();
             actualizar();
+            tabla.clearSelection();
         });
     }
 
