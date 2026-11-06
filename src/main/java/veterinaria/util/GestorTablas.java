@@ -73,14 +73,6 @@ public final class GestorTablas {
                 });
             }
         });
-        // Evita que el resaltado nativo de JTable sobreviva a un
-        // cambio de filtro. El resaltado de VetPRO depende del checkbox.
-        tabla.getSelectionModel().addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting() && columnaSeleccion(tabla) >= 0
-                    && tabla.getSelectedRow() >= 0) {
-                SwingUtilities.invokeLater(tabla::clearSelection);
-            }
-        });
         tabla.getModel().addTableModelListener(e -> SwingUtilities.invokeLater(() -> {
             tabla.repaint();
             if (cambioSeleccion != null) cambioSeleccion.run();
