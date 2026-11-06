@@ -107,8 +107,10 @@ public class FormProducto extends javax.swing.JPanel {
         cargarProductosEnTabla();
         // Crear la paginación DESPUÉS de configurar el modelo definitivo.
         // Si se crea antes, el sorter puede conservar el modelo vacío inicial.
-        paginacionProductos = new veterinaria.util.PaginacionTablas(
-                tableProductos, txtBusqueda, 15, 2, 3);
+        paginacionProductos = veterinaria.util.GestorTablas.paginar(
+                tableProductos, txtBusqueda,
+                new veterinaria.util.GestorTablas.Configuracion(
+                        new int[]{2, 3}, new int[]{2, 3}, 15));
         paginacionProductos.activarBusquedaPorPrefijo();
         panelPaginacionProductos.add(paginacionProductos.getControles(),
                 java.awt.BorderLayout.CENTER);
@@ -122,21 +124,6 @@ public class FormProducto extends javax.swing.JPanel {
         });
         txtBusqueda.setLayout(new java.awt.BorderLayout());
         txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
-        // La limpieza debe actuar también sobre el modelo del checkbox.
-        // Hacerla al pulsar evita depender únicamente del ActionListener del botón.
-        paginacionProductos.getBotonLimpiar().addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override public void mousePressed(java.awt.event.MouseEvent e) {
-                deseleccionarProducto();
-            }
-        });
-        txtBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            private void limpiar() {
-                javax.swing.SwingUtilities.invokeLater(() -> deseleccionarProducto());
-            }
-            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { limpiar(); }
-            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { limpiar(); }
-            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { limpiar(); }
-        });
         paginacionProductos.actualizar();
         instalarDeseleccionAlClicFuera(this);
         // Conservar los renderizadores existentes: ofrecer el contenido íntegro
@@ -1436,55 +1423,18 @@ public class FormProducto extends javax.swing.JPanel {
     }
 
     private void deseleccionarProducto() {
-        veterinaria.util.GestorSeleccionTabla.limpiar(tableProductos);
+        veterinaria.util.GestorTablas.limpiarSeleccion(tableProductos);
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
         btnImprimir.setVisible(false);
     }
 
     private void initListeners() {
-        // SELECCIÓN VISUAL Y HABILITACIÓN DE BOTONES AL CLICKEAR FILA
-        tableProductos.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                int viewRow = tableProductos.rowAtPoint(evt.getPoint());
-                if (viewRow < 0) {
-                    deseleccionarProducto();
-                    return;
-                }
-
-                // Habilita acciones sobre la fila seleccionada
-                btnEditar.setEnabled(true);
-                btnEliminar.setEnabled(true);
-                btnImprimir.setVisible(true);
-
-                // Sincronizar el checkbox del modelo con la selección visual.
-                int filaModelo = tableProductos.convertRowIndexToModel(viewRow);
-                // Un clic sobre el checkbox ya lo procesa el editor de JTable.
-                // No volver a marcarlo cuando el usuario intenta desmarcarlo.
-                if (tableProductos.columnAtPoint(evt.getPoint()) == 0) {
-                    javax.swing.SwingUtilities.invokeLater(() -> {
-                        if (!Boolean.TRUE.equals(tableProductos.getModel().getValueAt(filaModelo, 0))) {
-                            deseleccionarProducto();
-                        }
-                    });
-                    return;
-                }
-                if (tableProductos.getModel().getColumnCount() > 0
-                        && "Seleccionar".equalsIgnoreCase(tableProductos.getModel().getColumnName(0))
-                        && !Boolean.TRUE.equals(tableProductos.getModel().getValueAt(filaModelo, 0))) {
-                    tableProductos.getModel().setValueAt(Boolean.TRUE, filaModelo, 0);
-                }
-                tableProductos.setRowSelectionInterval(viewRow, viewRow);
-
-                // Opcional: Si querés que al hacer clic en cualquier parte de la fila 
-                // se marque el checkbox automáticamente, descomenta estas líneas:
-                /*
-            int modelRow = tableProductos.convertRowIndexToModel(viewRow);
-            ModeloTablaGenerico model = (ModeloTablaGenerico) tableProductos.getModel();
-            model.setValueAt(true, modelRow, 0);
-                 */
-            }
+        veterinaria.util.GestorTablas.instalarSeleccion(tableProductos, () -> {
+            boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(tableProductos);
+            btnEditar.setEnabled(seleccion);
+            btnEliminar.setEnabled(seleccion);
+            btnImprimir.setVisible(seleccion);
         });
 
         jcbEstadoProducto.addActionListener(evt -> cargarProductosEnTabla());
