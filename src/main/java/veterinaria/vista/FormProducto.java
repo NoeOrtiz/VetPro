@@ -122,6 +122,21 @@ public class FormProducto extends javax.swing.JPanel {
         });
         txtBusqueda.setLayout(new java.awt.BorderLayout());
         txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
+        // La limpieza debe actuar también sobre el modelo del checkbox.
+        // Hacerla al pulsar evita depender únicamente del ActionListener del botón.
+        paginacionProductos.getBotonLimpiar().addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mousePressed(java.awt.event.MouseEvent e) {
+                deseleccionarProducto();
+            }
+        });
+        txtBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void limpiar() {
+                javax.swing.SwingUtilities.invokeLater(() -> deseleccionarProducto());
+            }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { limpiar(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { limpiar(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { limpiar(); }
+        });
         paginacionProductos.actualizar();
         instalarDeseleccionAlClicFuera(this);
         // Conservar los renderizadores existentes: ofrecer el contenido íntegro
@@ -1456,7 +1471,13 @@ public class FormProducto extends javax.swing.JPanel {
                 btnEliminar.setEnabled(true);
                 btnImprimir.setVisible(true);
 
-                // Selección visual en la tabla
+                // Sincronizar el checkbox del modelo con la selección visual.
+                int filaModelo = tableProductos.convertRowIndexToModel(viewRow);
+                if (tableProductos.getModel().getColumnCount() > 0
+                        && "Seleccionar".equalsIgnoreCase(tableProductos.getModel().getColumnName(0))
+                        && !Boolean.TRUE.equals(tableProductos.getModel().getValueAt(filaModelo, 0))) {
+                    tableProductos.getModel().setValueAt(Boolean.TRUE, filaModelo, 0);
+                }
                 tableProductos.setRowSelectionInterval(viewRow, viewRow);
 
                 // Opcional: Si querés que al hacer clic en cualquier parte de la fila 
