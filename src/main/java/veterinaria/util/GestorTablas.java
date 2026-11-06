@@ -45,6 +45,9 @@ public final class GestorTablas {
         if (Boolean.TRUE.equals(tabla.getClientProperty(key))) return;
         tabla.putClientProperty(key, Boolean.TRUE);
         tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        // El checkbox del modelo es la unica fuente de verdad.
+        // JTable no debe conservar una seleccion independiente que reactive
+        // el degradado al cambiar el filtro o al limpiar la busqueda.
         tabla.addMouseListener(new MouseAdapter() {
             @Override public void mouseClicked(MouseEvent e) {
                 int vista = tabla.rowAtPoint(e.getPoint());
@@ -54,24 +57,28 @@ public final class GestorTablas {
                     return;
                 }
                 int modeloFila = tabla.convertRowIndexToModel(vista);
-                int modeloColumna = tabla.columnAtPoint(e.getPoint()) < 0 ? -1
-                        : tabla.convertColumnIndexToModel(tabla.columnAtPoint(e.getPoint()));
+                int vistaColumna = tabla.columnAtPoint(e.getPoint());
+                int modeloColumna = vistaColumna < 0 ? -1
+                        : tabla.convertColumnIndexToModel(vistaColumna);
                 int check = columnaSeleccion(tabla);
                 if (check >= 0 && modeloColumna != check) {
                     tabla.getModel().setValueAt(Boolean.TRUE, modeloFila, check);
-                    tabla.setRowSelectionInterval(vista, vista);
                 }
-                // El editor procesa el clic en el checkbox. Esperar su resultado.
+                // Esperar la edicion del checkbox, sin volver a seleccionar
+                // una fila visual por un evento pendiente.
                 SwingUtilities.invokeLater(() -> {
-                    int filaVista = tabla.convertRowIndexToView(modeloFila);
-                    if (check >= 0 && !Boolean.TRUE.equals(tabla.getModel().getValueAt(modeloFila, check))) {
-                        tabla.clearSelection();
-                    } else if (filaVista >= 0) {
-                        tabla.setRowSelectionInterval(filaVista, filaVista);
-                    }
+                    tabla.clearSelection();
                     tabla.repaint();
                     if (cambioSeleccion != null) cambioSeleccion.run();
                 });
+            }
+        });
+        // Evita que el resaltado nativo de JTable sobreviva a un
+        // cambio de filtro. El resaltado de VetPRO depende del checkbox.
+        tabla.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && columnaSeleccion(tabla) >= 0
+                    && tabla.getSelectedRow() >= 0) {
+                SwingUtilities.invokeLater(tabla::clearSelection);
             }
         });
         tabla.getModel().addTableModelListener(e -> SwingUtilities.invokeLater(() -> {
