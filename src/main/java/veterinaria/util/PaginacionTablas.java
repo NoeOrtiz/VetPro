@@ -74,28 +74,7 @@ public final class PaginacionTablas {
         anterior.addActionListener(e -> irA(pagina - 1));
         siguiente.addActionListener(e -> irA(pagina + 1));
         ultima.addActionListener(e -> irA(Integer.MAX_VALUE));
-        limpiar.addActionListener(e -> {
-            // Primero cambiar el filtro; despues restablecer la seleccion
-            // sobre el modelo completo, incluso si la fila estaba oculta.
-            busqueda.setText("");
-            pagina = 0;
-            limpiarSeleccion();
-            actualizar();
-            SwingUtilities.invokeLater(() -> {
-                limpiarSeleccion();
-                int col = GestorTablas.columnaSeleccion(tabla);
-                int marcadas = 0;
-                if (col >= 0) {
-                    for (int fila = 0; fila < tabla.getModel().getRowCount(); fila++) {
-                        if (Boolean.TRUE.equals(tabla.getModel().getValueAt(fila, col))) marcadas++;
-                    }
-                }
-                System.out.println("[VetPRO/Tabla] X: texto='" + busqueda.getText()
-                        + "', modelo=" + tabla.getModel().getClass().getSimpleName()
-                        + ", checkboxCol=" + col + ", marcadas=" + marcadas
-                        + ", filaVisual=" + tabla.getSelectedRow());
-            });
-        });
+        limpiar.addActionListener(e -> limpiarBusqueda());
         limpiar.setVisible(false);
         busqueda.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) { buscar(); }
@@ -165,6 +144,26 @@ public final class PaginacionTablas {
         busquedaPorPrefijo = true;
         pagina = 0;
         actualizar();
+    }
+
+    /**
+     * Unica accion de la X: restablece el filtro, la pagina y ambos estados
+     * de seleccion. No depende de un mouse listener ni del foco del buscador.
+     */
+    public void limpiarBusqueda() {
+        if (tabla.isEditing() && tabla.getCellEditor() != null) {
+            tabla.getCellEditor().cancelCellEditing();
+        }
+        busqueda.setText("");
+        pagina = 0;
+        GestorTablas.limpiarSeleccion(tabla);
+        actualizar();
+        // Los DocumentListener del buscador programan una actualizacion.
+        // Esta limpieza final se ejecuta despues de esos trabajos pendientes.
+        SwingUtilities.invokeLater(() -> {
+            GestorTablas.limpiarSeleccion(tabla);
+            tabla.repaint();
+        });
     }
 
     public JPanel getControles() { return controles; }
