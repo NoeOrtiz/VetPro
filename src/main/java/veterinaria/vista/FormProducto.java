@@ -123,6 +123,7 @@ public class FormProducto extends javax.swing.JPanel {
         txtBusqueda.setLayout(new java.awt.BorderLayout());
         txtBusqueda.add(paginacionProductos.getBotonLimpiar(), java.awt.BorderLayout.EAST);
         paginacionProductos.actualizar();
+        instalarDeseleccionAlClicFuera(this);
         // Conservar los renderizadores existentes: ofrecer el contenido íntegro
         // al pasar el mouse por columnas que pueden exceder su ancho.
         veterinaria.util.ManejoTablas.tooltipValorEnColumnas(
@@ -1402,6 +1403,45 @@ public class FormProducto extends javax.swing.JPanel {
         return valor == null || valor.trim().isEmpty() ? "-" : valor.trim();
     }
 
+    /**
+     * Limpia el checkbox y la seleccion visual cuando se pulsa sobre
+     * una zona no interactiva del formulario. No intercepta acciones
+     * de botones ni clics sobre filas de la tabla.
+     */
+    private void instalarDeseleccionAlClicFuera(java.awt.Component componente) {
+        if (componente == tableProductos
+                || javax.swing.SwingUtilities.isDescendingFrom(componente, tableProductos)
+                || componente instanceof javax.swing.AbstractButton
+                || componente instanceof javax.swing.JComboBox) {
+            return;
+        }
+        if (componente instanceof javax.swing.JPanel
+                || componente instanceof javax.swing.JLabel
+                || componente instanceof javax.swing.JViewport
+                || componente == txtBusqueda) {
+            componente.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override
+                public void mousePressed(java.awt.event.MouseEvent e) {
+                    deseleccionarProducto();
+                }
+            });
+        }
+        if (componente instanceof java.awt.Container) {
+            for (java.awt.Component hijo : ((java.awt.Container) componente).getComponents()) {
+                instalarDeseleccionAlClicFuera(hijo);
+            }
+        }
+    }
+
+    private void deseleccionarProducto() {
+        if (paginacionProductos != null) {
+            paginacionProductos.limpiarSeleccion();
+        }
+        btnEditar.setEnabled(false);
+        btnEliminar.setEnabled(false);
+        btnImprimir.setVisible(false);
+    }
+
     private void initListeners() {
         // SELECCIÓN VISUAL Y HABILITACIÓN DE BOTONES AL CLICKEAR FILA
         tableProductos.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -1409,6 +1449,7 @@ public class FormProducto extends javax.swing.JPanel {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 int viewRow = tableProductos.rowAtPoint(evt.getPoint());
                 if (viewRow < 0) {
+                    deseleccionarProducto();
                     return;
                 }
 
