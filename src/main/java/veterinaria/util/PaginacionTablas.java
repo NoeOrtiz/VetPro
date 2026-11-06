@@ -75,9 +75,13 @@ public final class PaginacionTablas {
         siguiente.addActionListener(e -> irA(pagina + 1));
         ultima.addActionListener(e -> irA(Integer.MAX_VALUE));
         limpiar.addActionListener(e -> {
-            limpiarSeleccion();
+            // Primero cambiar el filtro; despues restablecer la seleccion
+            // sobre el modelo completo, incluso si la fila estaba oculta.
             busqueda.setText("");
+            pagina = 0;
+            limpiarSeleccion();
             actualizar();
+            SwingUtilities.invokeLater(this::limpiarSeleccion);
         });
         limpiar.setVisible(false);
         busqueda.getDocument().addDocumentListener(new DocumentListener() {
