@@ -30,7 +30,7 @@ public class FormBienvenida extends JPanel {
         JPanel contenido = new JPanel();
         contenido.setOpaque(false);
         contenido.setLayout(new BoxLayout(contenido, BoxLayout.Y_AXIS));
-        contenido.setBorder(new EmptyBorder(20, 32, 28, 32));
+        contenido.setBorder(new EmptyBorder(12, 32, 28, 32));
         contenido.add(crearPerfilSuperior());
         contenido.add(Box.createVerticalStrut(4));
 
@@ -39,7 +39,7 @@ public class FormBienvenida extends JPanel {
         if (url != null) {
             ImageIcon original = new ImageIcon(url);
             if (original.getIconWidth() > 0) {
-                Image imagen = original.getImage().getScaledInstance(-1, 95, Image.SCALE_SMOOTH);
+                Image imagen = original.getImage().getScaledInstance(-1, 145, Image.SCALE_SMOOTH);
                 logo.setIcon(new ImageIcon(imagen));
             }
         }
@@ -55,7 +55,7 @@ public class FormBienvenida extends JPanel {
         subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         contenido.add(Box.createVerticalStrut(5));
         contenido.add(subtitulo);
-        contenido.add(Box.createVerticalStrut(20));
+        contenido.add(Box.createVerticalStrut(16));
 
         JPanel resumen = panelTarjeta(new BorderLayout(20, 0));
         JPanel resumenIzq = new JPanel();
@@ -85,7 +85,7 @@ public class FormBienvenida extends JPanel {
         accesos.add(acceso("Nueva Consulta", "Registrar una nueva atención", "veterinaria/menu/icon/3.svg", () -> abrir("FormConsulta", new FormConsulta())));
         accesos.add(acceso("Agenda / Calendario", "Turnos y programación", "veterinaria/menu/icon/10.svg", () -> abrir("FormTurnosPeluqueria", new FormTurnosPeluqueria())));
         accesos.add(acceso("Pacientes (Fichas)", "Gestionar mascotas", "veterinaria/menu/icon/3.svg", () -> abrir("FormMascota", new FormMascota())));
-        accesos.add(acceso("Inventario / Caja", "Productos y existencias", "veterinaria/menu/icon/6.svg", () -> abrir("FormProducto", new FormProducto())));
+        accesos.add(acceso("Caja", "Ventas y cobros", "veterinaria/menu/icon/5.svg", () -> abrir("FormCajaRegistradora", new FormCajaRegistradora())));
         accesos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 310));
         contenido.add(accesos);
         contenido.add(Box.createVerticalStrut(18));
@@ -201,7 +201,11 @@ public class FormBienvenida extends JPanel {
                 new EmptyBorder(20, 20, 20, 20)));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setFocusPainted(false);
-        JLabel icono = new JLabel(new FlatSVGIcon(simbolo, 2.0f), SwingConstants.CENTER);
+        FlatSVGIcon svg = new FlatSVGIcon(simbolo, 2.0f);
+        FlatSVGIcon.ColorFilter filtro = new FlatSVGIcon.ColorFilter();
+        filtro.add(Color.decode("#969696"), accent, accent);
+        svg.setColorFilter(filtro);
+        JLabel icono = new JLabel(svg, SwingConstants.CENTER);
         icono.setPreferredSize(new Dimension(60, 64));
         icono.setForeground(accent);
         b.add(icono, BorderLayout.WEST);
