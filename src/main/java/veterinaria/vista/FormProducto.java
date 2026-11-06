@@ -1434,9 +1434,7 @@ public class FormProducto extends javax.swing.JPanel {
     }
 
     private void deseleccionarProducto() {
-        if (paginacionProductos != null) {
-            paginacionProductos.limpiarSeleccion();
-        }
+        veterinaria.util.GestorSeleccionTabla.limpiar(tableProductos);
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
         btnImprimir.setVisible(false);
