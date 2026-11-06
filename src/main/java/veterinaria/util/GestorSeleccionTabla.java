@@ -17,11 +17,15 @@ public final class GestorSeleccionTabla {
             tabla.getCellEditor().cancelCellEditing();
         }
         TableModel modelo = tabla.getModel();
-        int columna = columnaSeleccion(modelo);
-        if (columna >= 0) {
-            for (int fila = 0; fila < modelo.getRowCount(); fila++) {
-                if (Boolean.TRUE.equals(modelo.getValueAt(fila, columna))) {
-                    modelo.setValueAt(Boolean.FALSE, fila, columna);
+        if (modelo instanceof ModeloTablaGenerico) {
+            ((ModeloTablaGenerico<?>) modelo).limpiarSelecciones();
+        } else {
+            int columna = columnaSeleccion(modelo);
+            if (columna >= 0) {
+                for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+                    if (Boolean.TRUE.equals(modelo.getValueAt(fila, columna))) {
+                        modelo.setValueAt(Boolean.FALSE, fila, columna);
+                    }
                 }
             }
         }
