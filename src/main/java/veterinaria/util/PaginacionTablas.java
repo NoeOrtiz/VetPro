@@ -171,12 +171,21 @@ public final class PaginacionTablas {
             int inicio = pagina * capacidad;
             int fin = Math.min(inicio + capacidad, total);
             java.util.Set<Integer> visibles = new java.util.HashSet<>(coincidencias.subList(inicio, fin));
-            // Nunca mantener una selección de checkbox en una página oculta.
-            for (int fila = 0; fila < modelo.getRowCount(); fila++) {
-                if (!visibles.contains(fila) && modelo.getColumnCount() > 0
-                        && modelo.getColumnClass(0) == Boolean.class
-                        && Boolean.TRUE.equals(modelo.getValueAt(fila, 0))) {
-                    modelo.setValueAt(false, fila, 0);
+            // Al ocultar una fila seleccionada, limpiar ambos estados.
+            int columnaSeleccion = -1;
+            for (int c = 0; c < modelo.getColumnCount(); c++) {
+                if ("Seleccionar".equalsIgnoreCase(modelo.getColumnName(c))) {
+                    columnaSeleccion = c;
+                    break;
+                }
+            }
+            if (columnaSeleccion >= 0) {
+                for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+                    if (!visibles.contains(fila)
+                            && Boolean.TRUE.equals(modelo.getValueAt(fila, columnaSeleccion))) {
+                        GestorSeleccionTabla.limpiar(tabla);
+                        break;
+                    }
                 }
             }
             sorter.setRowFilter(new RowFilter<TableModel, Integer>() {
@@ -225,27 +234,7 @@ public final class PaginacionTablas {
     }
 
     public void limpiarSeleccion() {
-        // La seleccion se guarda en el modelo completo, incluso en filas filtradas.
-        if (tabla.isEditing() && tabla.getCellEditor() != null) {
-            tabla.getCellEditor().stopCellEditing();
-        }
-        TableModel modelo = tabla.getModel();
-        int columnaSeleccion = -1;
-        for (int col = 0; col < modelo.getColumnCount(); col++) {
-            if ("Seleccionar".equalsIgnoreCase(modelo.getColumnName(col))) {
-                columnaSeleccion = col;
-                break;
-            }
-        }
-        if (columnaSeleccion >= 0) {
-            for (int fila = 0; fila < modelo.getRowCount(); fila++) {
-                if (Boolean.TRUE.equals(modelo.getValueAt(fila, columnaSeleccion))) {
-                    modelo.setValueAt(Boolean.FALSE, fila, columnaSeleccion);
-                }
-            }
-        }
-        tabla.clearSelection();
-        tabla.repaint();
+        GestorSeleccionTabla.limpiar(tabla);
     }
 
     private void irA(int destino) {
