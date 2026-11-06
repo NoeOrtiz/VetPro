@@ -139,9 +139,7 @@ public class Menu extends JPanel {
         toolBarAccentColor = new ToolBarAccentColor(this);
         toolBarAccentColor.setVisible(FlatUIUtils.getUIBoolean("AccentControl.show", false));
         add(header);
-        add(lbProfileName);
-        add(lbProfileRol);
-        add(lbProfileImg);
+        // El perfil se muestra en el Home; el menú conserva únicamente navegación.
         add(scroll);
         add(lightDarkMode);
         add(toolBarAccentColor);
@@ -469,7 +467,7 @@ public class Menu extends JPanel {
                 int ldy = y + height - ldHeight - ldgap - accentColorHeight;
 
                 int menux = x;
-                int menuy = y + iconHeight + gap + 40;
+                int menuy = y + iconHeight + gap;
                 int menuWidth = width;
                 int menuHeight = height - (iconHeight + gap) - (ldHeight + ldgap * 2) - (accentColorHeight);
                 scroll.setBounds(menux, menuy, menuWidth, menuHeight - lightDarkMode.getPreferredSize().height);
