@@ -334,7 +334,7 @@ public class ManejoTablas {
         return result.stream().mapToInt(i -> i).toArray();
     }
 
-    private static class ResaltarCoincidenciasRenderer extends DefaultTableCellRenderer {
+    private static class ResaltarCoincidenciasRenderer extends veterinaria.vista.table.TableGradientCell {
 
         private final String query;
         private final List<Integer> columnasObjetivoVista;
