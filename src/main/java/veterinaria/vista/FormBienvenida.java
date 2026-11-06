@@ -9,6 +9,8 @@ import java.util.Locale;
 import javax.swing.*;
 import javax.swing.border.*;
 import veterinaria.vista.application.Application;
+import veterinaria.entidad.Usuario;
+import veterinaria.entidad.Rol;
 
 /**
  * Inicio de VetPRO. Diseño programático para no alterar el menú lateral ni
@@ -28,14 +30,16 @@ public class FormBienvenida extends JPanel {
         JPanel contenido = new JPanel();
         contenido.setOpaque(false);
         contenido.setLayout(new BoxLayout(contenido, BoxLayout.Y_AXIS));
-        contenido.setBorder(new EmptyBorder(28, 32, 28, 32));
+        contenido.setBorder(new EmptyBorder(20, 32, 28, 32));
+        contenido.add(crearPerfilSuperior());
+        contenido.add(Box.createVerticalStrut(4));
 
         JLabel logo = new JLabel();
         java.net.URL url = getClass().getResource("/veterinaria/icon/png/bienvenida.png");
         if (url != null) {
             ImageIcon original = new ImageIcon(url);
             if (original.getIconWidth() > 0) {
-                Image imagen = original.getImage().getScaledInstance(-1, 125, Image.SCALE_SMOOTH);
+                Image imagen = original.getImage().getScaledInstance(-1, 95, Image.SCALE_SMOOTH);
                 logo.setIcon(new ImageIcon(imagen));
             }
         }
@@ -43,10 +47,15 @@ public class FormBienvenida extends JPanel {
         logo.setHorizontalAlignment(SwingConstants.CENTER);
         contenido.add(logo);
         contenido.add(Box.createVerticalStrut(8));
-        JLabel saludo = titulo("Bienvenidos", 30);
+        JLabel saludo = titulo("¡Bienvenida, " + nombreSesion() + "!", 29);
         saludo.setAlignmentX(Component.CENTER_ALIGNMENT);
         contenido.add(saludo);
-        contenido.add(Box.createVerticalStrut(24));
+        JLabel subtitulo = new JLabel("¿Qué vamos a hacer hoy?");
+        subtitulo.setForeground(muted);
+        subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        contenido.add(Box.createVerticalStrut(5));
+        contenido.add(subtitulo);
+        contenido.add(Box.createVerticalStrut(20));
 
         JPanel resumen = panelTarjeta(new BorderLayout(20, 0));
         JPanel resumenIzq = new JPanel();
@@ -102,6 +111,54 @@ public class FormBienvenida extends JPanel {
         actualizarFecha();
         reloj = new Timer(60000, e -> actualizarFecha());
         reloj.start();
+    }
+
+    private String nombreSesion() {
+        Usuario usuario = Application.getSesionUsuario() == null
+                ? null : Application.getSesionUsuario().getUsuario();
+        if (usuario == null) return "usuario";
+        String nombre = usuario.getNombreUsuario();
+        try {
+            if (usuario.getPersona() != null
+                    && usuario.getPersona().getNombre() != null
+                    && !usuario.getPersona().getNombre().isBlank()) {
+                nombre = usuario.getPersona().getNombre();
+            }
+        } catch (RuntimeException ex) {
+            // Si la relación Persona no está cargada, usar el nombre de usuario.
+        }
+        if (nombre == null || nombre.isBlank()) return "usuario";
+        nombre = nombre.trim();
+        return nombre.substring(0, 1).toUpperCase(new Locale("es", "AR"))
+                + nombre.substring(1).toLowerCase(new Locale("es", "AR"));
+    }
+
+    private JPanel crearPerfilSuperior() {
+        JPanel barra = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 2));
+        barra.setOpaque(false);
+        Usuario usuario = Application.getSesionUsuario() == null
+                ? null : Application.getSesionUsuario().getUsuario();
+        Rol rol = Application.getSesionUsuario() == null
+                ? null : Application.getSesionUsuario().getRol();
+        JLabel avatar = new JLabel();
+        java.net.URL recurso = getClass().getResource("/veterinaria/icon/png/default.png");
+        if (recurso != null) {
+            Image img = new ImageIcon(recurso).getImage()
+                    .getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+            avatar.setIcon(new ImageIcon(img));
+        }
+        barra.add(avatar);
+        JPanel datos = new JPanel();
+        datos.setOpaque(false);
+        datos.setLayout(new BoxLayout(datos, BoxLayout.Y_AXIS));
+        String cuenta = usuario == null ? "Usuario" : usuario.getNombreUsuario();
+        datos.add(titulo(cuenta == null ? "Usuario" : cuenta, 14));
+        JLabel cargo = new JLabel(rol == null ? "" : rol.getNombreRol());
+        cargo.setForeground(muted);
+        datos.add(cargo);
+        barra.add(datos);
+        barra.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+        return barra;
     }
 
     private void actualizarFecha() {
