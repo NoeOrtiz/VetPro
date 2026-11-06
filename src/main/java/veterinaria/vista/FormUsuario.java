@@ -711,19 +711,6 @@ public class FormUsuario extends javax.swing.JPanel {
             btnImprimir.setVisible(seleccion);
         });
 
-            }
-        });
-
-        // Asegurar selección única en checkbox (columna 0) (patrón común)
-        operarTablas.asegurarSeleccionUnica(table);
-
-        // Click en fila => marcar automáticamente el checkbox (como en otros formularios)
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                seleccionarFilaDesdeClick(evt);
-            }
-        });
 
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
     }
