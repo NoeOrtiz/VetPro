@@ -1473,6 +1473,16 @@ public class FormProducto extends javax.swing.JPanel {
 
                 // Sincronizar el checkbox del modelo con la selección visual.
                 int filaModelo = tableProductos.convertRowIndexToModel(viewRow);
+                // Un clic sobre el checkbox ya lo procesa el editor de JTable.
+                // No volver a marcarlo cuando el usuario intenta desmarcarlo.
+                if (tableProductos.columnAtPoint(evt.getPoint()) == 0) {
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        if (!Boolean.TRUE.equals(tableProductos.getModel().getValueAt(filaModelo, 0))) {
+                            deseleccionarProducto();
+                        }
+                    });
+                    return;
+                }
                 if (tableProductos.getModel().getColumnCount() > 0
                         && "Seleccionar".equalsIgnoreCase(tableProductos.getModel().getColumnName(0))
                         && !Boolean.TRUE.equals(tableProductos.getModel().getValueAt(filaModelo, 0))) {
