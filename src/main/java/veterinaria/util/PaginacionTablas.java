@@ -81,7 +81,20 @@ public final class PaginacionTablas {
             pagina = 0;
             limpiarSeleccion();
             actualizar();
-            SwingUtilities.invokeLater(this::limpiarSeleccion);
+            SwingUtilities.invokeLater(() -> {
+                limpiarSeleccion();
+                int col = GestorTablas.columnaSeleccion(tabla);
+                int marcadas = 0;
+                if (col >= 0) {
+                    for (int fila = 0; fila < tabla.getModel().getRowCount(); fila++) {
+                        if (Boolean.TRUE.equals(tabla.getModel().getValueAt(fila, col))) marcadas++;
+                    }
+                }
+                System.out.println("[VetPRO/Tabla] X: texto='" + busqueda.getText()
+                        + "', modelo=" + tabla.getModel().getClass().getSimpleName()
+                        + ", checkboxCol=" + col + ", marcadas=" + marcadas
+                        + ", filaVisual=" + tabla.getSelectedRow());
+            });
         });
         limpiar.setVisible(false);
         busqueda.getDocument().addDocumentListener(new DocumentListener() {
