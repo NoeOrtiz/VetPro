@@ -168,6 +168,21 @@ public final class PaginacionTablas {
             // La limpieza visual es siempre el ultimo paso.
             tabla.clearSelection();
             tabla.repaint();
+            SwingUtilities.invokeLater(() -> {
+                int col = GestorTablas.columnaSeleccion(tabla);
+                int marcados = 0;
+                if (col >= 0) {
+                    for (int i = 0; i < tabla.getModel().getRowCount(); i++) {
+                        if (Boolean.TRUE.equals(tabla.getModel().getValueAt(i, col))) {
+                            marcados++;
+                        }
+                    }
+                }
+                System.out.println("[VetPRO DIAGNOSTICO X] texto='"
+                        + busqueda.getText() + "' checkboxMarcados=" + marcados
+                        + " filaSeleccionadaJTable=" + tabla.getSelectedRow()
+                        + " modelo=" + tabla.getModel().getClass().getSimpleName());
+            });
         } finally {
             limpiandoBusqueda = false;
         }
