@@ -118,14 +118,16 @@ public class AuditoriaFormBinder {
         });
         // Distribuir el ancho disponible, sin dejar una franja vacía a la derecha.
         tableAuditoria.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        int[] anchos = {82, 170, 95, 90, 105, 100, 310, 85};
-        int[] minimos = {82, 160, 75, 75, 85, 75, 160, 75};
+        int[] anchos = {85, 185, 100, 95, 110, 95, 300, 85};
+        int[] minimos = {80, 180, 75, 75, 85, 75, 160, 70};
         for (int i = 0; i < anchos.length; i++) {
             javax.swing.table.TableColumn columna = tableAuditoria.getColumnModel().getColumn(i);
             columna.setMinWidth(minimos[i]);
             columna.setPreferredWidth(anchos[i]);
         }
         tableAuditoria.setFillsViewportHeight(true);
+        tableAuditoria.getTableHeader().setResizingAllowed(true);
+        tableAuditoria.setRowHeight(Math.max(27, tableAuditoria.getRowHeight()));
         tableAuditoria.getColumnModel().getColumn(0).setMaxWidth(90);
     }
 
