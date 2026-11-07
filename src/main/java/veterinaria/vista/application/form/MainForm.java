@@ -60,9 +60,7 @@ public class MainForm extends JLayeredPane {
     public MainForm() {
         init();
         // Inicialización del panel que contendrá los formularios
-        panelBody = new JPanel();
-        panelBody.setLayout(new BorderLayout());
-        add(panelBody, BorderLayout.CENTER);
+        // El contenedor principal se inicializa en init().
     }
 
     private void init() {
@@ -89,10 +87,34 @@ public class MainForm extends JLayeredPane {
         setLayer(menuButton, JLayeredPane.POPUP_LAYER);
         add(menuButton);
         add(menu);
-        add(panelBody);
         notificationBell = new NotificationBell();
-        setLayer(notificationBell, JLayeredPane.POPUP_LAYER);
-        add(notificationBell);
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBorder(new EmptyBorder(6, 14, 6, 14));
+        header.setPreferredSize(new Dimension(0, UIScale.scale(62)));
+        JPanel controles = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
+        controles.setOpaque(false);
+        controles.add(notificationBell);
+        JLabel avatar = new JLabel();
+        java.net.URL imagenUsuario = getClass().getResource("/veterinaria/icon/png/default.png");
+        if (imagenUsuario != null) {
+            java.awt.Image imagen = new javax.swing.ImageIcon(imagenUsuario).getImage()
+                    .getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
+            avatar.setIcon(new javax.swing.ImageIcon(imagen));
+        }
+        controles.add(avatar);
+        JPanel datos = new JPanel();
+        datos.setOpaque(false);
+        datos.setLayout(new javax.swing.BoxLayout(datos, javax.swing.BoxLayout.Y_AXIS));
+        JLabel cuenta = new JLabel(usuario == null ? "Usuario" : usuario.getNombreUsuario());
+        cuenta.setFont(cuenta.getFont().deriveFont(java.awt.Font.BOLD));
+        datos.add(cuenta);
+        datos.add(new JLabel(rolUsuario == null ? "" : rolUsuario.getNombreRol()));
+        controles.add(datos);
+        header.add(controles, BorderLayout.EAST);
+        contenedorPrincipal = new JPanel(new BorderLayout());
+        contenedorPrincipal.add(header, BorderLayout.NORTH);
+        contenedorPrincipal.add(panelBody, BorderLayout.CENTER);
+        add(contenedorPrincipal);
     }
 
     @Override
@@ -435,6 +457,7 @@ public class MainForm extends JLayeredPane {
     private JPanel panelBody;
     private JButton menuButton;
     private NotificationBell notificationBell;
+    private JPanel contenedorPrincipal;
 
     private class MainFormLayout implements LayoutManager {
 
@@ -486,13 +509,7 @@ public class MainForm extends JLayeredPane {
                 int bodyHeight = height;
                 int bodyx = ltr ? (x + menuWidth + gap) : x;
                 int bodyy = y;
-                panelBody.setBounds(bodyx, bodyy, bodyWidth, bodyHeight);
-                if (notificationBell != null) {
-                    int bellWidth = UIScale.scale(78);
-                    int bellHeight = UIScale.scale(42);
-                    notificationBell.setBounds(bodyx + Math.max(0, bodyWidth - UIScale.scale(220)),
-                            bodyy + UIScale.scale(23), bellWidth, bellHeight);
-                }
+                contenedorPrincipal.setBounds(bodyx, bodyy, bodyWidth, bodyHeight);
             }
         }
     }
