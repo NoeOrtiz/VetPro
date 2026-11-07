@@ -364,7 +364,8 @@ public class MainForm extends JLayeredPane {
 
         // Informes de Caja gestiona sus propias pestañas, tabla y paginación.
         // Evitar un scroll externo que desplaza los controles fuera de pantalla.
-        if (component instanceof FormInformesCajaMovimientos) {
+        if (component instanceof FormInformesCajaMovimientos
+                || component instanceof FormBienvenida) {
             panelBody.add(component, BorderLayout.CENTER);
             panelBody.revalidate();
             panelBody.repaint();
