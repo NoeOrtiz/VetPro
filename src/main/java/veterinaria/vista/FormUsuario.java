@@ -54,6 +54,7 @@ public class FormUsuario extends javax.swing.JPanel {
     private String originalRolNombre;
     private ManejoTablas operarTablas = new ManejoTablas();
     private boolean rolesCargados = false;
+    private final javax.swing.JComboBox<String> filtroEstado = new javax.swing.JComboBox<>(new String[]{"Activos", "Inactivos", "Todos"});
 
     public FormUsuario() {
         initComponents();
@@ -68,6 +69,7 @@ public class FormUsuario extends javax.swing.JPanel {
                 this);
         initListeners();
 
+        instalarFiltroEstado();
         actualizarForm();
         instalarPaginacionCompartida();
 
@@ -666,6 +668,21 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private veterinaria.util.PaginacionTablas paginacionCompartida;
 
+    private void instalarFiltroEstado() {
+        // Filtro externo al código generado de NetBeans, junto al título de búsqueda.
+        javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+        barra.setOpaque(false);
+        barra.add(new javax.swing.JLabel("Estado:"));
+        barra.add(filtroEstado);
+        filtroEstado.addActionListener(e -> cargarUsuariosEnTabla());
+        javax.swing.GroupLayout layout = (javax.swing.GroupLayout) jpHeader.getLayout();
+        javax.swing.JPanel tituloBusqueda = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        tituloBusqueda.setOpaque(false);
+        tituloBusqueda.add(lbUsuarioBusqueda, java.awt.BorderLayout.WEST);
+        tituloBusqueda.add(barra, java.awt.BorderLayout.EAST);
+        layout.replace(lbUsuarioBusqueda, tituloBusqueda);
+    }
+
     private void instalarPaginacionCompartida() {
         // El contenedor se instala fuera del código generado por NetBeans.
         javax.swing.JPanel contenedor = new javax.swing.JPanel(new java.awt.BorderLayout());
@@ -708,6 +725,7 @@ public class FormUsuario extends javax.swing.JPanel {
             boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(table);
             btnEditar.setEnabled(seleccion);
             btnEliminar.setEnabled(seleccion);
+            actualizarTextoEstadoSeleccionado();
             btnImprimir.setVisible(seleccion);
         });
 
@@ -1341,25 +1359,42 @@ public class FormUsuario extends javax.swing.JPanel {
     }//GEN-LAST:event_btnEditarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        int selectedRow = operarTablas.comprobarElementoSeleccionado(table);
-
-        if (selectedRow != -1) {
-            int respuesta = JOptionPane.showConfirmDialog(
-                    this, "¿Estás seguro de que deseas eliminar este usuario?",
-                    "Confirmar eliminación",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-
-            if (respuesta == JOptionPane.YES_OPTION) {
-                Application.actualizarEstadoUsuario("EliminandoUsuario");
-                eliminarUsuarioSeleccionado();
-            }
-        } else {
-            JOptionPane.showMessageDialog(null, "Por favor seleccione un usuario a ELIMINAR", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        Usuario elegido = obtenerUsuarioSeleccionadoDesdeTabla();
+        if (elegido == null) return;
+        Usuario actual = Application.getSesionUsuario().getUsuario();
+        if (actual != null && actual.getIdUsuario().equals(elegido.getIdUsuario())) {
+            JOptionPane.showMessageDialog(this, "No podés desactivar tu propia sesión.");
+            return;
         }
-        actualizarForm();
+        boolean activar = !elegido.isActivo();
+        String accion = activar ? "reactivar" : "desactivar";
+        int respuesta = JOptionPane.showConfirmDialog(this,
+                "¿Querés " + accion + " al usuario " + elegido.getNombreUsuario() + "?",
+                "Confirmar cambio de estado", JOptionPane.YES_NO_OPTION);
+        if (respuesta != JOptionPane.YES_OPTION) return;
+        try {
+            boolean correcto = activar
+                    ? new veterinaria.servicio.UsuarioService().reactivarUsuario(elegido)
+                    : new veterinaria.servicio.UsuarioService().desactivarUsuario(elegido);
+            if (correcto) {
+                cargarUsuariosEnTabla();
+                actualizarTextoEstadoSeleccionado();
+            }
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo cambiar el estado: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnEliminarActionPerformed
+
+    private void actualizarTextoEstadoSeleccionado() {
+        int fila = operarTablas.comprobarElementoSeleccionado(table);
+        if (fila < 0) {
+            btnEliminar.setText("Desactivar");
+            return;
+        }
+        btnEliminar.setText("INACTIVO".equals(String.valueOf(table.getValueAt(fila, 9)))
+                ? "Reactivar" : "Desactivar");
+    }
 
     private void txtNombreKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtNombreKeyTyped
         validar.validarSoloLetras(evt);
@@ -1388,11 +1423,15 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void cargarUsuariosEnTabla() {
         List<Usuario> usuarios = usuarioDAO.obtenerTodos();
+        String filtro = (String) filtroEstado.getSelectedItem();
 
         DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        if (modelo.getColumnCount() == 9) modelo.addColumn("Estado");
         modelo.setRowCount(0);
 
         for (Usuario usuario : usuarios) {
+            if ("Activos".equals(filtro) && !usuario.isActivo()) continue;
+            if ("Inactivos".equals(filtro) && usuario.isActivo()) continue;
             personaUsuario = personaDAO.obtenerPorId(usuario.getPersona().getIdPersona());
             String nombre = personaUsuario.getNombre();
             String apellido = personaUsuario.getApellido();
@@ -1412,12 +1451,14 @@ public class FormUsuario extends javax.swing.JPanel {
                 direccion,
                 rolNombre,
                 nombreUsuario,
-                emailUsuario
+                emailUsuario,
+                usuario.isActivo() ? "ACTIVO" : "INACTIVO"
             };
 
             modelo.addRow(fila);
         }
         actualizarBotonImprimir();
+        actualizarTextoEstadoSeleccionado();
         if (paginacionCompartida != null) paginacionCompartida.actualizar();
     }
 
