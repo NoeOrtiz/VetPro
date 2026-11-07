@@ -30,7 +30,7 @@ public class FormBienvenida extends JPanel {
         JPanel contenido = new JPanel();
         contenido.setOpaque(false);
         contenido.setLayout(new BoxLayout(contenido, BoxLayout.Y_AXIS));
-        contenido.setBorder(new EmptyBorder(20, 32, 28, 32));
+        contenido.setBorder(new EmptyBorder(8, 30, 8, 30));
         contenido.add(crearPerfilSuperior());
         contenido.add(Box.createVerticalStrut(4));
 
@@ -46,7 +46,7 @@ public class FormBienvenida extends JPanel {
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
         logo.setHorizontalAlignment(SwingConstants.CENTER);
         contenido.add(logo);
-        contenido.add(Box.createVerticalStrut(8));
+        contenido.add(Box.createVerticalStrut(2));
         JLabel saludo = titulo("¡Bienvenida, " + nombreSesion() + "!", 29);
         saludo.setAlignmentX(Component.CENTER_ALIGNMENT);
         contenido.add(saludo);
@@ -55,7 +55,7 @@ public class FormBienvenida extends JPanel {
         subtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         contenido.add(Box.createVerticalStrut(5));
         contenido.add(subtitulo);
-        contenido.add(Box.createVerticalStrut(20));
+        contenido.add(Box.createVerticalStrut(8));
 
         JPanel resumen = panelTarjeta(new BorderLayout(20, 0));
         JPanel resumenIzq = new JPanel();
@@ -76,9 +76,9 @@ public class FormBienvenida extends JPanel {
         fechaPanel.add(Box.createVerticalStrut(6));
         fechaPanel.add(hora);
         resumen.add(fechaPanel, BorderLayout.EAST);
-        resumen.setMaximumSize(new Dimension(Integer.MAX_VALUE, 105));
+        resumen.setMaximumSize(new Dimension(Integer.MAX_VALUE, 88));
         contenido.add(resumen);
-        contenido.add(Box.createVerticalStrut(18));
+        contenido.add(Box.createVerticalStrut(10));
 
         JPanel accesos = new JPanel(new GridLayout(2, 2, 16, 16));
         accesos.setOpaque(false);
@@ -86,7 +86,7 @@ public class FormBienvenida extends JPanel {
         accesos.add(acceso("Agenda / Calendario", "Turnos y programación", "veterinaria/menu/icon/10.svg", () -> abrir("FormTurnosPeluqueria", new FormTurnosPeluqueria())));
         accesos.add(acceso("Pacientes (Fichas)", "Gestionar mascotas", "veterinaria/menu/icon/3.svg", () -> abrir("FormMascota", new FormMascota())));
         accesos.add(acceso("Inventario / Caja", "Productos y existencias", "veterinaria/menu/icon/6.svg", () -> abrir("FormProducto", new FormProducto())));
-        accesos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 310));
+        accesos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 245));
         contenido.add(accesos);
         contenido.add(Box.createVerticalStrut(18));
 
@@ -94,9 +94,9 @@ public class FormBienvenida extends JPanel {
         inferiores.setOpaque(false);
         inferiores.add(info("Actividad reciente", "Próximamente: movimientos registrados por auditoría."));
         inferiores.add(info("Alertas", "Próximamente: vencimientos, turnos y stock crítico."));
-        inferiores.setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
+        inferiores.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         contenido.add(inferiores);
-        contenido.add(Box.createVerticalStrut(16));
+        contenido.add(Box.createVerticalStrut(6));
         JLabel pie = new JLabel("VetPRO  ·  Sistema de Gestión Veterinaria", SwingConstants.CENTER);
         pie.setForeground(muted);
         pie.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -196,7 +196,11 @@ public class FormBienvenida extends JPanel {
                 new EmptyBorder(20, 20, 20, 20)));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setFocusPainted(false);
-        JLabel icono = new JLabel(new FlatSVGIcon(simbolo, 2.0f), SwingConstants.CENTER);
+        FlatSVGIcon svg = new FlatSVGIcon(simbolo, 2.0f);
+        FlatSVGIcon.ColorFilter filtro = new FlatSVGIcon.ColorFilter();
+        filtro.add(Color.decode("#969696"), accent, accent);
+        svg.setColorFilter(filtro);
+        JLabel icono = new JLabel(svg, SwingConstants.CENTER);
         icono.setPreferredSize(new Dimension(60, 64));
         icono.setForeground(accent);
         b.add(icono, BorderLayout.WEST);
