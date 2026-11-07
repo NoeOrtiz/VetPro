@@ -1109,6 +1109,7 @@ public class FormUsuario extends javax.swing.JPanel {
 
             if (persistirUsuario()) {
                 procesarYGuardarImagenPerfil();
+                Application.refrescarFotoPerfil();
                 volverAModoLista();
                 Application.actualizarEstadoUsuario("InicioFormularioUsuario");
             }
