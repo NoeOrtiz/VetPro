@@ -84,8 +84,10 @@ public class AuditoriaFormBinder {
         configurarTabla();
         paginacion = veterinaria.util.GestorTablas.paginar(tableAuditoria, buscador,
                 new veterinaria.util.GestorTablas.Configuracion(
-                        new int[]{1, 2, 3, 4, 5, 6, 7}, new int[]{1, 2, 3, 4, 5, 6, 7}, 15));
-        paginacion.preservarRenderizadoresPersonalizados();
+                        new int[]{1, 2, 3, 4, 5, 6, 7}, new int[]{1, 2, 3, 4, 5, 6, 7}, 10));
+        tableAuditoria.getColumnModel().getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
+        veterinaria.util.GestorTablas.instalarSeleccion(tableAuditoria, this::actualizarBotones);
         cargarCombos();
         configurarEventos();
 
@@ -178,22 +180,7 @@ public class AuditoriaFormBinder {
 
         btnImprimirLista.addActionListener(e -> imprimirLista());
 
-        tableAuditoria.getSelectionModel().addListSelectionListener(e -> {
-            if (e.getValueIsAdjusting()) return;
-            int vista = tableAuditoria.getSelectedRow();
-            if (vista >= 0) marcarUnico(tableAuditoria.convertRowIndexToModel(vista));
-            actualizarBotones();
-        });
-        tableAuditoria.getModel().addTableModelListener(e -> {
-            if (e.getColumn() == 0) {
-                int fila = e.getFirstRow();
-                if (fila >= 0 && fila < tableAuditoria.getModel().getRowCount()
-                        && Boolean.TRUE.equals(tableAuditoria.getModel().getValueAt(fila, 0))) {
-                    marcarUnico(fila);
-                }
-                actualizarBotones();
-            }
-        });
+
     }
 
     private void buscar() {
