@@ -673,18 +673,14 @@ public class FormUsuario extends javax.swing.JPanel {
     private veterinaria.util.PaginacionTablas paginacionCompartida;
 
     private void instalarFiltroEstado() {
-        // Filtro externo al código generado de NetBeans, junto al título de búsqueda.
+        // Búsqueda y filtro juntos, sin ocupar el ancho del encabezado.
         javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
         barra.setOpaque(false);
+        barra.add(lbUsuarioBusqueda);
         barra.add(new javax.swing.JLabel("Estado:"));
         barra.add(filtroEstado);
         filtroEstado.addActionListener(e -> cargarUsuariosEnTabla());
-        javax.swing.GroupLayout layout = (javax.swing.GroupLayout) jpHeader.getLayout();
-        javax.swing.JPanel tituloBusqueda = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
-        tituloBusqueda.setOpaque(false);
-        tituloBusqueda.add(lbUsuarioBusqueda, java.awt.BorderLayout.WEST);
-        tituloBusqueda.add(barra, java.awt.BorderLayout.EAST);
-        layout.replace(lbUsuarioBusqueda, tituloBusqueda);
+        ((javax.swing.GroupLayout) jpHeader.getLayout()).replace(lbUsuarioBusqueda, barra);
     }
 
     private void instalarPaginacionCompartida() {
@@ -1514,45 +1510,61 @@ public class FormUsuario extends javax.swing.JPanel {
     }
 
     private void instalarPanelFotografia() {
-        // Reconstruimos únicamente la distribución del alta, sin editar el .form generado.
+        // El panel de datos se mantiene compacto y los botones quedan fuera del área de foto.
         jpCamposFormularioUsuario.removeAll();
-        jpCamposFormularioUsuario.setLayout(new java.awt.BorderLayout(20, 0));
+        jpCamposFormularioUsuario.setLayout(new java.awt.BorderLayout(14, 10));
+
         javax.swing.JPanel izquierda = new javax.swing.JPanel();
         izquierda.setOpaque(false);
         izquierda.setLayout(new javax.swing.BoxLayout(izquierda, javax.swing.BoxLayout.Y_AXIS));
         for (javax.swing.JPanel seccion : new javax.swing.JPanel[]{jpDatosPersonales, jpAcceso, jpDatosCuenta}) {
             seccion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
             izquierda.add(seccion);
-            izquierda.add(javax.swing.Box.createVerticalStrut(10));
+            izquierda.add(javax.swing.Box.createVerticalStrut(6));
         }
-        jpCamposFormularioUsuario.add(izquierda, java.awt.BorderLayout.CENTER);
+
+        // Los botones pertenecen al pie del formulario, no a la sección de credenciales.
+        jpDatosCuenta.remove(btnGuardar);
+        jpDatosCuenta.remove(btnCancelar);
+        jpDatosCuenta.remove(btnLimpiar);
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 6));
+        acciones.setOpaque(false);
+        acciones.add(btnGuardar);
+        acciones.add(btnCancelar);
+        acciones.add(btnLimpiar);
 
         javax.swing.JPanel foto = new javax.swing.JPanel();
         foto.setOpaque(false);
-        foto.setPreferredSize(new java.awt.Dimension(205, 310));
+        foto.setPreferredSize(new java.awt.Dimension(175, 250));
         foto.setLayout(new javax.swing.BoxLayout(foto, javax.swing.BoxLayout.Y_AXIS));
         javax.swing.JLabel titulo = new javax.swing.JLabel("Foto de perfil");
-        titulo.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD, 14f));
+        titulo.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD, 13f));
         titulo.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         foto.add(titulo);
-        foto.add(javax.swing.Box.createVerticalStrut(14));
+        foto.add(javax.swing.Box.createVerticalStrut(8));
         visorFoto = new javax.swing.JLabel();
         visorFoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visorFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        visorFoto.setPreferredSize(new java.awt.Dimension(155, 155));
-        visorFoto.setMinimumSize(new java.awt.Dimension(155, 155));
-        visorFoto.setMaximumSize(new java.awt.Dimension(155, 155));
+        visorFoto.setPreferredSize(new java.awt.Dimension(115, 115));
+        visorFoto.setMinimumSize(new java.awt.Dimension(115, 115));
+        visorFoto.setMaximumSize(new java.awt.Dimension(115, 115));
         foto.add(visorFoto);
-        foto.add(javax.swing.Box.createVerticalStrut(14));
+        foto.add(javax.swing.Box.createVerticalStrut(10));
         javax.swing.JButton elegir = new javax.swing.JButton("Seleccionar imagen");
         elegir.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         elegir.addActionListener(e -> seleccionarFotografia());
         foto.add(elegir);
-        foto.add(javax.swing.Box.createVerticalStrut(8));
-        javax.swing.JLabel ayuda = new javax.swing.JLabel("JPG o PNG · opcional");
+        foto.add(javax.swing.Box.createVerticalStrut(6));
+        javax.swing.JLabel ayuda = new javax.swing.JLabel("JPG o PNG (opcional)");
         ayuda.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         foto.add(ayuda);
-        jpCamposFormularioUsuario.add(foto, java.awt.BorderLayout.EAST);
+
+        javax.swing.JPanel cuerpo = new javax.swing.JPanel(new java.awt.BorderLayout(14, 0));
+        cuerpo.setOpaque(false);
+        cuerpo.add(izquierda, java.awt.BorderLayout.CENTER);
+        cuerpo.add(foto, java.awt.BorderLayout.EAST);
+        jpCamposFormularioUsuario.add(cuerpo, java.awt.BorderLayout.CENTER);
+        jpCamposFormularioUsuario.add(acciones, java.awt.BorderLayout.SOUTH);
         mostrarFoto(null);
     }
 
@@ -1588,7 +1600,7 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void mostrarIconoFoto(javax.swing.ImageIcon icono) {
         if (visorFoto == null) return;
-        javax.swing.ImageIcon circular = veterinaria.util.ui.ImageUtils.toCircularIcon(icono, 150);
+        javax.swing.ImageIcon circular = veterinaria.util.ui.ImageUtils.toCircularIcon(icono, 110);
         visorFoto.setIcon(circular);
         visorFoto.setText(circular == null ? "Sin fotografía" : "");
     }
