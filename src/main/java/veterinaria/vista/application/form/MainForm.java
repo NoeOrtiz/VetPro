@@ -465,7 +465,7 @@ public class MainForm extends JLayeredPane {
             Usuario actual = Application.getSesionUsuario().getUsuario();
             if (actual != null) {
                 Usuario persistido = new veterinaria.persistencia.UsuarioDAO()
-                        .buscarPorNombreUsuario(actual.getNombreUsuario());
+                        .obtenerPorId(actual.getIdUsuario());
                 String ruta = persistido == null ? null : persistido.getRutaImagenPerfil();
                 if (ruta != null && !ruta.isBlank()) {
                     java.io.File archivo = new java.io.File(ruta);
