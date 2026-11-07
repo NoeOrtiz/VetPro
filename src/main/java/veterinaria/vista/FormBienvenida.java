@@ -50,23 +50,11 @@ public class FormBienvenida extends JPanel {
         }
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
         logo.setHorizontalAlignment(SwingConstants.CENTER);
-        // Centrar el logo respecto del ancho total, independientemente del perfil a la derecha.
-        JPanel perfil = crearPerfilSuperior();
-        JPanel encabezado = new JPanel(null) {
-            @Override
-            public void doLayout() {
-                Dimension logoSize = logo.getPreferredSize();
-                logo.setBounds((getWidth() - logoSize.width) / 2, 0,
-                        logoSize.width, Math.min(getHeight(), logoSize.height));
-                Dimension perfilSize = perfil.getPreferredSize();
-                perfil.setBounds(Math.max(0, getWidth() - perfilSize.width), 18,
-                        Math.min(getWidth(), perfilSize.width), Math.min(Math.max(0, getHeight() - 18), perfilSize.height));
-            }
-        };
+        // El perfil vive en el header global; el Home solo muestra su logo centrado.
+        JPanel encabezado = new JPanel(new BorderLayout());
         encabezado.setOpaque(false);
         encabezado.setAlignmentX(Component.CENTER_ALIGNMENT);
-        encabezado.add(logo);
-        encabezado.add(perfil);
+        encabezado.add(logo, BorderLayout.CENTER);
         encabezado.setPreferredSize(new Dimension(0, 145));
         encabezado.setMaximumSize(new Dimension(Integer.MAX_VALUE, 145));
         contenido.add(encabezado);
