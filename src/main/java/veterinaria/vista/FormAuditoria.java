@@ -256,8 +256,7 @@ public class FormAuditoria extends javax.swing.JPanel {
                 return canEdit [columnIndex];
             }
         });
-        tableAuditoria.setMinimumSize(new java.awt.Dimension(848, 220));
-        tableAuditoria.setPreferredSize(new java.awt.Dimension(848, 220));
+        // El JScrollPane administra el tamaño de la tabla según el espacio disponible.
         tableAuditoria.getTableHeader().setReorderingAllowed(false);
         scroll1.setViewportView(tableAuditoria);
 
