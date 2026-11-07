@@ -49,6 +49,8 @@ public class AuditoriaFormBinder {
     private final JButton btnImprimirLista;
 
     private final List<Auditoria> cache = new ArrayList<>();
+    private final javax.swing.JTextField buscador;
+    private veterinaria.util.PaginacionTablas paginacion;
 
     public AuditoriaFormBinder(Component parent,
             JTable tableAuditoria,
@@ -61,7 +63,8 @@ public class AuditoriaFormBinder {
             JButton btnLimpiar,
             JButton btnVer,
             JButton btnImprimir,
-            JButton btnImprimirLista) {
+            JButton btnImprimirLista,
+            javax.swing.JTextField buscador) {
         this.parent = parent;
         this.tableAuditoria = tableAuditoria;
         this.jcbUsuario = jcbUsuario;
@@ -74,10 +77,15 @@ public class AuditoriaFormBinder {
         this.btnVer = btnVer;
         this.btnImprimir = btnImprimir;
         this.btnImprimirLista = btnImprimirLista;
+        this.buscador = buscador;
     }
 
     public void init() {
         configurarTabla();
+        paginacion = veterinaria.util.GestorTablas.paginar(tableAuditoria, buscador,
+                new veterinaria.util.GestorTablas.Configuracion(
+                        new int[]{1, 2, 3, 4, 5, 6, 7}, new int[]{1, 2, 3, 4, 5, 6, 7}, 15));
+        paginacion.preservarRenderizadoresPersonalizados();
         cargarCombos();
         configurarEventos();
 
@@ -95,27 +103,30 @@ public class AuditoriaFormBinder {
         buscar();
     }
 
+    public javax.swing.JPanel getControlesPaginacion() { return paginacion.getControles(); }
+
     private void configurarTabla() {
         tableAuditoria.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tableAuditoria.setModel(new DefaultTableModel(
                 new Object[][]{},
-                new String[]{"Fecha/Hora", "Usuario", "Acción", "Entidad", "Módulo", "Descripción", "Resultado"}
+                new String[]{"Seleccionar", "Fecha/Hora", "Usuario", "Acción", "Entidad", "Módulo", "Descripción", "Resultado"}
         ) {
             @Override
-            public boolean isCellEditable(int row, int col) {
-                return false;
-            }
+            public Class<?> getColumnClass(int col) { return col == 0 ? Boolean.class : String.class; }
+            @Override
+            public boolean isCellEditable(int row, int col) { return col == 0; }
         });
         // Distribuir el ancho disponible, sin dejar una franja vacía a la derecha.
         tableAuditoria.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        int[] anchos = {155, 100, 95, 100, 90, 340, 90};
-        int[] minimos = {120, 75, 75, 75, 70, 190, 75};
+        int[] anchos = {82, 170, 95, 90, 105, 100, 310, 85};
+        int[] minimos = {82, 160, 75, 75, 85, 75, 160, 75};
         for (int i = 0; i < anchos.length; i++) {
             javax.swing.table.TableColumn columna = tableAuditoria.getColumnModel().getColumn(i);
             columna.setMinWidth(minimos[i]);
             columna.setPreferredWidth(anchos[i]);
         }
         tableAuditoria.setFillsViewportHeight(true);
+        tableAuditoria.getColumnModel().getColumn(0).setMaxWidth(90);
     }
 
     private void cargarCombos() {
@@ -166,9 +177,20 @@ public class AuditoriaFormBinder {
         btnImprimirLista.addActionListener(e -> imprimirLista());
 
         tableAuditoria.getSelectionModel().addListSelectionListener(e -> {
-            boolean sel = tableAuditoria.getSelectedRow() >= 0;
-            btnVer.setEnabled(sel);
-            btnImprimir.setEnabled(sel);
+            if (e.getValueIsAdjusting()) return;
+            int vista = tableAuditoria.getSelectedRow();
+            if (vista >= 0) marcarUnico(tableAuditoria.convertRowIndexToModel(vista));
+            actualizarBotones();
+        });
+        tableAuditoria.getModel().addTableModelListener(e -> {
+            if (e.getColumn() == 0) {
+                int fila = e.getFirstRow();
+                if (fila >= 0 && fila < tableAuditoria.getModel().getRowCount()
+                        && Boolean.TRUE.equals(tableAuditoria.getModel().getValueAt(fila, 0))) {
+                    marcarUnico(fila);
+                }
+                actualizarBotones();
+            }
         });
     }
 
@@ -210,6 +232,7 @@ public class AuditoriaFormBinder {
             String user = (a.getUsuario() != null ? a.getUsuario().getNombreUsuario() : "Usuario No Registrado");
 
             model.addRow(new Object[]{
+                Boolean.FALSE,
                 fecha,
                 user,
                 a.getAccion(),
@@ -220,8 +243,8 @@ public class AuditoriaFormBinder {
             });
         }
 
-        btnVer.setEnabled(false);
-        btnImprimir.setEnabled(false);
+        paginacion.actualizar();
+        actualizarBotones();
     }
 
     private void limpiarFiltros() {
@@ -250,12 +273,25 @@ public class AuditoriaFormBinder {
         buscar();
     }
 
-    private Auditoria getSeleccionado() {
-        int row = tableAuditoria.getSelectedRow();
-        if (row < 0 || row >= cache.size()) {
-            return null;
+    private void marcarUnico(int fila) {
+        for (int i = 0; i < tableAuditoria.getModel().getRowCount(); i++) {
+            if (i != fila && Boolean.TRUE.equals(tableAuditoria.getModel().getValueAt(i, 0)))
+                tableAuditoria.getModel().setValueAt(false, i, 0);
         }
-        return cache.get(row);
+    }
+
+    private void actualizarBotones() {
+        boolean seleccionado = getSeleccionado() != null;
+        btnVer.setEnabled(seleccionado);
+        btnImprimir.setEnabled(seleccionado);
+    }
+
+    private Auditoria getSeleccionado() {
+        for (int i = 0; i < tableAuditoria.getModel().getRowCount() && i < cache.size(); i++) {
+            if (Boolean.TRUE.equals(tableAuditoria.getModel().getValueAt(i, 0))
+                    && tableAuditoria.convertRowIndexToView(i) >= 0) return cache.get(i);
+        }
+        return null;
     }
 
     private void verDetalle() {
