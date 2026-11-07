@@ -31,6 +31,7 @@ public class FormUsuario extends javax.swing.JPanel {
     private javax.swing.JButton btnVerContrasena;
     private char caracterOcultoContrasena;
 
+    private javax.swing.JLabel visorFoto;
     private java.io.File archivoSeleccionado; // Guardará temporalmente el archivo elegido de la PC
     private final Map<Integer, String> rolesMap = new HashMap<>();
     private final RolDAO rolDAO = new RolDAO();
@@ -64,6 +65,7 @@ public class FormUsuario extends javax.swing.JPanel {
         //lbFotoPerfil.setVerticalAlignment(javax.swing.SwingConstants.CENTER);
         inicializarTooltips();
         configurarVisibilidadContrasena();
+        instalarPanelFotografia();
 
         PermisoUI.aplicar(
                 this);
@@ -889,6 +891,7 @@ public class FormUsuario extends javax.swing.JPanel {
             txtDireccion.setText(personaUsuario.getDireccion());
             txtEmail.setText(usuario.getEmail());
             txtUsuario.setText(usuario.getNombreUsuario());
+            mostrarFoto(usuario.getRutaImagenPerfil());
             // Seguridad/UX: no precargar contraseña en edición.
             txtContraseña.setText("");
 
@@ -1075,6 +1078,7 @@ public class FormUsuario extends javax.swing.JPanel {
         limpiarCamposFormulario();
         jpCamposFormularioUsuario.setVisible(true);
         jpListaUsuarios.setVisible(false);
+        mostrarFoto(null);
         habilitarCamposPersonales(true);
         cargarRolesEnComboBox();
         btnNuevo.setEnabled(false);
@@ -1101,10 +1105,11 @@ public class FormUsuario extends javax.swing.JPanel {
             // PROCESAMOS LA FOTO AQUÍ: 
             // Se ejecuta justo antes de persistir para que viaje la ruta 
             // de la imagen en el objeto 'usuario'.
-            procesarYGuardarImagenPerfil();
+            // La fotografía se guarda después de persistir, cuando ya existe el ID.
             // ========================================================
 
             if (persistirUsuario()) {
+                procesarYGuardarImagenPerfil();
                 volverAModoLista();
                 Application.actualizarEstadoUsuario("InicioFormularioUsuario");
             }
@@ -1502,46 +1507,131 @@ public class FormUsuario extends javax.swing.JPanel {
         jcbRol.setEnabled(false);
         habilitarDatosDeCuenta(false);
         txtBusqueda.setText("");
+        archivoSeleccionado = null;
+        mostrarFoto(null);
+    }
+
+    private void instalarPanelFotografia() {
+        // Reconstruimos únicamente la distribución del alta, sin editar el .form generado.
+        jpCamposFormularioUsuario.removeAll();
+        jpCamposFormularioUsuario.setLayout(new java.awt.BorderLayout(20, 0));
+        javax.swing.JPanel izquierda = new javax.swing.JPanel();
+        izquierda.setOpaque(false);
+        izquierda.setLayout(new javax.swing.BoxLayout(izquierda, javax.swing.BoxLayout.Y_AXIS));
+        for (javax.swing.JPanel seccion : new javax.swing.JPanel[]{jpDatosPersonales, jpAcceso, jpDatosCuenta}) {
+            seccion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+            izquierda.add(seccion);
+            izquierda.add(javax.swing.Box.createVerticalStrut(10));
+        }
+        jpCamposFormularioUsuario.add(izquierda, java.awt.BorderLayout.CENTER);
+
+        javax.swing.JPanel foto = new javax.swing.JPanel();
+        foto.setOpaque(false);
+        foto.setPreferredSize(new java.awt.Dimension(205, 310));
+        foto.setLayout(new javax.swing.BoxLayout(foto, javax.swing.BoxLayout.Y_AXIS));
+        javax.swing.JLabel titulo = new javax.swing.JLabel("Foto de perfil");
+        titulo.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD, 14f));
+        titulo.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        foto.add(titulo);
+        foto.add(javax.swing.Box.createVerticalStrut(14));
+        visorFoto = new javax.swing.JLabel();
+        visorFoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        visorFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        visorFoto.setPreferredSize(new java.awt.Dimension(155, 155));
+        visorFoto.setMinimumSize(new java.awt.Dimension(155, 155));
+        visorFoto.setMaximumSize(new java.awt.Dimension(155, 155));
+        foto.add(visorFoto);
+        foto.add(javax.swing.Box.createVerticalStrut(14));
+        javax.swing.JButton elegir = new javax.swing.JButton("Seleccionar imagen");
+        elegir.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        elegir.addActionListener(e -> seleccionarFotografia());
+        foto.add(elegir);
+        foto.add(javax.swing.Box.createVerticalStrut(8));
+        javax.swing.JLabel ayuda = new javax.swing.JLabel("JPG o PNG · opcional");
+        ayuda.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        foto.add(ayuda);
+        jpCamposFormularioUsuario.add(foto, java.awt.BorderLayout.EAST);
+        mostrarFoto(null);
+    }
+
+    private void seleccionarFotografia() {
+        javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Imágenes JPG y PNG", "jpg", "jpeg", "png"));
+        if (chooser.showOpenDialog(this) != javax.swing.JFileChooser.APPROVE_OPTION) return;
+        java.io.File elegida = chooser.getSelectedFile();
+        try {
+            java.awt.image.BufferedImage imagen = javax.imageio.ImageIO.read(elegida);
+            if (imagen == null || imagen.getWidth() < 1) throw new java.io.IOException("Imagen no válida");
+            if (elegida.length() > 5_000_000L) throw new java.io.IOException("Máximo 5 MB");
+            archivoSeleccionado = elegida;
+            mostrarIconoFoto(new javax.swing.ImageIcon(imagen));
+        } catch (java.io.IOException ex) {
+            javax.swing.JOptionPane.showMessageDialog(this, "No se pudo cargar la foto: " + ex.getMessage());
+        }
+    }
+
+    private void mostrarFoto(String ruta) {
+        if (visorFoto == null) return;
+        javax.swing.ImageIcon icono = null;
+        if (ruta != null && !ruta.isBlank()) {
+            java.io.File archivo = new java.io.File(ruta);
+            if (archivo.isFile()) icono = new javax.swing.ImageIcon(archivo.getAbsolutePath());
+        }
+        if (icono == null) {
+            java.net.URL defecto = getClass().getResource("/veterinaria/icon/png/default.png");
+            if (defecto != null) icono = new javax.swing.ImageIcon(defecto);
+        }
+        mostrarIconoFoto(icono);
+    }
+
+    private void mostrarIconoFoto(javax.swing.ImageIcon icono) {
+        if (visorFoto == null) return;
+        javax.swing.ImageIcon circular = veterinaria.util.ui.ImageUtils.toCircularIcon(icono, 150);
+        visorFoto.setIcon(circular);
+        visorFoto.setText(circular == null ? "Sin fotografía" : "");
     }
 
     private void procesarYGuardarImagenPerfil() {
-        if (archivoSeleccionado == null || usuario == null) {
-            return;
-        }
+        if (archivoSeleccionado == null || usuario == null || usuario.getIdUsuario() == null) return;
         try {
-            java.io.File destinoCarpeta = new java.io.File("imagen_perfil");
-            if (!destinoCarpeta.exists()) {
-                destinoCarpeta.mkdirs();
+            java.nio.file.Path carpeta = java.nio.file.Paths.get("imagen_perfil");
+            java.nio.file.Files.createDirectories(carpeta);
+            java.awt.image.BufferedImage original = javax.imageio.ImageIO.read(archivoSeleccionado);
+            if (original == null) throw new java.io.IOException("Formato de imagen inválido");
+            java.awt.image.BufferedImage reducida = new java.awt.image.BufferedImage(320, 320,
+                    java.awt.image.BufferedImage.TYPE_INT_RGB);
+            java.awt.Graphics2D g = reducida.createGraphics();
+            g.setColor(java.awt.Color.WHITE);
+            g.fillRect(0, 0, 320, 320);
+            double escala = Math.min(320.0 / original.getWidth(), 320.0 / original.getHeight());
+            int ancho = (int) Math.round(original.getWidth() * escala);
+            int alto = (int) Math.round(original.getHeight() * escala);
+            g.drawImage(original, (320 - ancho) / 2, (320 - alto) / 2, ancho, alto, null);
+            g.dispose();
+            java.nio.file.Path destino = carpeta.resolve("user_" + usuario.getIdUsuario() + ".jpg");
+            if (!javax.imageio.ImageIO.write(reducida, "jpg", destino.toFile()))
+                throw new java.io.IOException("No se pudo generar el JPG");
+            String ruta = destino.toString().replace('\\', '/');
+            javax.persistence.EntityManager em = veterinaria.persistencia.JPAUtil.getEntityManager();
+            try {
+                em.getTransaction().begin();
+                em.createQuery("UPDATE Usuario u SET u.rutaImagenPerfil = :ruta WHERE u.idUsuario = :id")
+                        .setParameter("ruta", ruta)
+                        .setParameter("id", usuario.getIdUsuario())
+                        .executeUpdate();
+                em.getTransaction().commit();
+                usuario.setRutaImagenPerfil(ruta);
+            } catch (RuntimeException ex) {
+                if (em.getTransaction().isActive()) em.getTransaction().rollback();
+                throw ex;
+            } finally {
+                em.close();
             }
-
-            String extension = archivoSeleccionado.getName().substring(archivoSeleccionado.getName().lastIndexOf("."));
-            java.io.File archivoDestino = new java.io.File(destinoCarpeta, "user_" + usuario.getIdUsuario() + extension);
-
-            java.nio.file.Files.copy(
-                    archivoSeleccionado.toPath(),
-                    archivoDestino.toPath(),
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
-            );
-
-            String rutaParaBD = "imagen_perfil/" + archivoDestino.getName();
-            usuario.setRutaImagenPerfil(rutaParaBD);
-
-            java.awt.Image imgEscaladaMenu = new javax.swing.ImageIcon(archivoDestino.getAbsolutePath())
-                    .getImage().getScaledInstance(45, 45, java.awt.Image.SCALE_SMOOTH);
-
-            // ASÍ REEMPLAZALO AHORA (Solución limpia):
-            java.awt.Window window = javax.swing.SwingUtilities.getWindowAncestor(this);
-            if (window instanceof Application) {
-                Application appInstance = (Application) window;
-                // Si tu MainForm tiene un método público getMenu(), lo usamos:
-                if (appInstance.getMainForm() != null && appInstance.getMainForm().getMenu() != null) {
-                    appInstance.getMainForm().getMenu().setProfileIcon(new javax.swing.ImageIcon(imgEscaladaMenu));
-                }
-            }
-
             archivoSeleccionado = null;
         } catch (Exception ex) {
-            System.err.println("Error al procesar la imagen: " + ex.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "El usuario se guardó, pero no se pudo guardar su foto: " + ex.getMessage(),
+                    "Fotografía", javax.swing.JOptionPane.WARNING_MESSAGE);
         }
     }
 
