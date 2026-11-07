@@ -1525,9 +1525,26 @@ public class FormUsuario extends javax.swing.JPanel {
         }
 
         // Los botones pertenecen al pie del formulario, no a la sección de credenciales.
-        jpDatosCuenta.remove(btnGuardar);
-        jpDatosCuenta.remove(btnCancelar);
-        jpDatosCuenta.remove(btnLimpiar);
+        // El GroupLayout generado aún reservaba espacio para los botones extraídos.
+        // Se reemplaza el layout de esta sección por uno compacto y estable.
+        jpDatosCuenta.removeAll();
+        jpDatosCuenta.setLayout(new java.awt.BorderLayout(0, 6));
+        jpDatosCuenta.add(lbDatosDeCuenta, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel camposCuenta = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+        camposCuenta.setOpaque(false);
+        for (javax.swing.JComponent[] par : new javax.swing.JComponent[][]{
+                {lbNombreUsuario, txtUsuario}, {lbEmail, txtEmail}, {lbDireccion1, txtContraseña}}) {
+            javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+            campo.setOpaque(false);
+            campo.add(par[0], java.awt.BorderLayout.NORTH);
+            campo.add(par[1], java.awt.BorderLayout.CENTER);
+            campo.setPreferredSize(new java.awt.Dimension(140, 52));
+            camposCuenta.add(campo);
+        }
+        camposCuenta.add(btnVerContrasena);
+        jpDatosCuenta.add(camposCuenta, java.awt.BorderLayout.CENTER);
+        jpDatosCuenta.setPreferredSize(new java.awt.Dimension(550, 92));
+        jpDatosCuenta.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 92));
         javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 6));
         acciones.setOpaque(false);
         acciones.add(btnGuardar);
@@ -1565,6 +1582,7 @@ public class FormUsuario extends javax.swing.JPanel {
         cuerpo.add(izquierda, java.awt.BorderLayout.CENTER);
         cuerpo.add(foto, java.awt.BorderLayout.EAST);
         jpCamposFormularioUsuario.add(cuerpo, java.awt.BorderLayout.CENTER);
+        acciones.setPreferredSize(new java.awt.Dimension(0, 44));
         jpCamposFormularioUsuario.add(acciones, java.awt.BorderLayout.SOUTH);
         mostrarFoto(null);
     }
