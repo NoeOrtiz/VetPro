@@ -136,6 +136,12 @@ public class Application extends javax.swing.JFrame {
         component.repaint();
     }
 
+    public static void refrescarFotoPerfil() {
+        if (app != null && app.mainForm != null) {
+            app.mainForm.refrescarFotoPerfil();
+        }
+    }
+
     public static void logout() {
         FlatAnimatedLafChange.showSnapshot();
         app.loginForm.clearFields();  // Limpiar los campos de inicio de sesión
