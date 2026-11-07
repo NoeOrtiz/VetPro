@@ -44,6 +44,14 @@ public class FormAuditoria extends javax.swing.JPanel {
             jDateDesde.setDateFormatString("dd/MM/yyyy");
             jDateHasta.setDateFormatString("dd/MM/yyyy");
             organizarEncabezado();
+            scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            for (com.toedter.calendar.JDateChooser fecha : new com.toedter.calendar.JDateChooser[]{jDateDesde, jDateHasta}) {
+                javax.swing.JTextField editor = (javax.swing.JTextField) fecha.getDateEditor().getUiComponent();
+                editor.setOpaque(true);
+                editor.setBackground(javax.swing.UIManager.getColor("TextField.background"));
+                editor.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
+                editor.setCaretColor(javax.swing.UIManager.getColor("TextField.foreground"));
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "No se pudo inicializar Auditoría: " + ex.getMessage(),
@@ -74,6 +82,22 @@ public class FormAuditoria extends javax.swing.JPanel {
         busqueda.add(lbBuscarEvento);
         busqueda.add(lbBuscar);
         busqueda.add(txtBusqueda);
+        javax.swing.JButton limpiarTexto = new javax.swing.JButton("×");
+        limpiarTexto.setFocusable(false);
+        limpiarTexto.setToolTipText("Limpiar búsqueda");
+        limpiarTexto.setMargin(new java.awt.Insets(2, 7, 2, 7));
+        limpiarTexto.setVisible(!txtBusqueda.getText().isEmpty());
+        limpiarTexto.addActionListener(e -> {
+            txtBusqueda.setText("");
+            veterinaria.util.GestorSeleccionTabla.limpiar(tableAuditoria);
+        });
+        txtBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void cambio() { limpiarTexto.setVisible(!txtBusqueda.getText().isEmpty()); }
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
+        });
+        busqueda.add(limpiarTexto);
         contenido.add(busqueda);
         javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 4));
         filtros.setOpaque(false);
