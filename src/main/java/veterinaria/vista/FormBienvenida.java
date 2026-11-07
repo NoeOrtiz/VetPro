@@ -114,13 +114,7 @@ public class FormBienvenida extends JPanel {
         contenido.add(accesos);
         contenido.add(Box.createVerticalStrut(18));
 
-        JPanel inferiores = new JPanel(new GridLayout(1, 2, 16, 0));
-        inferiores.setOpaque(false);
-        inferiores.add(info("Actividad reciente", "Próximamente: movimientos registrados por auditoría."));
-        inferiores.add(info("Alertas", "Próximamente: vencimientos, turnos y stock crítico."));
-        inferiores.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        contenido.add(inferiores);
-        contenido.add(Box.createVerticalStrut(6));
+        contenido.add(Box.createVerticalStrut(12));
         JLabel pie = new JLabel("VetPRO  ·  Sistema de Gestión Veterinaria", SwingConstants.CENTER);
         pie.setForeground(muted);
         pie.setAlignmentX(Component.CENTER_ALIGNMENT);
