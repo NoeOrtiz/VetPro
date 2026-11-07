@@ -43,6 +43,7 @@ public class FormAuditoria extends javax.swing.JPanel {
             }
             jDateDesde.setDateFormatString("dd/MM/yyyy");
             jDateHasta.setDateFormatString("dd/MM/yyyy");
+            organizarEncabezado();
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "No se pudo inicializar Auditoría: " + ex.getMessage(),
@@ -52,6 +53,56 @@ public class FormAuditoria extends javax.swing.JPanel {
 
 
 
+    }
+
+    private void organizarEncabezado() {
+        // Disposición compacta y coherente con los demás módulos.
+        jpHeader.removeAll();
+        jpHeader.setLayout(new java.awt.BorderLayout(0, 12));
+        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(0, 6));
+        superior.setOpaque(false);
+        superior.add(lbAuditoriaDeEventos, java.awt.BorderLayout.NORTH);
+        superior.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        jpHeader.add(superior, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel contenido = new javax.swing.JPanel();
+        contenido.setOpaque(false);
+        contenido.setLayout(new javax.swing.BoxLayout(contenido, javax.swing.BoxLayout.Y_AXIS));
+        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 7, 2));
+        busqueda.setOpaque(false);
+        txtBusqueda.setPreferredSize(new java.awt.Dimension(240, 28));
+        busqueda.add(lbBuscarEvento);
+        busqueda.add(lbBuscar);
+        busqueda.add(txtBusqueda);
+        contenido.add(busqueda);
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 4));
+        filtros.setOpaque(false);
+        filtros.add(lbUsuario1);
+        for (javax.swing.JComponent[] par : new javax.swing.JComponent[][]{
+                {lbUsuario, jcbUsuario}, {lbDesde, jDateDesde}, {lbHasta, jDateHasta},
+                {lbAccion, jcbAccion}, {lbAccion1, jcbEntidad}}) {
+            javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
+            campo.setOpaque(false);
+            campo.add(par[0], java.awt.BorderLayout.NORTH);
+            campo.add(par[1], java.awt.BorderLayout.CENTER);
+            int ancho = (par[1] == jDateDesde || par[1] == jDateHasta) ? 140 : 150;
+            campo.setPreferredSize(new java.awt.Dimension(ancho, 51));
+            filtros.add(campo);
+        }
+        filtros.add(btnBuscar);
+        filtros.add(btnLimpiar);
+        contenido.add(filtros);
+        jpHeader.add(contenido, java.awt.BorderLayout.CENTER);
+
+        // Ver e Imprimir corresponden al evento seleccionado, junto a la lista.
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        acciones.setOpaque(false);
+        acciones.add(btnVer);
+        acciones.add(btnImprimir);
+        acciones.add(btnImprimirLista);
+        ((javax.swing.GroupLayout) jpListaAuditoria.getLayout()).replace(btnImprimirLista, acciones);
+        jpHeader.revalidate();
+        jpListaAuditoria.revalidate();
     }
 
     @SuppressWarnings("unchecked")
