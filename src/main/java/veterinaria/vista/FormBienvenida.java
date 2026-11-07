@@ -18,13 +18,14 @@ import veterinaria.entidad.Rol;
  */
 public class FormBienvenida extends JPanel {
     private final Color accent = new Color(132, 191, 78);
-    private final Color card = new Color(38, 49, 61);
-    private final Color muted = new Color(185, 195, 205);
+    private Color card;
+    private Color muted;
     private final JLabel fecha = new JLabel();
     private final JLabel hora = new JLabel();
     private final Timer reloj;
 
     public FormBienvenida() {
+        actualizarPaleta();
         setLayout(new BorderLayout());
         setOpaque(false);
         JPanel contenido = new JPanel();
@@ -74,6 +75,7 @@ public class FormBienvenida extends JPanel {
         JPanel fechaPanel = new JPanel();
         fechaPanel.setOpaque(false);
         fechaPanel.setLayout(new BoxLayout(fechaPanel, BoxLayout.Y_AXIS));
+        fecha.putClientProperty("vetpro.home.accent", Boolean.TRUE);
         fecha.setForeground(accent);
         hora.setForeground(muted);
         fechaPanel.add(fecha);
@@ -110,6 +112,51 @@ public class FormBienvenida extends JPanel {
         actualizarFecha();
         reloj = new Timer(60000, e -> actualizarFecha());
         reloj.start();
+        aplicarPaleta(this);
+    }
+
+    private void actualizarPaleta() {
+        Color fondo = UIManager.getColor("Panel.background");
+        if (fondo == null) fondo = new Color(48, 62, 75);
+        boolean oscuro = (fondo.getRed() * 299 + fondo.getGreen() * 587
+                + fondo.getBlue() * 114) / 1000 < 128;
+        card = oscuro ? new Color(38, 49, 61) : new Color(246, 248, 250);
+        muted = oscuro ? new Color(185, 195, 205) : new Color(83, 96, 110);
+    }
+
+    private void aplicarPaleta(Component componente) {
+        if (componente instanceof JComponent jc) {
+            if (Boolean.TRUE.equals(jc.getClientProperty("vetpro.home.card"))) {
+                jc.setBackground(card);
+                jc.setForeground(UIManager.getColor("Label.foreground"));
+                jc.setBorder(new CompoundBorder(
+                        new LineBorder(UIManager.getColor("Component.borderColor") != null
+                                ? UIManager.getColor("Component.borderColor")
+                                : new Color(110, 125, 138), 1, true),
+                        new EmptyBorder(18, 20, 18, 20)));
+            }
+            if (componente instanceof JLabel etiqueta) {
+                if (Boolean.TRUE.equals(jc.getClientProperty("vetpro.home.title"))) {
+                    etiqueta.setForeground(UIManager.getColor("Label.foreground"));
+                } else if (!Boolean.TRUE.equals(jc.getClientProperty("vetpro.home.accent"))
+                        && etiqueta.getIcon() == null) {
+                    etiqueta.setForeground(muted);
+                }
+            }
+        }
+        if (componente instanceof Container contenedor) {
+            for (Component hijo : contenedor.getComponents()) aplicarPaleta(hijo);
+        }
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        if (fecha != null && hora != null && getComponentCount() > 0) {
+            actualizarPaleta();
+            aplicarPaleta(this);
+            fecha.setForeground(accent);
+        }
     }
 
     private String nombreSesion() {
@@ -170,12 +217,14 @@ public class FormBienvenida extends JPanel {
     private JLabel titulo(String texto, int size) {
         JLabel label = new JLabel(texto);
         label.setFont(label.getFont().deriveFont(Font.BOLD, (float) size));
+        label.putClientProperty("vetpro.home.title", Boolean.TRUE);
         label.setForeground(UIManager.getColor("Label.foreground"));
         return label;
     }
 
     private JPanel panelTarjeta(LayoutManager layout) {
         JPanel p = new JPanel(layout);
+        p.putClientProperty("vetpro.home.card", Boolean.TRUE);
         p.setBackground(card);
         p.setBorder(new CompoundBorder(new LineBorder(new Color(69, 82, 96), 1, true),
                 new EmptyBorder(18, 20, 18, 20)));
@@ -194,10 +243,12 @@ public class FormBienvenida extends JPanel {
     private JButton acceso(String titulo, String descripcion, String simbolo, Runnable accion) {
         JButton b = new JButton();
         b.setLayout(new BorderLayout(16, 0));
+        b.putClientProperty("vetpro.home.card", Boolean.TRUE);
         b.setBackground(card);
         b.setOpaque(true);
         b.setBorder(new CompoundBorder(new LineBorder(new Color(69, 82, 96), 1, true),
                 new EmptyBorder(20, 20, 20, 20)));
+        b.setForeground(UIManager.getColor("Label.foreground"));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setFocusPainted(false);
         FlatSVGIcon svg = new FlatSVGIcon(simbolo, 2.0f);
@@ -206,6 +257,7 @@ public class FormBienvenida extends JPanel {
         svg.setColorFilter(filtro);
         JLabel icono = new JLabel(svg, SwingConstants.CENTER);
         icono.setPreferredSize(new Dimension(60, 64));
+        icono.putClientProperty("vetpro.home.accent", Boolean.TRUE);
         icono.setForeground(accent);
         b.add(icono, BorderLayout.WEST);
         JPanel textos = new JPanel();
