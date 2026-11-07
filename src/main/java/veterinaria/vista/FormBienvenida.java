@@ -31,9 +31,6 @@ public class FormBienvenida extends JPanel {
         contenido.setOpaque(false);
         contenido.setLayout(new BoxLayout(contenido, BoxLayout.Y_AXIS));
         contenido.setBorder(new EmptyBorder(8, 30, 8, 30));
-        contenido.add(crearPerfilSuperior());
-        contenido.add(Box.createVerticalStrut(4));
-
         JLabel logo = new JLabel();
         java.net.URL url = getClass().getResource("/veterinaria/icon/png/bienvenida.png");
         if (url != null) {
@@ -45,8 +42,15 @@ public class FormBienvenida extends JPanel {
         }
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
         logo.setHorizontalAlignment(SwingConstants.CENTER);
-        contenido.add(logo);
-        contenido.add(Box.createVerticalStrut(2));
+        // El perfil comparte la franja superior con el logo, sin desplazarlo hacia abajo.
+        JPanel encabezado = new JPanel(new BorderLayout());
+        encabezado.setOpaque(false);
+        encabezado.setAlignmentX(Component.CENTER_ALIGNMENT);
+        encabezado.add(logo, BorderLayout.CENTER);
+        encabezado.add(crearPerfilSuperior(), BorderLayout.EAST);
+        encabezado.setMaximumSize(new Dimension(Integer.MAX_VALUE, 145));
+        contenido.add(encabezado);
+        contenido.add(Box.createVerticalStrut(10));
         JLabel saludo = titulo("¡Bienvenida, " + nombreSesion() + "!", 29);
         saludo.setAlignmentX(Component.CENTER_ALIGNMENT);
         contenido.add(saludo);
