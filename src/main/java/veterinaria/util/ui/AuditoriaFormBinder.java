@@ -51,6 +51,8 @@ public class AuditoriaFormBinder {
     private final List<Auditoria> cache = new ArrayList<>();
     private final javax.swing.JTextField buscador;
     private veterinaria.util.PaginacionTablas paginacion;
+    private boolean sincronizandoSeleccion;
+    private javax.swing.SwingWorker<List<Auditoria>, Void> consultaActiva;
 
     public AuditoriaFormBinder(Component parent,
             JTable tableAuditoria,
@@ -88,6 +90,26 @@ public class AuditoriaFormBinder {
         tableAuditoria.getColumnModel().getColumn(0).setCellRenderer(
                 new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         veterinaria.util.GestorTablas.instalarSeleccion(tableAuditoria, this::actualizarBotones);
+        // Una nueva selección reemplaza la anterior, incluso al marcar el checkbox.
+        tableAuditoria.getModel().addTableModelListener(e -> {
+            if (sincronizandoSeleccion || e.getType() != javax.swing.event.TableModelEvent.UPDATE
+                    || e.getColumn() != 0 || e.getFirstRow() < 0) return;
+            int fila = e.getFirstRow();
+            javax.swing.table.TableModel modelo = tableAuditoria.getModel();
+            if (!Boolean.TRUE.equals(modelo.getValueAt(fila, 0))) return;
+            sincronizandoSeleccion = true;
+            try {
+                for (int i = 0; i < modelo.getRowCount(); i++) {
+                    if (i != fila && Boolean.TRUE.equals(modelo.getValueAt(i, 0))) {
+                        modelo.setValueAt(Boolean.FALSE, i, 0);
+                    }
+                }
+            } finally {
+                sincronizandoSeleccion = false;
+            }
+            tableAuditoria.repaint();
+            actualizarBotones();
+        });
         cargarCombos();
         configurarEventos();
 
@@ -200,8 +222,34 @@ public class AuditoriaFormBinder {
             entidad = null;
         }
 
-        List<Auditoria> lista = auditoriaService.buscar(desde, hasta, usuarioId, accion, entidad);
+        // Evita consultas a MySQL en el hilo de eventos de Swing.
+        if (consultaActiva != null && !consultaActiva.isDone()) consultaActiva.cancel(true);
+        final Date fechaDesde = desde, fechaHasta = hasta;
+        final Integer idUsuario = usuarioId;
+        final String accionFiltro = accion, entidadFiltro = entidad;
+        btnBuscar.setEnabled(false);
+        btnLimpiar.setEnabled(false);
+        consultaActiva = new javax.swing.SwingWorker<List<Auditoria>, Void>() {
+            @Override protected List<Auditoria> doInBackground() {
+                return auditoriaService.buscar(fechaDesde, fechaHasta, idUsuario, accionFiltro, entidadFiltro);
+            }
+            @Override protected void done() {
+                if (consultaActiva != this) return;
+                btnBuscar.setEnabled(true);
+                btnLimpiar.setEnabled(true);
+                if (isCancelled()) return;
+                try {
+                    cargarResultados(get());
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(parent, "Error al consultar auditoría: " + ex.getMessage(),
+                            "Auditoría", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+        consultaActiva.execute();
+    }
 
+    private void cargarResultados(List<Auditoria> lista) {
         cache.clear();
         if (lista != null) {
             cache.addAll(lista);
@@ -255,7 +303,8 @@ public class AuditoriaFormBinder {
             jcbEntidad.setSelectedIndex(0);
         }
 
-        tableAuditoria.clearSelection();
+        buscador.setText("");
+        veterinaria.util.GestorSeleccionTabla.limpiar(tableAuditoria);
         btnVer.setEnabled(false);
         btnImprimir.setEnabled(false);
 
