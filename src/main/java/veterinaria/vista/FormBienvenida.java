@@ -89,7 +89,7 @@ public class FormBienvenida extends JPanel {
         accesos.add(acceso("Nueva Consulta", "Registrar una nueva atención", "veterinaria/menu/icon/3.svg", () -> abrir("FormConsulta", new FormConsulta())));
         accesos.add(acceso("Agenda / Calendario", "Turnos y programación", "veterinaria/menu/icon/10.svg", () -> abrir("FormTurnosPeluqueria", new FormTurnosPeluqueria())));
         accesos.add(acceso("Pacientes (Fichas)", "Gestionar mascotas", "veterinaria/menu/icon/3.svg", () -> abrir("FormMascota", new FormMascota())));
-        accesos.add(acceso("Inventario / Caja", "Productos y existencias", "veterinaria/menu/icon/6.svg", () -> abrir("FormProducto", new FormProducto())));
+        accesos.add(acceso("Caja", "Ventas y cobros", "veterinaria/menu/icon/5.svg", () -> abrir("FormCajaRegistradora", new FormCajaRegistradora())));
         accesos.setMaximumSize(new Dimension(Integer.MAX_VALUE, 245));
         contenido.add(accesos);
         contenido.add(Box.createVerticalStrut(18));
