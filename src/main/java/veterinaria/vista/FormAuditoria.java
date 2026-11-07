@@ -97,10 +97,10 @@ public class FormAuditoria extends javax.swing.JPanel {
         // Ver e Imprimir corresponden al evento seleccionado, junto a la lista.
         javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
+        ((javax.swing.GroupLayout) jpListaAuditoria.getLayout()).replace(btnImprimirLista, acciones);
         acciones.add(btnVer);
         acciones.add(btnImprimir);
         acciones.add(btnImprimirLista);
-        ((javax.swing.GroupLayout) jpListaAuditoria.getLayout()).replace(btnImprimirLista, acciones);
         jpHeader.revalidate();
         jpListaAuditoria.revalidate();
     }
