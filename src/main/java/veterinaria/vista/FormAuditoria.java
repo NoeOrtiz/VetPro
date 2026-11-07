@@ -28,9 +28,21 @@ public class FormAuditoria extends javax.swing.JPanel {
                     btnLimpiar,
                     btnVer,
                     btnImprimir,
-                    btnImprimirLista
+                    btnImprimirLista,
+                    txtBusqueda
             );
             binder.init();
+            javax.swing.JPanel tablaYPaginas = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+            tablaYPaginas.setOpaque(false);
+            ((javax.swing.GroupLayout) jpListaAuditoria.getLayout()).replace(scroll1, tablaYPaginas);
+            tablaYPaginas.add(scroll1, java.awt.BorderLayout.CENTER);
+            tablaYPaginas.add(binder.getControlesPaginacion(), java.awt.BorderLayout.SOUTH);
+            for (javax.swing.JButton boton : new javax.swing.JButton[]{btnVer, btnImprimir, btnBuscar, btnLimpiar, btnImprimirLista}) {
+                boton.setMargin(new java.awt.Insets(5, 12, 5, 12));
+                boton.setFocusable(false);
+            }
+            jDateDesde.setDateFormatString("dd/MM/yyyy");
+            jDateHasta.setDateFormatString("dd/MM/yyyy");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "No se pudo inicializar Auditoría: " + ex.getMessage(),
