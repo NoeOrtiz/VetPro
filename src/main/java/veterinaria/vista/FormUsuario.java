@@ -661,7 +661,7 @@ public class FormUsuario extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(jpHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jpCamposFormularioUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 325, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jpCamposFormularioUsuario, javax.swing.GroupLayout.PREFERRED_SIZE, 390, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jpListaUsuarios, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -676,7 +676,8 @@ public class FormUsuario extends javax.swing.JPanel {
         // Búsqueda y filtro juntos, sin ocupar el ancho del encabezado.
         javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
         barra.setOpaque(false);
-        barra.add(lbUsuarioBusqueda);
+        barra.add(new javax.swing.JLabel("BUSCAR USUARIO"));
+        barra.add(javax.swing.Box.createHorizontalStrut(145));
         barra.add(new javax.swing.JLabel("Estado:"));
         barra.add(filtroEstado);
         filtroEstado.addActionListener(e -> cargarUsuariosEnTabla());
@@ -1591,18 +1592,30 @@ public class FormUsuario extends javax.swing.JPanel {
             java.io.File archivo = new java.io.File(ruta);
             if (archivo.isFile()) icono = new javax.swing.ImageIcon(archivo.getAbsolutePath());
         }
-        if (icono == null) {
-            java.net.URL defecto = getClass().getResource("/veterinaria/icon/png/default.png");
-            if (defecto != null) icono = new javax.swing.ImageIcon(defecto);
-        }
         mostrarIconoFoto(icono);
     }
 
     private void mostrarIconoFoto(javax.swing.ImageIcon icono) {
         if (visorFoto == null) return;
-        javax.swing.ImageIcon circular = veterinaria.util.ui.ImageUtils.toCircularIcon(icono, 110);
-        visorFoto.setIcon(circular);
-        visorFoto.setText(circular == null ? "Sin fotografía" : "");
+        if (icono == null) {
+            // Avatar neutro como Windows; no utilizar la imagen ilustrada por defecto.
+            java.awt.image.BufferedImage avatar = new java.awt.image.BufferedImage(110, 110,
+                    java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g = avatar.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                    java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(new java.awt.Color(92, 104, 114));
+            g.fillOval(0, 0, 109, 109);
+            g.setColor(new java.awt.Color(222, 229, 234));
+            g.setStroke(new java.awt.BasicStroke(3f));
+            g.drawOval(43, 25, 24, 24);
+            g.drawArc(24, 53, 62, 44, 0, 180);
+            g.dispose();
+            visorFoto.setIcon(new javax.swing.ImageIcon(avatar));
+        } else {
+            visorFoto.setIcon(veterinaria.util.ui.ImageUtils.toCircularIcon(icono, 110));
+        }
+        visorFoto.setText("");
     }
 
     private void procesarYGuardarImagenPerfil() {
