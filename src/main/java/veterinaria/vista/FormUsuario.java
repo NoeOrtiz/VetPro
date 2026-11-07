@@ -586,11 +586,13 @@ public class FormUsuario extends javax.swing.JPanel {
             };
 
             public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
+                return columnIndex >= 0 && columnIndex < types.length
+                        ? types[columnIndex] : String.class;
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                return columnIndex >= 0 && columnIndex < canEdit.length
+                        && canEdit[columnIndex];
             }
         });
         table.setMinimumSize(new java.awt.Dimension(848, 220));
