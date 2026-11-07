@@ -90,6 +90,9 @@ public class MainForm extends JLayeredPane {
         add(menuButton);
         add(menu);
         add(panelBody);
+        notificationBell = new NotificationBell();
+        setLayer(notificationBell, JLayeredPane.POPUP_LAYER);
+        add(notificationBell);
     }
 
     @Override
@@ -431,6 +434,7 @@ public class MainForm extends JLayeredPane {
     private Menu menu;
     private JPanel panelBody;
     private JButton menuButton;
+    private NotificationBell notificationBell;
 
     private class MainFormLayout implements LayoutManager {
 
@@ -483,6 +487,12 @@ public class MainForm extends JLayeredPane {
                 int bodyx = ltr ? (x + menuWidth + gap) : x;
                 int bodyy = y;
                 panelBody.setBounds(bodyx, bodyy, bodyWidth, bodyHeight);
+                if (notificationBell != null) {
+                    int bellWidth = UIScale.scale(78);
+                    int bellHeight = UIScale.scale(42);
+                    notificationBell.setBounds(bodyx + Math.max(0, bodyWidth - UIScale.scale(220)),
+                            bodyy + UIScale.scale(23), bellWidth, bellHeight);
+                }
             }
         }
     }
