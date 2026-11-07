@@ -59,8 +59,8 @@ public class FormBienvenida extends JPanel {
                 logo.setBounds((getWidth() - logoSize.width) / 2, 0,
                         logoSize.width, Math.min(getHeight(), logoSize.height));
                 Dimension perfilSize = perfil.getPreferredSize();
-                perfil.setBounds(Math.max(0, getWidth() - perfilSize.width), 0,
-                        Math.min(getWidth(), perfilSize.width), Math.min(getHeight(), perfilSize.height));
+                perfil.setBounds(Math.max(0, getWidth() - perfilSize.width), 18,
+                        Math.min(getWidth(), perfilSize.width), Math.min(Math.max(0, getHeight() - 18), perfilSize.height));
             }
         };
         encabezado.setOpaque(false);
