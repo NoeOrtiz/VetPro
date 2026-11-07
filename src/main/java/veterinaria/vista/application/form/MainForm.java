@@ -95,14 +95,9 @@ public class MainForm extends JLayeredPane {
         JPanel controles = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
         controles.setOpaque(false);
         controles.add(notificationBell);
-        JLabel avatar = new JLabel();
-        java.net.URL imagenUsuario = getClass().getResource("/veterinaria/icon/png/default.png");
-        if (imagenUsuario != null) {
-            java.awt.Image imagen = new javax.swing.ImageIcon(imagenUsuario).getImage()
-                    .getScaledInstance(30, 30, java.awt.Image.SCALE_SMOOTH);
-            avatar.setIcon(new javax.swing.ImageIcon(imagen));
-        }
-        controles.add(avatar);
+        avatarPerfil = new JLabel();
+        refrescarFotoPerfil();
+        controles.add(avatarPerfil);
         JPanel datos = new JPanel();
         datos.setOpaque(false);
         datos.setLayout(new javax.swing.BoxLayout(datos, javax.swing.BoxLayout.Y_AXIS));
@@ -391,7 +386,8 @@ public class MainForm extends JLayeredPane {
         // Informes de Caja gestiona sus propias pestañas, tabla y paginación.
         // Evitar un scroll externo que desplaza los controles fuera de pantalla.
         if (component instanceof FormInformesCajaMovimientos
-                || component instanceof FormBienvenida) {
+                || component instanceof FormBienvenida
+                || component instanceof FormAuditoria) {
             panelBody.add(component, BorderLayout.CENTER);
             panelBody.revalidate();
             panelBody.repaint();
@@ -458,7 +454,41 @@ public class MainForm extends JLayeredPane {
     private JPanel panelBody;
     private JButton menuButton;
     private NotificationBell notificationBell;
+    private JLabel avatarPerfil;
     private JPanel contenedorPrincipal;
+
+    /** Recarga la foto del usuario autenticado después de editar su perfil. */
+    public void refrescarFotoPerfil() {
+        if (avatarPerfil == null) return;
+        javax.swing.Icon icono = null;
+        try {
+            Usuario actual = Application.getSesionUsuario().getUsuario();
+            if (actual != null) {
+                Usuario persistido = new veterinaria.persistencia.UsuarioDAO()
+                        .buscarPorNombreUsuario(actual.getNombreUsuario());
+                String ruta = persistido == null ? null : persistido.getRutaImagenPerfil();
+                if (ruta != null && !ruta.isBlank()) {
+                    java.io.File archivo = new java.io.File(ruta);
+                    if (archivo.isFile()) {
+                        icono = veterinaria.util.ui.ImageUtils.toCircularIcon(
+                                new javax.swing.ImageIcon(archivo.getAbsolutePath()), 30);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("[PERFIL] No se pudo cargar la foto: " + ex.getMessage());
+        }
+        if (icono == null) {
+            java.net.URL recurso = getClass().getResource("/veterinaria/icon/png/default.png");
+            if (recurso != null) {
+                icono = veterinaria.util.ui.ImageUtils.toCircularIcon(
+                        new javax.swing.ImageIcon(recurso), 30);
+            }
+        }
+        avatarPerfil.setIcon(icono);
+        avatarPerfil.revalidate();
+        avatarPerfil.repaint();
+    }
 
     private class MainFormLayout implements LayoutManager {
 
