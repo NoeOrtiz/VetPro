@@ -471,7 +471,7 @@ public class MainForm extends JLayeredPane {
                     java.io.File archivo = new java.io.File(ruta);
                     if (archivo.isFile()) {
                         icono = veterinaria.util.ui.ImageUtils.toCircularIcon(
-                                new javax.swing.ImageIcon(archivo.getAbsolutePath()), 30);
+                                new javax.swing.ImageIcon(archivo.getAbsolutePath()), 40);
                     }
                 }
             }
@@ -482,7 +482,7 @@ public class MainForm extends JLayeredPane {
             java.net.URL recurso = getClass().getResource("/veterinaria/icon/png/default.png");
             if (recurso != null) {
                 icono = veterinaria.util.ui.ImageUtils.toCircularIcon(
-                        new javax.swing.ImageIcon(recurso), 30);
+                        new javax.swing.ImageIcon(recurso), 40);
             }
         }
         avatarPerfil.setIcon(icono);
