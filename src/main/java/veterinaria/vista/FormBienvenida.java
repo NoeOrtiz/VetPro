@@ -4,6 +4,11 @@ import java.awt.*;
 import com.formdev.flatlaf.extras.FlatSVGIcon;
 import java.awt.event.*;
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.concurrent.ExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import veterinaria.servicio.ResumenInicioService;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import javax.swing.*;
@@ -23,6 +28,8 @@ public class FormBienvenida extends JPanel {
     private final JLabel fecha = new JLabel();
     private final JLabel hora = new JLabel();
     private final Timer reloj;
+    private final JLabel indicadores = new JLabel("Cargando indicadores...");
+    private boolean cargandoIndicadores;
 
     public FormBienvenida() {
         actualizarPaleta();
@@ -80,9 +87,8 @@ public class FormBienvenida extends JPanel {
         resumenIzq.setLayout(new BoxLayout(resumenIzq, BoxLayout.Y_AXIS));
         resumenIzq.add(titulo("Resumen del día", 19));
         resumenIzq.add(Box.createVerticalStrut(8));
-        JLabel aclaracion = new JLabel("Consultas, turnos y alertas: indicadores pendientes de conectar");
-        aclaracion.setForeground(muted);
-        resumenIzq.add(aclaracion);
+        indicadores.setForeground(muted);
+        resumenIzq.add(indicadores);
         resumen.add(resumenIzq, BorderLayout.CENTER);
         JPanel fechaPanel = new JPanel();
         fechaPanel.setOpaque(false);
@@ -122,9 +128,43 @@ public class FormBienvenida extends JPanel {
 
         add(contenido, BorderLayout.CENTER);
         actualizarFecha();
-        reloj = new Timer(60000, e -> actualizarFecha());
+        reloj = new Timer(60000, e -> {
+            actualizarFecha();
+            cargarIndicadores();
+        });
         reloj.start();
         aplicarPaleta(this);
+        cargarIndicadores();
+    }
+
+    private void cargarIndicadores() {
+        if (cargandoIndicadores) return;
+        cargandoIndicadores = true;
+        LocalDate hoy = LocalDate.now();
+        new SwingWorker<ResumenInicioService.Indicadores, Void>() {
+            @Override
+            protected ResumenInicioService.Indicadores doInBackground() {
+                return new ResumenInicioService().obtener(hoy);
+            }
+
+            @Override
+            protected void done() {
+                cargandoIndicadores = false;
+                try {
+                    ResumenInicioService.Indicadores datos = get();
+                    indicadores.setText("Consultas de hoy: " + datos.consultasHoy
+                            + "    |    En espera: " + datos.pacientesEnEspera
+                            + "    |    Turnos de peluquería hoy: " + datos.turnosPeluqueriaHoy);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    indicadores.setText("No se pudieron cargar los indicadores.");
+                } catch (ExecutionException ex) {
+                    Logger.getLogger(FormBienvenida.class.getName()).log(Level.WARNING,
+                            "Error al consultar indicadores del inicio", ex.getCause());
+                    indicadores.setText("Indicadores no disponibles. Verificá la conexión a la base de datos.");
+                }
+            }
+        }.execute();
     }
 
     private void actualizarPaleta() {
@@ -306,5 +346,6 @@ public class FormBienvenida extends JPanel {
     public void addNotify() {
         super.addNotify();
         if (reloj != null) reloj.start();
+        if (reloj != null) cargarIndicadores();
     }
 }
