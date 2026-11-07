@@ -90,9 +90,9 @@ public class MainForm extends JLayeredPane {
         add(menu);
         notificationBell = new NotificationBell();
         JPanel header = new JPanel(new BorderLayout());
-        header.setBorder(new EmptyBorder(6, 14, 6, 14));
-        header.setPreferredSize(new Dimension(0, UIScale.scale(62)));
-        JPanel controles = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
+        header.setBorder(new EmptyBorder(19, 14, 4, 14));
+        header.setPreferredSize(new Dimension(0, UIScale.scale(64)));
+        JPanel controles = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
         controles.setOpaque(false);
         controles.add(notificationBell);
         JLabel avatar = new JLabel();
