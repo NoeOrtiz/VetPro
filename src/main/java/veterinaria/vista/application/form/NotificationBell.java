@@ -60,6 +60,9 @@ public class NotificationBell extends JPanel {
     public NotificationBell() {
         setOpaque(false);
         setLayout(new BorderLayout());
+        setPreferredSize(new Dimension(56, 38));
+        setMinimumSize(new Dimension(56, 38));
+        boton.setPreferredSize(new Dimension(56, 38));
         boton.setToolTipText("Notificaciones");
         boton.setFocusPainted(false);
         boton.setBorder(new EmptyBorder(0, 0, 0, 0));
