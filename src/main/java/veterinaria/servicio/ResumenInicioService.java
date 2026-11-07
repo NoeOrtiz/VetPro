@@ -13,11 +13,13 @@ public class ResumenInicioService {
         public final long consultasHoy;
         public final long pacientesEnEspera;
         public final long turnosPeluqueriaHoy;
+        public final long productosStockCritico;
 
-        public Indicadores(long consultasHoy, long pacientesEnEspera, long turnosPeluqueriaHoy) {
+        public Indicadores(long consultasHoy, long pacientesEnEspera, long turnosPeluqueriaHoy, long productosStockCritico) {
             this.consultasHoy = consultasHoy;
             this.pacientesEnEspera = pacientesEnEspera;
             this.turnosPeluqueriaHoy = turnosPeluqueriaHoy;
+            this.productosStockCritico = productosStockCritico;
         }
     }
 
@@ -39,7 +41,12 @@ public class ResumenInicioService {
                     .setParameter("fecha", java.sql.Date.valueOf(fecha))
                     .getSingleResult()).longValue();
 
-            return new Indicadores(consultas, espera, turnos);
+            long stockCritico = ((Number) em.createNativeQuery(
+                    "SELECT COUNT(*) FROM producto WHERE UPPER(TRIM(estado)) = 'ACTIVO' "
+                    + "AND stock_minimo > 0 AND stock <= stock_minimo")
+                    .getSingleResult()).longValue();
+
+            return new Indicadores(consultas, espera, turnos, stockCritico);
         } finally {
             em.close();
         }
