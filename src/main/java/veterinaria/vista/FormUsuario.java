@@ -57,7 +57,7 @@ public class FormUsuario extends javax.swing.JPanel {
     private String originalRolNombre;
     private ManejoTablas operarTablas = new ManejoTablas();
     private boolean rolesCargados = false;
-    private final javax.swing.JComboBox<String> filtroEstado = new javax.swing.JComboBox<>(new String[]{"Activos", "Inactivos", "Todos"});
+    private final javax.swing.JComboBox<String> filtroEstado = new javax.swing.JComboBox<>(new String[]{"Todos", "Activos", "Inactivos"});
 
     public FormUsuario() {
         initComponents();
