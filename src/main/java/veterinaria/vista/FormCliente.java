@@ -934,12 +934,22 @@ public class FormCliente extends javax.swing.JPanel {
         }
 
         try {
-            // Convertimos la vista al índice del modelo real (soluciona el error con filtros de búsqueda)
-            int modelRow = tableClientes.convertRowIndexToModel(filaSeleccionadaVista);
-
-            if (modeloClientes != null) {
-                return modeloClientes.obtenerObjetoEn(modelRow);
+            // La paginación puede utilizar un modelo de tabla intermediario:
+            // su índice de fila no corresponde necesariamente a modeloClientes.
+            // Recuperamos el ID desde la columna del MODELO (aunque esté oculta
+            // en la vista) y buscamos el objeto por su identificador estable.
+            int columnaIdVista = tableClientes.convertColumnIndexToView(COL_ID_CLIENTE);
+            Object idValor = columnaIdVista >= 0
+                    ? tableClientes.getValueAt(filaSeleccionadaVista, columnaIdVista)
+                    : tableClientes.getModel().getValueAt(
+                            tableClientes.convertRowIndexToModel(filaSeleccionadaVista), COL_ID_CLIENTE);
+            if (idValor == null) {
+                return null;
             }
+            int id = idValor instanceof Number
+                    ? ((Number) idValor).intValue()
+                    : Integer.parseInt(idValor.toString());
+            return clienteDAO.buscarPorId(id);
         } catch (Exception ex) {
             System.err.println("Error al obtener objeto de la tabla: " + ex.getMessage());
         }
