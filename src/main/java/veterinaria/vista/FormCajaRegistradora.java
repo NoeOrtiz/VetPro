@@ -105,6 +105,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
 
     public FormCajaRegistradora() {
         initComponents();
+        configurarAccesosCaja();
         txtTotalFacturaCompra.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
@@ -124,6 +125,73 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         cargarDatosComboBoxes();
         this.revalidate();
         this.repaint();
+    }
+
+    /**
+     * Accesos de Caja: tarjetas compactas, con iconos verdes como en Home.
+     * Se reutilizan los JButton originales para conservar sus ActionListeners,
+     * permisos y reglas de habilitación.
+     */
+    private void configurarAccesosCaja() {
+        jpHadear.removeAll();
+        jpHadear.setLayout(new java.awt.BorderLayout(0, 9));
+        javax.swing.JPanel encabezado = new javax.swing.JPanel(new java.awt.BorderLayout());
+        encabezado.setOpaque(false);
+        encabezado.add(lbCajaRegistradora, java.awt.BorderLayout.WEST);
+        jpHadear.add(encabezado, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel accesos = new javax.swing.JPanel(new java.awt.GridLayout(1, 6, 9, 0));
+        accesos.setOpaque(false);
+        javax.swing.JButton[] botones = {btnAbrirCaja, btnCerrarCaja, btnVentas,
+            btnCobros, btnCompras, btnPagosProveedores};
+        String[] iconos = {"＋", "−", "▣", "↗", "▤", "⇄"};
+        for (int i = 0; i < botones.length; i++) {
+            final javax.swing.JButton boton = botones[i];
+            javax.swing.JPanel tarjeta = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
+            tarjeta.putClientProperty("vetpro.caja.card", Boolean.TRUE);
+            tarjeta.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new java.awt.Color(80, 99, 113)),
+                javax.swing.BorderFactory.createEmptyBorder(7, 3, 6, 3)));
+            javax.swing.JLabel icono = new javax.swing.JLabel(iconos[i], javax.swing.SwingConstants.CENTER);
+            icono.setFont(icono.getFont().deriveFont(java.awt.Font.BOLD, 24f));
+            icono.setForeground(new java.awt.Color(132, 191, 78));
+            tarjeta.add(icono, java.awt.BorderLayout.CENTER);
+            boton.setBorderPainted(false);
+            boton.setContentAreaFilled(false);
+            boton.setFocusPainted(false);
+            boton.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+            tarjeta.add(boton, java.awt.BorderLayout.SOUTH);
+            accesos.add(tarjeta);
+        }
+        jpHadear.add(accesos, java.awt.BorderLayout.CENTER);
+        jpHadear.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        actualizarPaletaAccesosCaja();
+    }
+
+    private void actualizarPaletaAccesosCaja() {
+        if (jpHadear == null) return;
+        java.awt.Color fondo = javax.swing.UIManager.getColor("Panel.background");
+        boolean oscuro = fondo == null || (fondo.getRed() * 299 + fondo.getGreen() * 587
+                + fondo.getBlue() * 114) / 1000 < 135;
+        java.awt.Color tarjeta = oscuro ? new java.awt.Color(38, 49, 61)
+                : new java.awt.Color(246, 248, 250);
+        for (java.awt.Component componente : jpHadear.getComponents()) {
+            if (componente instanceof javax.swing.JPanel) {
+                for (java.awt.Component hijo : ((javax.swing.JPanel) componente).getComponents()) {
+                    if (hijo instanceof javax.swing.JComponent
+                            && Boolean.TRUE.equals(((javax.swing.JComponent) hijo)
+                                    .getClientProperty("vetpro.caja.card"))) {
+                        hijo.setBackground(tarjeta);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        actualizarPaletaAccesosCaja();
     }
 
     /**
