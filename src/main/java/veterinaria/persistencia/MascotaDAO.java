@@ -58,6 +58,20 @@ public class MascotaDAO {
         }
     }
     
+    /** Consulta histórica para la ficha del cliente, sin filtrar estados. */
+    public List<Mascota> buscarTodasPorCliente(Integer idCliente) {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT m FROM Mascota m JOIN FETCH m.cliente c "
+                    + "WHERE c.idCliente = :idCliente ORDER BY m.nombre", Mascota.class)
+                    .setParameter("idCliente", idCliente)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
     public Mascota buscarPorId(Integer idMascota){
         EntityManager em = getEntityManager();
         try {
