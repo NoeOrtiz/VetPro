@@ -884,6 +884,7 @@ public class FormUsuario extends javax.swing.JPanel {
         btnEliminar.setVisible(haySeleccion);
         btnCancelarSeleccion.setVisible(haySeleccion);
         btnImprimir.setVisible(haySeleccion);
+        btnNuevo.setEnabled(!haySeleccion);
         btnEditar.setEnabled(haySeleccion);
         btnEliminar.setEnabled(haySeleccion);
         btnCancelarSeleccion.setEnabled(haySeleccion);
