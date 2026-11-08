@@ -86,6 +86,12 @@ public class UsuarioService {
             usuario.setRol(rolManaged);
             if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
                 usuario.setContrasena(PasswordSecurityUtil.normalizeForPersist(usuario.getContrasena()));
+            } else {
+                // Edición administrativa sin cambio de clave: conservar el hash existente.
+                Usuario existente = em.find(Usuario.class, usuario.getIdUsuario());
+                if (existente != null) {
+                    usuario.setContrasena(existente.getContrasena());
+                }
             }
             Usuario usuarioManaged = em.merge(usuario);
 
