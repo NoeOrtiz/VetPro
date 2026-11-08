@@ -637,7 +637,7 @@ public class FormUsuario extends javax.swing.JPanel {
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnImprimirLista)
-                .addContainerGap())
+                .addGap(16, 16, 16))
             .addComponent(jSeparator8)
             .addGroup(jpListaUsuariosLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jpListaUsuariosLayout.createSequentialGroup()
@@ -696,6 +696,7 @@ public class FormUsuario extends javax.swing.JPanel {
     private void instalarFiltroEstado() {
         // Mismo patrón visual de Clientes: las etiquetas arriba y los campos
         // de búsqueda y estado alineados horizontalmente.
+        filtroEstado.setSelectedItem("Activos");
         filtroEstado.addActionListener(e -> cargarUsuariosEnTabla());
 
         jpHeader.removeAll();
@@ -741,7 +742,7 @@ public class FormUsuario extends javax.swing.JPanel {
         btnImprimir.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
         acciones.add(btnImprimir);
         acciones.add(javax.swing.Box.createVerticalStrut(8));
-        javax.swing.JPanel botones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        javax.swing.JPanel botones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
         botones.setOpaque(false);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{btnNuevo, btnEditar, btnEliminar}) {
             boton.setPreferredSize(new java.awt.Dimension(90, 28));
