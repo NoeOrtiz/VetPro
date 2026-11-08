@@ -211,7 +211,7 @@ public class Menu extends JPanel {
                     return "FormMascota";
                 }
                 if (subIndex == 2) {
-                    return "FormVisita";
+                    return "FormConsulta";
                 }
                 if (subIndex == 3) {
                     return "FormHistoriaClinica";
