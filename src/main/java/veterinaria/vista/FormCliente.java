@@ -183,7 +183,19 @@ public class FormCliente extends javax.swing.JPanel {
         btnVerInfo.setVisible(seleccion);
         btnEditar.setEnabled(seleccion);
         btnEliminar.setEnabled(seleccion);
+        actualizarTextoAccionCliente();
         btnNuevo.setEnabled(!seleccion);
+    }
+
+    private void actualizarTextoAccionCliente() {
+        if (!veterinaria.util.GestorTablas.haySeleccion(tableClientes)) {
+            btnEliminar.setText("Desactivar");
+            return;
+        }
+        Cliente elegido = obtenerClienteSeleccionadoDesdeTabla();
+        if (elegido != null) {
+            btnEliminar.setText(elegido.isActivo() ? "Desactivar" : "Reactivar");
+        }
     }
 
     private void cancelarSeleccionCliente() {
@@ -239,6 +251,7 @@ public class FormCliente extends javax.swing.JPanel {
         // 2. Combo de edición (Solo Activo e Inactivo)
         jcbEstado.addItem(EstadoCliente.ACTIVO.getDescripcion());
         jcbEstado.addItem(EstadoCliente.INACTIVO.getDescripcion());
+        jcbEstado.setVisible(false);
     }
 
     /**
@@ -766,22 +779,21 @@ public class FormCliente extends javax.swing.JPanel {
             return;
         }
 
+        boolean reactivar = !clienteSeleccionado.isActivo();
         try {
-            int confirm = JOptionPane.showConfirmDialog(
-                    this, "¿Está seguro de que desea desactivar este cliente? Sus mascotas también serán desactivadas.",
-                    "Confirmar desactivación",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE
-            );
-
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    reactivar ? "¿Reactivar este cliente y sus mascotas?" :
+                            "¿Desactivar este cliente y sus mascotas?",
+                    reactivar ? "Confirmar reactivación" : "Confirmar desactivación",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (confirm == JOptionPane.YES_OPTION) {
-                ClienteControlador operandoCliente = new ClienteControlador();
-                if (operandoCliente.procesarBajaPorId(clienteSeleccionado.getIdCliente())) {
-                    JOptionPane.showMessageDialog(this, "Cliente desactivado con éxito", "Información", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    JOptionPane.showMessageDialog(this, "No se pudo desactivar el cliente. Verifique su estado y vuelva a intentarlo.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-
+                ClienteControlador controlador = new ClienteControlador();
+                boolean ok = reactivar
+                        ? controlador.procesarReactivacionPorId(clienteSeleccionado.getIdCliente())
+                        : controlador.procesarBajaPorId(clienteSeleccionado.getIdCliente());
+                JOptionPane.showMessageDialog(this,
+                        ok ? (reactivar ? "Cliente reactivado." : "Cliente desactivado.")
+                           : "No se pudo completar la operación.");
                 cargarClientesEnTabla();
                 limpiarForm();
                 jpDatosPersonales.setVisible(false);
@@ -850,7 +862,7 @@ public class FormCliente extends javax.swing.JPanel {
                         txtEmail.getText(),
                         txtCUIT.getText(),
                         txtRazonSocial.getText(),
-                        jcbEstado.getSelectedItem().toString()
+                        "CreandoCliente".equals(estadoUsuario) ? "Activo" : (this.cliente.isActivo() ? "Activo" : "Inactivo")
                 );
 
                 if (exito) {
@@ -874,9 +886,7 @@ public class FormCliente extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_btnGuardarActionPerformed
     private void setEstadoBotones(boolean activo) {
-        btnNuevo.setEnabled(activo);
-        btnEditar.setEnabled(activo);
-        btnEliminar.setEnabled(activo);
+        actualizarAccionesCliente();
         // Si agregás más botones, solo los sumás acá
     }
     private void txtApellidoKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtApellidoKeyTyped
@@ -1237,6 +1247,7 @@ public class FormCliente extends javax.swing.JPanel {
         }
         btnCancelarSeleccion.setVisible(haySeleccion);
         btnVerInfo.setVisible(haySeleccion);
+        actualizarTextoAccionCliente();
         btnNuevo.setEnabled(!haySeleccion);
     }
 
@@ -1427,7 +1438,7 @@ public class FormCliente extends javax.swing.JPanel {
         String nuevoRazonSocial = txtRazonSocial.getText().trim();
         String nuevoCuit = txtCUIT.getText().trim();
         // capturamos el estado actual del JComboBox
-        String nuevoEstado = (jcbEstado.getSelectedItem() == null) ? "" : jcbEstado.getSelectedItem().toString();
+        String nuevoEstado = originalEstado;
 
         StringBuilder cambios = new StringBuilder();
         cambios.append("<html><body style='width:420px'>");
@@ -1443,7 +1454,7 @@ public class FormCliente extends javax.swing.JPanel {
         cambiosCount += appendCambio(cambios, "Razón Social", originalRazonSocial, nuevoRazonSocial);
         cambiosCount += appendCambio(cambios, "CUIT", originalCuit, nuevoCuit);
         // Sumamos el cambio de estado a la lista visual si es que cambió
-        cambiosCount += appendCambio(cambios, "Estado", originalEstado, nuevoEstado);
+
 
         if (cambiosCount == 0) {
             JOptionPane.showMessageDialog(this,
@@ -1581,6 +1592,7 @@ public class FormCliente extends javax.swing.JPanel {
                 } else {
                     jcbEstado.setSelectedIndex(0);
                 }
+                jcbEstado.setVisible(false);
                 capturarOriginalesCliente();
 
                 // Mostramos el panel de edición y ocultamos la lista
