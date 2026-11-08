@@ -95,6 +95,36 @@ public class ClienteService {
             if (managed != null) {
                 antes[0] = JsonUtil.safeToJson(managed);
 
+                // Validación económica en la misma transacción: no permitir baja
+                // con deuda ni con saldo a favor, aunque la cuenta esté inactiva.
+                java.util.List<veterinaria.entidad.CuentaCorriente> cuentas = em.createQuery(
+                        "SELECT cc FROM CuentaCorriente cc WHERE cc.cliente.idCliente = :idCliente",
+                        veterinaria.entidad.CuentaCorriente.class)
+                        .setParameter("idCliente", idCliente)
+                        .getResultList();
+                for (veterinaria.entidad.CuentaCorriente cuenta : cuentas) {
+                    java.math.BigDecimal saldoInicial = cuenta.getSaldoInicial() == null
+                            ? java.math.BigDecimal.ZERO : cuenta.getSaldoInicial();
+                    java.math.BigDecimal debitos = em.createQuery(
+                            "SELECT COALESCE(SUM(m.monto), 0) FROM CuentaCorrienteMovimiento m "
+                            + "WHERE m.idCuentaCorriente.idCuentaCorriente = :idCC "
+                            + "AND m.tipoMovimiento = :tipo", java.math.BigDecimal.class)
+                            .setParameter("idCC", cuenta.getIdCuentaCorriente())
+                            .setParameter("tipo", veterinaria.entidad.CuentaCorrienteMovimiento.TipoMovimiento.DEBITO)
+                            .getSingleResult();
+                    java.math.BigDecimal creditos = em.createQuery(
+                            "SELECT COALESCE(SUM(m.monto), 0) FROM CuentaCorrienteMovimiento m "
+                            + "WHERE m.idCuentaCorriente.idCuentaCorriente = :idCC "
+                            + "AND m.tipoMovimiento = :tipo", java.math.BigDecimal.class)
+                            .setParameter("idCC", cuenta.getIdCuentaCorriente())
+                            .setParameter("tipo", veterinaria.entidad.CuentaCorrienteMovimiento.TipoMovimiento.CREDITO)
+                            .getSingleResult();
+                    if (saldoInicial.add(creditos).subtract(debitos).signum() != 0) {
+                        throw new IllegalStateException(
+                                "No se puede desactivar el cliente: su cuenta corriente tiene saldo pendiente o a favor.");
+                    }
+                }
+
                 // 1. Desactivamos el cliente lógicamente
                 managed.setActivo(false);
                 managed.setEstado("INACTIVO");
