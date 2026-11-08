@@ -29,7 +29,7 @@ import veterinaria.reportes.core.ReporteTipo;
 public class FormUsuario extends javax.swing.JPanel {
 
     private boolean ajustandoSeleccionUsuario;
-    private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar selección");
+    private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar");
     private javax.swing.JButton btnVerContrasena;
     private char caracterOcultoContrasena;
 
