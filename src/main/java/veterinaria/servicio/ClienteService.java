@@ -55,6 +55,11 @@ public class ClienteService {
                 Cliente prev = em.find(Cliente.class, cliente.getIdCliente());
                 if (prev != null) {
                     antes[0] = JsonUtil.safeToJson(prev);
+                    if (prev.isActivo() != cliente.isActivo()) {
+                        throw new IllegalStateException(
+                                "El estado del cliente no puede cambiarse desde Editar. "
+                                + "Use la acción de desactivación o reactivación correspondiente.");
+                    }
                 }
             }
             Persona personaManaged = personaService.merge(em, persona);
