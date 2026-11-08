@@ -801,11 +801,7 @@ public class FormUsuario extends javax.swing.JPanel {
         // La búsqueda y la selección se administran desde GestorTablas.
         veterinaria.util.GestorTablas.instalarSeleccion(table, () -> {
             boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(table);
-            btnEditar.setEnabled(seleccion);
-            btnEliminar.setEnabled(seleccion);
-            actualizarTextoEstadoSeleccionado();
-            btnImprimir.setVisible(seleccion);
-            btnCancelarSeleccion.setEnabled(seleccion);
+            actualizarAccionesSeleccionUsuario();
         });
 
 
@@ -825,11 +821,7 @@ public class FormUsuario extends javax.swing.JPanel {
             ajustandoSeleccionUsuario = false;
         }
         table.clearSelection();
-        btnEditar.setEnabled(false);
-        btnEliminar.setEnabled(false);
-        btnImprimir.setVisible(false);
-        btnCancelarSeleccion.setEnabled(false);
-        actualizarTextoEstadoSeleccionado();
+        actualizarAccionesSeleccionUsuario();
     }
 
     private void seleccionarFilaDesdeClick(java.awt.event.MouseEvent evt) {
@@ -882,8 +874,19 @@ public class FormUsuario extends javax.swing.JPanel {
     }
 
     private void actualizarBotonImprimir() {
-        boolean haySeleccion = (operarTablas.comprobarElementoSeleccionado(table) != -1);
+        actualizarAccionesSeleccionUsuario();
+    }
+
+    private void actualizarAccionesSeleccionUsuario() {
+        boolean haySeleccion = veterinaria.util.GestorTablas.haySeleccion(table);
+        btnEditar.setVisible(haySeleccion);
+        btnEliminar.setVisible(haySeleccion);
+        btnCancelarSeleccion.setVisible(haySeleccion);
         btnImprimir.setVisible(haySeleccion);
+        btnEditar.setEnabled(haySeleccion);
+        btnEliminar.setEnabled(haySeleccion);
+        btnCancelarSeleccion.setEnabled(haySeleccion);
+        actualizarTextoEstadoSeleccionado();
     }
 
     private Usuario obtenerUsuarioSeleccionadoDesdeTabla() {
@@ -1595,8 +1598,7 @@ public class FormUsuario extends javax.swing.JPanel {
 
             modelo.addRow(fila);
         }
-        actualizarBotonImprimir();
-        actualizarTextoEstadoSeleccionado();
+        actualizarAccionesSeleccionUsuario();
         if (paginacionCompartida != null) paginacionCompartida.actualizar();
     }
 
@@ -1621,8 +1623,7 @@ public class FormUsuario extends javax.swing.JPanel {
     private void volverAModoLista() {
         actualizarForm();
         btnNuevo.setEnabled(true);
-        btnEditar.setEnabled(true);
-        btnEliminar.setEnabled(true);
+        actualizarAccionesSeleccionUsuario();
     }
 
     private void limpiarCamposFormulario() {
