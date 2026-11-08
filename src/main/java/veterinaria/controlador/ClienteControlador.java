@@ -47,13 +47,9 @@ public class ClienteControlador {
         return clienteDAO.actualizar(persona, cliente);
     }
 
-    public boolean eliminarCliente(Persona persona, Cliente cliente) {
-        try {
-            return clienteDAO.eliminar(persona, cliente);
-        } catch (Exception ex) {
-            Logger.getLogger(ClienteControlador.class.getName()).log(Level.SEVERE, null, ex);
-            return false;
-        }
+    public boolean eliminarCliente(Persona persona, Cliente cliente) throws Exception {
+        // Propagar el motivo de la baja rechazada para informar correctamente al usuario.
+        return clienteDAO.eliminar(persona, cliente);
     }
 
     // Adaptado a campos Booleanos y LocalDate de la Entidad
