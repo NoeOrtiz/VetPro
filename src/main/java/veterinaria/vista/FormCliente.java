@@ -1075,61 +1075,100 @@ public class FormCliente extends javax.swing.JPanel {
     }
 
     private void mostrarInfoCliente() {
-        Cliente seleccionado = obtenerClienteSeleccionadoDesdeTabla();
-        if (seleccionado == null) {
-            JOptionPane.showMessageDialog(this, "Seleccione un cliente para ver su información.");
+        Cliente cliente = obtenerClienteSeleccionadoDesdeTabla();
+        if (cliente == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente.");
             return;
         }
-        Persona p = seleccionado.getPersona();
+        Persona p = cliente.getPersona();
+        java.awt.Color verde = new java.awt.Color(66, 190, 115);
         javax.swing.JPanel ficha = new javax.swing.JPanel();
         ficha.setLayout(new javax.swing.BoxLayout(ficha, javax.swing.BoxLayout.Y_AXIS));
-        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 14, 12, 14));
-        ficha.add(new javax.swing.JLabel("DATOS PERSONALES"));
-        agregarDatoFicha(ficha, "Nombre", p == null ? null : p.getNombre());
-        agregarDatoFicha(ficha, "Apellido", p == null ? null : p.getApellido());
-        agregarDatoFicha(ficha, "DNI", p == null ? null : String.valueOf(p.getDni()));
-        agregarDatoFicha(ficha, "Teléfono", p == null ? null : p.getTelefono());
-        agregarDatoFicha(ficha, "Dirección", p == null ? null : p.getDireccion());
-        agregarDatoFicha(ficha, "Email", seleccionado.getEmail());
-        agregarDatoFicha(ficha, "Estado", seleccionado.isActivo() ? "Activo" : "Inactivo");
-        ficha.add(javax.swing.Box.createVerticalStrut(12));
-        ficha.add(new javax.swing.JLabel("DATOS FISCALES Y ADMINISTRATIVOS"));
-        agregarDatoFicha(ficha, "Razón social", seleccionado.getRazonSocial());
-        agregarDatoFicha(ficha, "CUIT", seleccionado.getCuit());
-        agregarDatoFicha(ficha, "Fecha de alta", seleccionado.getFechaAlta() == null
-                ? null : seleccionado.getFechaAlta().format(
+        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 18, 16, 18));
+
+        agregarSeccionFicha(ficha, "◉  DATOS PERSONALES", verde);
+        javax.swing.JPanel personales = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
+        personales.setOpaque(false);
+        agregarDatoFicha(personales, "Nombre y apellido", p == null ? null
+                : valorFicha(p.getNombre()) + " " + valorFicha(p.getApellido()));
+        agregarDatoFicha(personales, "DNI", p == null ? null : String.valueOf(p.getDni()));
+        agregarDatoFicha(personales, "Teléfono", p == null ? null : p.getTelefono());
+        agregarDatoFicha(personales, "Dirección", p == null ? null : p.getDireccion());
+        agregarDatoFicha(personales, "Email", cliente.getEmail());
+        agregarDatoFicha(personales, "Estado", cliente.isActivo() ? "Activo" : "Inactivo");
+        ficha.add(personales);
+
+        agregarSeccionFicha(ficha, "▤  DATOS FISCALES Y ADMINISTRATIVOS", verde);
+        javax.swing.JPanel fiscales = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
+        fiscales.setOpaque(false);
+        agregarDatoFicha(fiscales, "Razón social", cliente.getRazonSocial());
+        agregarDatoFicha(fiscales, "CUIT", cliente.getCuit());
+        agregarDatoFicha(fiscales, "Fecha de alta", cliente.getFechaAlta() == null
+                ? null : cliente.getFechaAlta().format(
                         java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        ficha.add(javax.swing.Box.createVerticalStrut(12));
-        ficha.add(new javax.swing.JLabel("MASCOTAS ASOCIADAS (incluye inactivas)"));
+        ficha.add(fiscales);
+
+        agregarSeccionFicha(ficha, "♧  MASCOTAS ASOCIADAS", verde);
         try {
             java.util.List<veterinaria.entidad.Mascota> mascotas =
-                    new veterinaria.persistencia.MascotaDAO().buscarTodos();
-            int cantidad = 0;
-            for (veterinaria.entidad.Mascota m : mascotas) {
-                if (m.getCliente() != null
-                        && seleccionado.getIdCliente().equals(m.getCliente().getIdCliente())) {
-                    String descripcion = valorFicha(m.getNombre()) + " — "
-                            + valorFicha(m.getEspecie()) + " / " + valorFicha(m.getRaza())
-                            + " / " + valorFicha(m.getSexo())
-                            + " — " + (m.isActivo() ? "Activa" : "Inactiva");
-                    ficha.add(new javax.swing.JLabel(descripcion));
-                    cantidad++;
-                }
+                    new veterinaria.persistencia.MascotaDAO()
+                            .buscarTodasPorCliente(cliente.getIdCliente());
+            if (mascotas.isEmpty()) {
+                ficha.add(new javax.swing.JLabel("Sin mascotas registradas"));
             }
-            if (cantidad == 0) ficha.add(new javax.swing.JLabel("Sin mascotas registradas"));
+            for (veterinaria.entidad.Mascota m : mascotas) {
+                javax.swing.JPanel tarjeta = new javax.swing.JPanel(new java.awt.BorderLayout(10, 0));
+                tarjeta.setBackground(javax.swing.UIManager.getColor("Table.background"));
+                tarjeta.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                        javax.swing.BorderFactory.createLineBorder(new java.awt.Color(72, 113, 96)),
+                        javax.swing.BorderFactory.createEmptyBorder(12, 14, 12, 14)));
+                javax.swing.JLabel nombre = new javax.swing.JLabel("🐾  " + valorFicha(m.getNombre()));
+                nombre.setFont(nombre.getFont().deriveFont(java.awt.Font.BOLD, 13f));
+                nombre.setForeground(verde);
+                javax.swing.JLabel detalle = new javax.swing.JLabel(valorFicha(m.getEspecie())
+                        + " · " + valorFicha(m.getRaza()) + " · " + valorFicha(m.getSexo()));
+                javax.swing.JLabel estado = new javax.swing.JLabel(m.isActivo() ? "Activa" : "Inactiva");
+                estado.setForeground(m.isActivo() ? verde : java.awt.Color.GRAY);
+                javax.swing.JPanel info = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 5));
+                info.setOpaque(false);
+                info.add(nombre);
+                info.add(detalle);
+                tarjeta.add(info, java.awt.BorderLayout.CENTER);
+                tarjeta.add(estado, java.awt.BorderLayout.EAST);
+                tarjeta.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 72));
+                ficha.add(tarjeta);
+                ficha.add(javax.swing.Box.createVerticalStrut(8));
+            }
         } catch (Exception ex) {
             ficha.add(new javax.swing.JLabel("No se pudieron consultar las mascotas asociadas"));
         }
         javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(ficha);
-        scroll.setPreferredSize(new java.awt.Dimension(580, 440));
+        scroll.setPreferredSize(new java.awt.Dimension(640, 480));
         scroll.setBorder(null);
-        JOptionPane.showMessageDialog(this, scroll, "Información del Cliente",
+        JOptionPane.showMessageDialog(this, scroll, "Información del Cliente · Solo lectura",
                 JOptionPane.PLAIN_MESSAGE);
     }
 
-    private void agregarDatoFicha(javax.swing.JPanel ficha, String etiqueta, String valor) {
-        ficha.add(new javax.swing.JLabel(etiqueta + ": " + valorFicha(valor)));
-        ficha.add(javax.swing.Box.createVerticalStrut(5));
+    private void agregarSeccionFicha(javax.swing.JPanel ficha, String titulo, java.awt.Color verde) {
+        ficha.add(javax.swing.Box.createVerticalStrut(18));
+        javax.swing.JLabel etiqueta = new javax.swing.JLabel(titulo);
+        etiqueta.setFont(etiqueta.getFont().deriveFont(java.awt.Font.BOLD, 12f));
+        etiqueta.setForeground(verde);
+        etiqueta.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(etiqueta);
+        ficha.add(javax.swing.Box.createVerticalStrut(12));
+    }
+
+    private void agregarDatoFicha(javax.swing.JPanel contenedor, String etiqueta, String valor) {
+        javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 3));
+        campo.setOpaque(false);
+        javax.swing.JLabel titulo = new javax.swing.JLabel(etiqueta);
+        titulo.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
+        javax.swing.JLabel dato = new javax.swing.JLabel(valorFicha(valor));
+        dato.setFont(dato.getFont().deriveFont(java.awt.Font.BOLD));
+        campo.add(titulo);
+        campo.add(dato);
+        contenedor.add(campo);
     }
 
     private String valorFicha(String valor) {
