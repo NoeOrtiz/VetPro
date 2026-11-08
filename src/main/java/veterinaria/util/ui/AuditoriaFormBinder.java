@@ -87,6 +87,7 @@ public class AuditoriaFormBinder {
         paginacion = veterinaria.util.GestorTablas.paginar(tableAuditoria, buscador,
                 new veterinaria.util.GestorTablas.Configuracion(
                         new int[]{1, 2, 3, 4, 5, 6, 7}, new int[]{1, 2, 3, 4, 5, 6, 7}, 10));
+        paginacion.activarBusquedaPorPrefijo();
         tableAuditoria.getColumnModel().getColumn(0).setCellRenderer(
                 new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         veterinaria.util.GestorTablas.instalarSeleccion(tableAuditoria, this::actualizarBotones);
@@ -128,6 +129,7 @@ public class AuditoriaFormBinder {
     }
 
     public javax.swing.JPanel getControlesPaginacion() { return paginacion.getControles(); }
+    public javax.swing.JButton getBotonLimpiarBusqueda() { return paginacion.getBotonLimpiar(); }
 
     private void configurarTabla() {
         tableAuditoria.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
