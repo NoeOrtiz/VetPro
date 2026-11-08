@@ -62,9 +62,19 @@ public class ClienteListadoPdfReporte extends AbstractPdfReporte {
             }
         }
 
-        String infoHeader = "Total listados: " + filasFiltradas.size();
+        int activos = 0;
+        int inactivos = 0;
+        for (int fila : filasFiltradas) {
+            if ("ACTIVO".equalsIgnoreCase(safe(m.getValueAt(fila, colEstado)))) {
+                activos++;
+            } else if ("INACTIVO".equalsIgnoreCase(safe(m.getValueAt(fila, colEstado)))) {
+                inactivos++;
+            }
+        }
+        String infoHeader = "Total listados: " + filasFiltradas.size()
+                + "    |    Activos: " + activos + "    |    Inactivos: " + inactivos;
         if (!"TODOS".equals(estadoFiltro)) {
-            infoHeader += "  |  Filtro Estado: " + estadoFiltro;
+            infoHeader += "    |    Filtro: " + estadoFiltro;
         }
         pdf.down(8f);
         pdf.text(PdfStyle.TXT_FONT, 9, pdf.getMargin(), pdf.getY(), infoHeader);
