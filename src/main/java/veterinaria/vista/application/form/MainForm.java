@@ -387,7 +387,8 @@ public class MainForm extends JLayeredPane {
         // Evitar un scroll externo que desplaza los controles fuera de pantalla.
         if (component instanceof FormInformesCajaMovimientos
                 || component instanceof FormBienvenida
-                || component instanceof FormAuditoria) {
+                || component instanceof FormAuditoria
+                || component instanceof FormCajaRegistradora) {
             panelBody.add(component, BorderLayout.CENTER);
             panelBody.revalidate();
             panelBody.repaint();
