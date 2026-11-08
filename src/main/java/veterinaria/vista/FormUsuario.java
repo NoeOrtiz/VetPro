@@ -29,6 +29,7 @@ import veterinaria.reportes.core.ReporteTipo;
 public class FormUsuario extends javax.swing.JPanel {
 
     private boolean ajustandoSeleccionUsuario;
+    private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar selección");
     private javax.swing.JButton btnVerContrasena;
     private char caracterOcultoContrasena;
 
@@ -734,19 +735,29 @@ public class FormUsuario extends javax.swing.JPanel {
         filtros.add(filtroEstado, c);
         centro.add(filtros, java.awt.BorderLayout.WEST);
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel();
+        // Acciones agrupadas en dos filas alineadas a la derecha.
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 8));
         acciones.setOpaque(false);
-        acciones.setLayout(new javax.swing.BoxLayout(acciones, javax.swing.BoxLayout.Y_AXIS));
-        btnImprimir.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
-        acciones.add(btnImprimir);
-        acciones.add(javax.swing.Box.createVerticalStrut(8));
+        javax.swing.JPanel impresion = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        impresion.setOpaque(false);
+        impresion.add(btnImprimir);
+        // Reubicar el botón existente, evitando duplicar la acción de impresión.
+        javax.swing.JPanel lugarImpresionLista = new javax.swing.JPanel();
+        lugarImpresionLista.setOpaque(false);
+        ((javax.swing.GroupLayout) jpListaUsuarios.getLayout()).replace(btnImprimirLista, lugarImpresionLista);
+        impresion.add(btnImprimirLista);
+        acciones.add(impresion);
+
         javax.swing.JPanel botones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         botones.setOpaque(false);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{btnNuevo, btnEditar, btnEliminar}) {
             boton.setPreferredSize(new java.awt.Dimension(90, 28));
             botones.add(boton);
         }
-        botones.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
+        btnCancelarSeleccion.setEnabled(false);
+        btnCancelarSeleccion.setToolTipText("Desmarcar el usuario seleccionado");
+        btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionUsuario());
+        botones.add(btnCancelarSeleccion);
         acciones.add(botones);
         centro.add(acciones, java.awt.BorderLayout.EAST);
         jpHeader.add(centro, java.awt.BorderLayout.CENTER);
@@ -800,10 +811,31 @@ public class FormUsuario extends javax.swing.JPanel {
             btnEliminar.setEnabled(seleccion);
             actualizarTextoEstadoSeleccionado();
             btnImprimir.setVisible(seleccion);
+            btnCancelarSeleccion.setEnabled(seleccion);
         });
 
 
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
+    }
+
+    private void cancelarSeleccionUsuario() {
+        javax.swing.table.TableModel modelo = table.getModel();
+        ajustandoSeleccionUsuario = true;
+        try {
+            for (int i = 0; i < modelo.getRowCount(); i++) {
+                if (Boolean.TRUE.equals(modelo.getValueAt(i, 0))) {
+                    ((javax.swing.table.DefaultTableModel) modelo).setValueAt(false, i, 0);
+                }
+            }
+        } finally {
+            ajustandoSeleccionUsuario = false;
+        }
+        table.clearSelection();
+        btnEditar.setEnabled(false);
+        btnEliminar.setEnabled(false);
+        btnImprimir.setVisible(false);
+        btnCancelarSeleccion.setEnabled(false);
+        actualizarTextoEstadoSeleccionado();
     }
 
     private void seleccionarFilaDesdeClick(java.awt.event.MouseEvent evt) {
@@ -1404,9 +1436,12 @@ public class FormUsuario extends javax.swing.JPanel {
         usuario.setNombreUsuario(txtUsuario.getText().trim());
         usuario.setEmail(txtEmail.getText().trim());
 
-        // Si está editando y el campo contraseña viene vacío, NO sobreescribimos.
-        if (txtContraseña.getPassword() != null && txtContraseña.getPassword().length > 0) {
-            usuario.setContrasena(String.valueOf(txtContraseña.getPassword()));
+        // En edición, null significa conservar el hash persistido.
+        char[] claveIngresada = txtContraseña.getPassword();
+        if (claveIngresada.length > 0) {
+            usuario.setContrasena(new String(claveIngresada));
+        } else if ("EditandoUsuario".equals(Application.consultarEstadoUsuario())) {
+            usuario.setContrasena(null);
         }
 
         // Usamos try-catch para capturar las reglas de negocio / validaciones de seguridad
