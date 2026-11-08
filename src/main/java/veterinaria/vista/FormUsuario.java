@@ -735,25 +735,19 @@ public class FormUsuario extends javax.swing.JPanel {
         filtros.add(filtroEstado, c);
         centro.add(filtros, java.awt.BorderLayout.WEST);
 
-        // Acciones agrupadas en dos filas alineadas a la derecha.
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 8));
+        javax.swing.JPanel acciones = new javax.swing.JPanel();
         acciones.setOpaque(false);
-        javax.swing.JPanel impresion = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
-        impresion.setOpaque(false);
-        impresion.add(btnImprimir);
-        // Reubicar el botón existente, evitando duplicar la acción de impresión.
-        javax.swing.JPanel lugarImpresionLista = new javax.swing.JPanel();
-        lugarImpresionLista.setOpaque(false);
-        ((javax.swing.GroupLayout) jpListaUsuarios.getLayout()).replace(btnImprimirLista, lugarImpresionLista);
-        impresion.add(btnImprimirLista);
-        acciones.add(impresion);
-
+        acciones.setLayout(new javax.swing.BoxLayout(acciones, javax.swing.BoxLayout.Y_AXIS));
+        btnImprimir.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
+        acciones.add(btnImprimir);
+        acciones.add(javax.swing.Box.createVerticalStrut(8));
         javax.swing.JPanel botones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         botones.setOpaque(false);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{btnNuevo, btnEditar, btnEliminar}) {
             boton.setPreferredSize(new java.awt.Dimension(90, 28));
             botones.add(boton);
         }
+        botones.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
         btnCancelarSeleccion.setEnabled(false);
         btnCancelarSeleccion.setToolTipText("Desmarcar el usuario seleccionado");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionUsuario());
