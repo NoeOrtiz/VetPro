@@ -677,7 +677,7 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
         barra.setOpaque(false);
         barra.add(new javax.swing.JLabel("BUSCAR USUARIO"));
-        barra.add(javax.swing.Box.createHorizontalStrut(145));
+        barra.add(javax.swing.Box.createHorizontalStrut(150));
         barra.add(new javax.swing.JLabel("Estado:"));
         barra.add(filtroEstado);
         filtroEstado.addActionListener(e -> cargarUsuariosEnTabla());
@@ -849,6 +849,7 @@ public class FormUsuario extends javax.swing.JPanel {
                     .put("telefono", fTelefono)
                     .put("direccion", fDireccion)
                     .put("rol", rolNombre)
+                    .put("estado", u.isActivo() ? "Activo" : "Inactivo")
                     .put("emisor", Application.getNombreApellidoUsuarioLogeado());
 
             // 2. 🚀 AL EJECUTOR: Corre asíncronamente con su barra de progreso modal
@@ -863,13 +864,44 @@ public class FormUsuario extends javax.swing.JPanel {
     }
 
     private void imprimirListaUsuarios() {
-        // 1. Armamos los parámetros con la JTable del formulario
-        ReporteRequest req = new ReporteRequest()
-                .put("tabla", table)
-                .put("emisor", Application.getNombreApellidoUsuarioLogeado());
+        javax.swing.JComboBox<String> alcance = new javax.swing.JComboBox<>(
+                new String[]{"Todos los usuarios", "Solo activos", "Solo inactivos"});
+        javax.swing.JComboBox<String> formato = new javax.swing.JComboBox<>(new String[]{"PDF", "Excel (XLS)"});
+        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 2, 10, 10));
+        opciones.add(new javax.swing.JLabel("Usuarios a incluir:"));
+        opciones.add(alcance);
+        opciones.add(new javax.swing.JLabel("Formato:"));
+        opciones.add(formato);
+        if (JOptionPane.showConfirmDialog(this, opciones, "Configurar informe de usuarios",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return;
 
-        // 2. 🚀 AL EJECUTOR: Limpio, asíncrono y alineado al Singleton
-        veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.USUARIO_LISTADO, req);
+        String estado = alcance.getSelectedIndex() == 1 ? "ACTIVO" :
+                alcance.getSelectedIndex() == 2 ? "INACTIVO" : "TODOS";
+        // Modelo independiente: incluye TODOS los registros de la base de datos,
+        // no solamente la página actual de la tabla paginada.
+        javax.swing.table.DefaultTableModel datos = new javax.swing.table.DefaultTableModel(
+                new String[]{"Seleccionar","Nombre","Apellido","DNI","Teléfono",
+                    "Dirección","Rol","Usuario","E-mail","Estado"}, 0);
+        try {
+            for (Usuario u : usuarioDAO.obtenerTodos()) {
+                Persona p = personaDAO.obtenerPorId(u.getPersona().getIdPersona());
+                Rol rol = usuarioRolDAO.obtenerRol(u.getIdUsuario());
+                datos.addRow(new Object[]{false, p.getNombre(), p.getApellido(), p.getDni(),
+                    p.getTelefono(), p.getDireccion(), rol == null ? "Sin rol" : rol.getNombreRol(),
+                    u.getNombreUsuario(), u.getEmail(), u.isActivo() ? "Activo" : "Inactivo"});
+            }
+            ReporteRequest req = new ReporteRequest()
+                    .put("tabla", new javax.swing.JTable(datos))
+                    .put("estadoFiltro", estado)
+                    .put("FORMATO_REPORTE", formato.getSelectedIndex() == 0
+                            ? veterinaria.reportes.pdf.ReporteSelectorUtil.Formato.PDF
+                            : veterinaria.reportes.pdf.ReporteSelectorUtil.Formato.XLS)
+                    .put("emisor", Application.getNombreApellidoUsuarioLogeado());
+            veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.USUARIO_LISTADO, req);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo generar el listado: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private boolean editarUsuarioSeleccionado() {
@@ -1397,7 +1429,7 @@ public class FormUsuario extends javax.swing.JPanel {
             btnEliminar.setText("Desactivar");
             return;
         }
-        btnEliminar.setText("INACTIVO".equals(String.valueOf(table.getValueAt(fila, 9)))
+        btnEliminar.setText("Inactivo".equalsIgnoreCase(String.valueOf(table.getValueAt(fila, 9)))
                 ? "Reactivar" : "Desactivar");
     }
 
@@ -1457,7 +1489,7 @@ public class FormUsuario extends javax.swing.JPanel {
                 rolNombre,
                 nombreUsuario,
                 emailUsuario,
-                usuario.isActivo() ? "ACTIVO" : "INACTIVO"
+                usuario.isActivo() ? "Activo" : "Inactivo"
             };
 
             modelo.addRow(fila);
