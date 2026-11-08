@@ -123,65 +123,128 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         jpRegistrarCobros.setVisible(false);
         jpRegistrarCompras.setVisible(false);
         cargarDatosComboBoxes();
+        sincronizarVistaCaja();
         this.revalidate();
         this.repaint();
     }
 
-    /**
-     * Accesos de Caja: tarjetas compactas, con iconos verdes como en Home.
-     * Se reutilizan los JButton originales para conservar sus ActionListeners,
-     * permisos y reglas de habilitación.
-     */
-    private void configurarAccesosCaja() {
-        jpHadear.removeAll();
-        jpHadear.setLayout(new java.awt.BorderLayout(0, 9));
-        javax.swing.JPanel encabezado = new javax.swing.JPanel(new java.awt.BorderLayout());
-        encabezado.setOpaque(false);
-        encabezado.add(lbCajaRegistradora, java.awt.BorderLayout.WEST);
-        jpHadear.add(encabezado, java.awt.BorderLayout.NORTH);
+    // Solo el contenido propio de Caja: el header global de MainForm no se modifica.
+    private javax.swing.JPanel panelAccesosCaja;
+    private javax.swing.JPanel panelOperacionesCaja;
+    private javax.swing.JPanel zonaCaja;
+    private java.awt.CardLayout vistasCaja;
 
-        javax.swing.JPanel accesos = new javax.swing.JPanel(new java.awt.GridLayout(1, 6, 9, 0));
-        accesos.setOpaque(false);
+    private void configurarAccesosCaja() {
+        // Reorganizar componentes existentes FUERA del código generado de NetBeans.
+        // Los botones mantienen sus ActionListeners, permisos y validaciones.
+        this.removeAll();
+        this.setLayout(new java.awt.BorderLayout(0, 8));
+        javax.swing.JPanel cabeceraCaja = new javax.swing.JPanel();
+        cabeceraCaja.setOpaque(false);
+        cabeceraCaja.setLayout(new javax.swing.BoxLayout(cabeceraCaja, javax.swing.BoxLayout.Y_AXIS));
+        jpHadear.removeAll();
+        jpHadear.setLayout(new java.awt.BorderLayout());
+        jpHadear.add(lbCajaRegistradora, java.awt.BorderLayout.WEST);
+        cabeceraCaja.add(jpHadear);
+        cabeceraCaja.add(jpInfoCaja);
+        this.add(cabeceraCaja, java.awt.BorderLayout.NORTH);
+
+        panelAccesosCaja = new javax.swing.JPanel(new java.awt.GridLayout(2, 3, 16, 16));
+        panelAccesosCaja.setOpaque(false);
+        panelAccesosCaja.setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 22, 22, 22));
         javax.swing.JButton[] botones = {btnAbrirCaja, btnCerrarCaja, btnVentas,
-            btnCobros, btnCompras, btnPagosProveedores};
-        String[] iconos = {"＋", "−", "▣", "↗", "▤", "⇄"};
+                btnCobros, btnCompras, btnPagosProveedores};
+        String[] recursos = {"5.svg", "5.svg", "5.svg", "4.svg", "6.svg", "7.svg"};
+        String[] detalles = {"Iniciar operaciones", "Finalizar jornada",
+                "Registrar una venta", "Registrar un cobro",
+                "Registrar una compra", "Gestionar pagos"};
         for (int i = 0; i < botones.length; i++) {
-            final javax.swing.JButton boton = botones[i];
-            javax.swing.JPanel tarjeta = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
+            javax.swing.JButton boton = botones[i];
+            javax.swing.JPanel tarjeta = new javax.swing.JPanel(new java.awt.BorderLayout(0, 10));
             tarjeta.putClientProperty("vetpro.caja.card", Boolean.TRUE);
             tarjeta.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-                javax.swing.BorderFactory.createLineBorder(new java.awt.Color(80, 99, 113)),
-                javax.swing.BorderFactory.createEmptyBorder(7, 3, 6, 3)));
-            javax.swing.JLabel icono = new javax.swing.JLabel(iconos[i], javax.swing.SwingConstants.CENTER);
-            icono.setFont(icono.getFont().deriveFont(java.awt.Font.BOLD, 24f));
-            icono.setForeground(new java.awt.Color(132, 191, 78));
+                    javax.swing.BorderFactory.createLineBorder(new java.awt.Color(80, 99, 113)),
+                    javax.swing.BorderFactory.createEmptyBorder(24, 8, 20, 8)));
+            javax.swing.JLabel icono = new javax.swing.JLabel("", javax.swing.SwingConstants.CENTER);
+            try {
+                com.formdev.flatlaf.extras.FlatSVGIcon svg =
+                        new com.formdev.flatlaf.extras.FlatSVGIcon(
+                                "veterinaria/menu/icon/" + recursos[i], 2.1f);
+                com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter filtro =
+                        new com.formdev.flatlaf.extras.FlatSVGIcon.ColorFilter();
+                filtro.add(new java.awt.Color(0x969696), new java.awt.Color(132, 191, 78));
+                svg.setColorFilter(filtro);
+                icono.setIcon(svg);
+            } catch (RuntimeException ex) {
+                icono.setText("●");
+                icono.setForeground(new java.awt.Color(132, 191, 78));
+            }
             tarjeta.add(icono, java.awt.BorderLayout.CENTER);
+            javax.swing.JPanel pie = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 4));
+            pie.setOpaque(false);
             boton.setBorderPainted(false);
             boton.setContentAreaFilled(false);
             boton.setFocusPainted(false);
             boton.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
-            tarjeta.add(boton, java.awt.BorderLayout.SOUTH);
-            accesos.add(tarjeta);
+            boton.setFont(boton.getFont().deriveFont(java.awt.Font.BOLD, 14f));
+            pie.add(boton);
+            javax.swing.JLabel detalle = new javax.swing.JLabel(detalles[i],
+                    javax.swing.SwingConstants.CENTER);
+            detalle.putClientProperty("vetpro.caja.detalle", Boolean.TRUE);
+            pie.add(detalle);
+            tarjeta.add(pie, java.awt.BorderLayout.SOUTH);
+            panelAccesosCaja.add(tarjeta);
+            boton.addActionListener(e -> javax.swing.SwingUtilities.invokeLater(
+                    this::sincronizarVistaCaja));
         }
-        jpHadear.add(accesos, java.awt.BorderLayout.CENTER);
-        jpHadear.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+
+        panelOperacionesCaja = new javax.swing.JPanel();
+        panelOperacionesCaja.setOpaque(false);
+        panelOperacionesCaja.setLayout(new javax.swing.BoxLayout(
+                panelOperacionesCaja, javax.swing.BoxLayout.Y_AXIS));
+        for (javax.swing.JPanel operacion : new javax.swing.JPanel[]{
+                jpAperturaCaja, jpCierreCaja, jpRegistrarVentas,
+                jpRegistrarCobros, jpRegistrarCompras}) {
+            operacion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+            panelOperacionesCaja.add(operacion);
+        }
+
+        vistasCaja = new java.awt.CardLayout();
+        zonaCaja = new javax.swing.JPanel(vistasCaja);
+        zonaCaja.setOpaque(false);
+        zonaCaja.add(panelAccesosCaja, "accesos");
+        zonaCaja.add(panelOperacionesCaja, "operaciones");
+        this.add(zonaCaja, java.awt.BorderLayout.CENTER);
         actualizarPaletaAccesosCaja();
     }
 
+    private void sincronizarVistaCaja() {
+        if (vistasCaja == null) return;
+        boolean operando = jpAperturaCaja.isVisible() || jpCierreCaja.isVisible()
+                || jpRegistrarVentas.isVisible() || jpRegistrarCobros.isVisible()
+                || jpRegistrarCompras.isVisible();
+        vistasCaja.show(zonaCaja, operando ? "operaciones" : "accesos");
+        zonaCaja.revalidate();
+        zonaCaja.repaint();
+    }
+
     private void actualizarPaletaAccesosCaja() {
-        if (jpHadear == null) return;
+        if (panelAccesosCaja == null) return;
         java.awt.Color fondo = javax.swing.UIManager.getColor("Panel.background");
         boolean oscuro = fondo == null || (fondo.getRed() * 299 + fondo.getGreen() * 587
                 + fondo.getBlue() * 114) / 1000 < 135;
-        java.awt.Color tarjeta = oscuro ? new java.awt.Color(38, 49, 61)
+        java.awt.Color colorTarjeta = oscuro ? new java.awt.Color(38, 49, 61)
                 : new java.awt.Color(246, 248, 250);
-        for (java.awt.Component componente : jpHadear.getComponents()) {
+        java.awt.Color textoSecundario = oscuro ? new java.awt.Color(185, 195, 205)
+                : new java.awt.Color(83, 96, 110);
+        for (java.awt.Component componente : panelAccesosCaja.getComponents()) {
             if (componente instanceof javax.swing.JPanel) {
+                componente.setBackground(colorTarjeta);
                 for (java.awt.Component hijo : ((javax.swing.JPanel) componente).getComponents()) {
-                    if (hijo instanceof javax.swing.JComponent
-                            && Boolean.TRUE.equals(((javax.swing.JComponent) hijo)
-                                    .getClientProperty("vetpro.caja.card"))) {
-                        hijo.setBackground(tarjeta);
+                    if (hijo instanceof javax.swing.JPanel) {
+                        for (java.awt.Component pie : ((javax.swing.JPanel) hijo).getComponents()) {
+                            if (pie instanceof javax.swing.JLabel) pie.setForeground(textoSecundario);
+                        }
                     }
                 }
             }
