@@ -33,6 +33,7 @@ public class FormCliente extends javax.swing.JPanel {
     private ClienteControlador clienteControlador = new ClienteControlador();
     private boolean listenerSeleccionUnicaInstalado = false;
     private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar");
+    private final javax.swing.JButton btnVerInfo = new javax.swing.JButton("Ver Info");
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final PersonaDAO personaDAO = new PersonaDAO();
     private final Validaciones validar = new Validaciones();
@@ -158,6 +159,9 @@ public class FormCliente extends javax.swing.JPanel {
             fila.add(boton);
         }
         btnEliminar.setText("Desactivar");
+        btnVerInfo.setToolTipText("Consultar la ficha completa y las mascotas del cliente");
+        btnVerInfo.addActionListener(e -> mostrarInfoCliente());
+        fila.add(btnVerInfo);
         btnCancelarSeleccion.setToolTipText("Desmarcar el cliente seleccionado");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionCliente());
         fila.add(btnCancelarSeleccion);
@@ -176,6 +180,7 @@ public class FormCliente extends javax.swing.JPanel {
         btnEliminar.setVisible(seleccion);
         btnImprimir.setVisible(seleccion);
         btnCancelarSeleccion.setVisible(seleccion);
+        btnVerInfo.setVisible(seleccion);
         btnEditar.setEnabled(seleccion);
         btnEliminar.setEnabled(seleccion);
     }
@@ -1007,7 +1012,7 @@ public class FormCliente extends javax.swing.JPanel {
                     case 9:
                         return clienteBucle.getCuit();
                     case 10:
-                        return clienteBucle.isActivo() ? "ACTIVO" : "INACTIVO";
+                        return clienteBucle.isActivo() ? "Activo" : "Inactivo";
                     case 11:
                         return fechaStr;
                     default:
@@ -1016,6 +1021,7 @@ public class FormCliente extends javax.swing.JPanel {
             });
 
             operarTablas.ocultarColumnaId(tableClientes, 1);
+            ocultarColumnasSecundariasCliente();
         }
 
         // Cargamos los datos limpios al modelo genérico
@@ -1030,6 +1036,7 @@ public class FormCliente extends javax.swing.JPanel {
             btnEliminar.setEnabled(false);
         }
         btnCancelarSeleccion.setVisible(false);
+        btnVerInfo.setVisible(false);
 
         instalarDegradadoSeleccionClientes();
         actualizarTabla();
@@ -1040,6 +1047,81 @@ public class FormCliente extends javax.swing.JPanel {
      * Solo pinta las celdas de texto; preserva el checkbox y el modelo existente.
      * No modifica anchos, filas, scroll ni tipografía.
      */
+    private void ocultarColumnasSecundariasCliente() {
+        // Ocultar solo en la vista: los datos y el ID siguen en el modelo.
+        javax.swing.table.TableColumnModel columnas = tableClientes.getColumnModel();
+        for (int indiceModelo : new int[]{COL_RAZON_SOCIAL, COL_CUIT, COL_FECHA_ALTA}) {
+            for (int i = columnas.getColumnCount() - 1; i >= 0; i--) {
+                if (columnas.getColumn(i).getModelIndex() == indiceModelo) {
+                    columnas.removeColumn(columnas.getColumn(i));
+                    break;
+                }
+            }
+        }
+    }
+
+    private void mostrarInfoCliente() {
+        Cliente seleccionado = obtenerClienteSeleccionadoDesdeTabla();
+        if (seleccionado == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione un cliente para ver su información.");
+            return;
+        }
+        Persona p = seleccionado.getPersona();
+        javax.swing.JPanel ficha = new javax.swing.JPanel();
+        ficha.setLayout(new javax.swing.BoxLayout(ficha, javax.swing.BoxLayout.Y_AXIS));
+        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 14, 12, 14));
+        ficha.add(new javax.swing.JLabel("DATOS PERSONALES"));
+        agregarDatoFicha(ficha, "Nombre", p == null ? null : p.getNombre());
+        agregarDatoFicha(ficha, "Apellido", p == null ? null : p.getApellido());
+        agregarDatoFicha(ficha, "DNI", p == null ? null : String.valueOf(p.getDni()));
+        agregarDatoFicha(ficha, "Teléfono", p == null ? null : p.getTelefono());
+        agregarDatoFicha(ficha, "Dirección", p == null ? null : p.getDireccion());
+        agregarDatoFicha(ficha, "Email", seleccionado.getEmail());
+        agregarDatoFicha(ficha, "Estado", seleccionado.isActivo() ? "Activo" : "Inactivo");
+        ficha.add(javax.swing.Box.createVerticalStrut(12));
+        ficha.add(new javax.swing.JLabel("DATOS FISCALES Y ADMINISTRATIVOS"));
+        agregarDatoFicha(ficha, "Razón social", seleccionado.getRazonSocial());
+        agregarDatoFicha(ficha, "CUIT", seleccionado.getCuit());
+        agregarDatoFicha(ficha, "Fecha de alta", seleccionado.getFechaAlta() == null
+                ? null : seleccionado.getFechaAlta().format(
+                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        ficha.add(javax.swing.Box.createVerticalStrut(12));
+        ficha.add(new javax.swing.JLabel("MASCOTAS ASOCIADAS (incluye inactivas)"));
+        try {
+            java.util.List<veterinaria.entidad.Mascota> mascotas =
+                    new veterinaria.persistencia.MascotaDAO().buscarTodos();
+            int cantidad = 0;
+            for (veterinaria.entidad.Mascota m : mascotas) {
+                if (m.getCliente() != null
+                        && seleccionado.getIdCliente().equals(m.getCliente().getIdCliente())) {
+                    String descripcion = valorFicha(m.getNombre()) + " — "
+                            + valorFicha(m.getEspecie()) + " / " + valorFicha(m.getRaza())
+                            + " / " + valorFicha(m.getSexo())
+                            + " — " + (m.isActivo() ? "Activa" : "Inactiva");
+                    ficha.add(new javax.swing.JLabel(descripcion));
+                    cantidad++;
+                }
+            }
+            if (cantidad == 0) ficha.add(new javax.swing.JLabel("Sin mascotas registradas"));
+        } catch (Exception ex) {
+            ficha.add(new javax.swing.JLabel("No se pudieron consultar las mascotas asociadas"));
+        }
+        javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(ficha);
+        scroll.setPreferredSize(new java.awt.Dimension(580, 440));
+        scroll.setBorder(null);
+        JOptionPane.showMessageDialog(this, scroll, "Información del Cliente",
+                JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private void agregarDatoFicha(javax.swing.JPanel ficha, String etiqueta, String valor) {
+        ficha.add(new javax.swing.JLabel(etiqueta + ": " + valorFicha(valor)));
+        ficha.add(javax.swing.Box.createVerticalStrut(5));
+    }
+
+    private String valorFicha(String valor) {
+        return valor == null || valor.trim().isEmpty() ? "No registrado" : valor;
+    }
+
     private void instalarDegradadoSeleccionClientes() {
         javax.swing.table.TableColumnModel columns = tableClientes.getColumnModel();
         for (int col = 0; col < columns.getColumnCount(); col++) {
@@ -1097,6 +1179,7 @@ public class FormCliente extends javax.swing.JPanel {
             btnImprimir.setVisible(haySeleccion);
         }
         btnCancelarSeleccion.setVisible(haySeleccion);
+        btnVerInfo.setVisible(haySeleccion);
     }
 
     private void ocultarColumnaIdCliente() {
