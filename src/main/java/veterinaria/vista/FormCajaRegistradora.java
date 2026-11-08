@@ -214,10 +214,20 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                     boton.setForeground(javax.swing.UIManager.getColor("Button.foreground"));
                 }
             };
-            tarjeta.addMouseListener(hover);
+            // Toda la superficie de la tarjeta ejecuta la misma acción del botón original.
+            java.awt.event.MouseAdapter abrirTarjeta = new java.awt.event.MouseAdapter() {
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (javax.swing.SwingUtilities.isLeftMouseButton(e) && boton.isEnabled()) {
+                        boton.doClick();
+                    }
+                }
+            };
+            for (javax.swing.JComponent area : new javax.swing.JComponent[]{tarjeta, icono, detalle, pie}) {
+                area.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+                area.addMouseListener(hover);
+                area.addMouseListener(abrirTarjeta);
+            }
             boton.addMouseListener(hover);
-            icono.addMouseListener(hover);
-            detalle.addMouseListener(hover);
             panelAccesosCaja.add(tarjeta);
             boton.addActionListener(e -> javax.swing.SwingUtilities.invokeLater(
                     this::sincronizarVistaCaja));
@@ -253,7 +263,13 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         // El botón se muestra arriba, no al final del formulario.
         javax.swing.JPanel encabezadoOperaciones = new javax.swing.JPanel(new java.awt.BorderLayout());
         encabezadoOperaciones.setOpaque(false);
+        javax.swing.JLabel tituloOperacion = new javax.swing.JLabel("Registro de Ventas");
+        tituloOperacion.setFont(lbCajaRegistradora.getFont().deriveFont(java.awt.Font.BOLD, 17f));
+        encabezadoOperaciones.add(tituloOperacion, java.awt.BorderLayout.WEST);
         encabezadoOperaciones.add(filaVolver, java.awt.BorderLayout.EAST);
+        encabezadoOperaciones.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new java.awt.Color(80, 99, 113)),
+                javax.swing.BorderFactory.createEmptyBorder(4, 8, 4, 8)));
         javax.swing.JPanel contenidoOperaciones = panelOperacionesCaja;
         panelOperacionesCaja = new javax.swing.JPanel(new java.awt.BorderLayout());
         panelOperacionesCaja.setOpaque(false);
@@ -262,8 +278,10 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         // Separadores del GUI Builder colocados sobre etiquetas/campos.
         jSeparator4.setVisible(false);
         jSeparator7.setVisible(false);
-        jLabel6.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0,
-                new java.awt.Color(80, 99, 113)));
+        // El encabezado superior reemplaza el título generado, sin duplicarlo.
+        jLabel6.setVisible(false);
+        scroll1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         vistasCaja = new java.awt.CardLayout();
         zonaCaja = new javax.swing.JPanel(vistasCaja);
         zonaCaja.setOpaque(false);
