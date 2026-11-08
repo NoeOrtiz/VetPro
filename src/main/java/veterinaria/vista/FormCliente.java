@@ -32,6 +32,7 @@ public class FormCliente extends javax.swing.JPanel {
     private SesionUsuario sesion = Application.getSesionUsuario();
     private ClienteControlador clienteControlador = new ClienteControlador();
     private boolean listenerSeleccionUnicaInstalado = false;
+    private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar");
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final PersonaDAO personaDAO = new PersonaDAO();
     private final Validaciones validar = new Validaciones();
@@ -74,6 +75,7 @@ public class FormCliente extends javax.swing.JPanel {
         btnImprimir.setVisible(false);
         initListeners();
         initCombos();
+        configurarAccionesClientes();
         SwingUtilities.invokeLater(() -> {
             cargarClientesEnTabla();
             instalarPaginacionCompartida();
@@ -110,6 +112,84 @@ public class FormCliente extends javax.swing.JPanel {
         paginacionCompartida.actualizar();
     }
 
+    private void configurarAccionesClientes() {
+        // Conservar el diseño y los componentes existentes, alineando las acciones a la derecha.
+        panelBotones.removeAll();
+        panelBotones.setLayout(new java.awt.BorderLayout(0, 10));
+        javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 7));
+        titulo.setOpaque(false);
+        titulo.add(jLabel1, java.awt.BorderLayout.NORTH);
+        titulo.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        panelBotones.add(titulo, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        contenido.setOpaque(false);
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        filtros.setOpaque(false);
+        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+        c.anchor = java.awt.GridBagConstraints.WEST;
+        c.insets = new java.awt.Insets(0, 0, 6, 8);
+        c.gridx = 0; c.gridy = 0;
+        filtros.add(lbUsuarioBusqueda, c);
+        c.gridx = 1;
+        filtros.add(lbEstado1, c);
+        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.BorderLayout(7, 0));
+        busqueda.setOpaque(false);
+        busqueda.add(lbBuscar, java.awt.BorderLayout.WEST);
+        busqueda.add(txtBusqueda, java.awt.BorderLayout.CENTER);
+        busqueda.setPreferredSize(new java.awt.Dimension(285, 30));
+        c.gridx = 0; c.gridy = 1; c.insets = new java.awt.Insets(0, 0, 0, 8);
+        filtros.add(busqueda, c);
+        jcbEstadoCliente.setPreferredSize(new java.awt.Dimension(140, 28));
+        c.gridx = 1;
+        filtros.add(jcbEstadoCliente, c);
+        contenido.add(filtros, java.awt.BorderLayout.WEST);
+
+        javax.swing.JPanel acciones = new javax.swing.JPanel();
+        acciones.setOpaque(false);
+        acciones.setLayout(new javax.swing.BoxLayout(acciones, javax.swing.BoxLayout.Y_AXIS));
+        btnImprimir.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
+        acciones.add(btnImprimir);
+        acciones.add(javax.swing.Box.createVerticalStrut(8));
+        javax.swing.JPanel fila = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        fila.setOpaque(false);
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{btnNuevo, btnEditar, btnEliminar}) {
+            boton.setPreferredSize(new java.awt.Dimension(90, 28));
+            fila.add(boton);
+        }
+        btnEliminar.setText("Desactivar");
+        btnCancelarSeleccion.setToolTipText("Desmarcar el cliente seleccionado");
+        btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionCliente());
+        fila.add(btnCancelarSeleccion);
+        fila.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
+        acciones.add(fila);
+        contenido.add(acciones, java.awt.BorderLayout.EAST);
+        panelBotones.add(contenido, java.awt.BorderLayout.CENTER);
+        panelBotones.add(jSeparator2, java.awt.BorderLayout.SOUTH);
+        panelBotones.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 0, 8));
+        actualizarAccionesCliente();
+    }
+
+    private void actualizarAccionesCliente() {
+        boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(tableClientes);
+        btnEditar.setVisible(seleccion);
+        btnEliminar.setVisible(seleccion);
+        btnImprimir.setVisible(seleccion);
+        btnCancelarSeleccion.setVisible(seleccion);
+        btnEditar.setEnabled(seleccion);
+        btnEliminar.setEnabled(seleccion);
+    }
+
+    private void cancelarSeleccionCliente() {
+        for (int i = 0; i < tableClientes.getRowCount(); i++) {
+            if (Boolean.TRUE.equals(tableClientes.getValueAt(i, COL_SELECCION))) {
+                tableClientes.setValueAt(false, i, COL_SELECCION);
+            }
+        }
+        tableClientes.clearSelection();
+        actualizarAccionesCliente();
+    }
+
     private void initListeners() {
         // Escucha cuando cambia el combo de estado superior para recargar la tabla
         jcbEstadoCliente.addActionListener(e -> cargarClientesEnTabla());
@@ -117,9 +197,7 @@ public class FormCliente extends javax.swing.JPanel {
         // La búsqueda y la selección se administran desde GestorTablas.
         veterinaria.util.GestorTablas.instalarSeleccion(tableClientes, () -> {
             boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(tableClientes);
-            btnEditar.setEnabled(seleccion);
-            btnEliminar.setEnabled(seleccion);
-            btnImprimir.setVisible(seleccion);
+            actualizarAccionesCliente();
         });
 
 
@@ -941,6 +1019,7 @@ public class FormCliente extends javax.swing.JPanel {
         if (btnEliminar != null) {
             btnEliminar.setEnabled(false);
         }
+        btnCancelarSeleccion.setVisible(false);
 
         instalarDegradadoSeleccionClientes();
         actualizarTabla();
@@ -997,14 +1076,17 @@ public class FormCliente extends javax.swing.JPanel {
         }
 
         if (btnEditar != null) {
+            btnEditar.setVisible(haySeleccion);
             btnEditar.setEnabled(haySeleccion);
         }
         if (btnEliminar != null) {
+            btnEliminar.setVisible(haySeleccion);
             btnEliminar.setEnabled(haySeleccion);
         }
         if (btnImprimir != null) {
             btnImprimir.setVisible(haySeleccion);
         }
+        btnCancelarSeleccion.setVisible(haySeleccion);
     }
 
     private void ocultarColumnaIdCliente() {
@@ -1018,7 +1100,7 @@ public class FormCliente extends javax.swing.JPanel {
     // -------------------- Impresión PDF --------------------
     private void actualizarBotonImprimir() {
         boolean haySeleccion = (operarTablas.comprobarElementoSeleccionado(tableClientes) != -1);
-        btnImprimir.setVisible(haySeleccion);
+        actualizarAccionesCliente();
     }
 
     private void imprimirRegistroSeleccionado() {
@@ -1298,22 +1380,10 @@ public class FormCliente extends javax.swing.JPanel {
 
     private void actualizarCliente() {
         // Control de selección de la interfaz gráfica (compatible con filtros)
-        Integer selectedRow = operarTablas.comprobarElementoSeleccionado(tableClientes);
+        Cliente seleccionado = obtenerClienteSeleccionadoDesdeTabla();
 
-        if (selectedRow != -1) {
-            Integer idSel = null;
-            try {
-                int selectedRowView = tableClientes.getSelectedRow();
-                if (selectedRowView != -1) {
-                    int selectedRowModel = tableClientes.convertRowIndexToModel(selectedRowView);
-                    Cliente clienteSeleccionado = modeloClientes.obtenerObjetoEn(selectedRowModel);
-                    if (clienteSeleccionado != null) {
-                        idSel = clienteSeleccionado.getIdCliente();
-                    }
-                }
-            } catch (Exception ignore) {
-                idSel = null;
-            }
+        if (seleccionado != null) {
+            Integer idSel = seleccionado.getIdCliente();
 
             if (idSel == null) {
                 JOptionPane.showMessageDialog(this, "No se pudo determinar el ID del cliente seleccionado.", "Advertencia", JOptionPane.WARNING_MESSAGE);
