@@ -133,6 +133,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
     private javax.swing.JPanel panelOperacionesCaja;
     private javax.swing.JPanel zonaCaja;
     private java.awt.CardLayout vistasCaja;
+    private javax.swing.JButton btnVolverCaja;
 
     private void configurarAccesosCaja() {
         // Reorganizar componentes existentes FUERA del código generado de NetBeans.
@@ -193,6 +194,30 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             detalle.putClientProperty("vetpro.caja.detalle", Boolean.TRUE);
             pie.add(detalle);
             tarjeta.add(pie, java.awt.BorderLayout.SOUTH);
+            final java.awt.Color verde = new java.awt.Color(132, 191, 78);
+            java.awt.event.MouseAdapter hover = new java.awt.event.MouseAdapter() {
+                @Override public void mouseEntered(java.awt.event.MouseEvent e) {
+                    tarjeta.setBackground(new java.awt.Color(58, 79, 83));
+                    boton.setForeground(verde);
+                    tarjeta.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                            javax.swing.BorderFactory.createLineBorder(verde, 2),
+                            javax.swing.BorderFactory.createEmptyBorder(23, 7, 19, 7)));
+                }
+                @Override public void mouseExited(java.awt.event.MouseEvent e) {
+                    java.awt.Point punto = javax.swing.SwingUtilities.convertPoint(
+                            e.getComponent(), e.getPoint(), tarjeta);
+                    if (tarjeta.contains(punto)) return;
+                    actualizarPaletaAccesosCaja();
+                    tarjeta.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(80, 99, 113)),
+                            javax.swing.BorderFactory.createEmptyBorder(24, 8, 20, 8)));
+                    boton.setForeground(javax.swing.UIManager.getColor("Button.foreground"));
+                }
+            };
+            tarjeta.addMouseListener(hover);
+            boton.addMouseListener(hover);
+            icono.addMouseListener(hover);
+            detalle.addMouseListener(hover);
             panelAccesosCaja.add(tarjeta);
             boton.addActionListener(e -> javax.swing.SwingUtilities.invokeLater(
                     this::sincronizarVistaCaja));
@@ -209,6 +234,26 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
             panelOperacionesCaja.add(operacion);
         }
 
+        // Acción accesible durante el registro, sin alterar el formulario generado.
+        btnVolverCaja = new javax.swing.JButton("Cancelar venta / Volver a Caja");
+        btnVolverCaja.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        btnVolverCaja.addActionListener(e -> {
+            reiniciarFormulario();
+            jpAperturaCaja.setVisible(false);
+            jpCierreCaja.setVisible(false);
+            jpRegistrarCobros.setVisible(false);
+            jpRegistrarCompras.setVisible(false);
+            sincronizarVistaCaja();
+        });
+        javax.swing.JPanel filaVolver = new javax.swing.JPanel(new java.awt.FlowLayout(
+                java.awt.FlowLayout.RIGHT, 12, 8));
+        filaVolver.setOpaque(false);
+        filaVolver.add(btnVolverCaja);
+        filaVolver.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        panelOperacionesCaja.add(filaVolver);
+        // Separadores del GUI Builder colocados sobre etiquetas/campos.
+        jSeparator4.setVisible(false);
+        jSeparator7.setVisible(false);
         vistasCaja = new java.awt.CardLayout();
         zonaCaja = new javax.swing.JPanel(vistasCaja);
         zonaCaja.setOpaque(false);
@@ -224,6 +269,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
                 || jpRegistrarVentas.isVisible() || jpRegistrarCobros.isVisible()
                 || jpRegistrarCompras.isVisible();
         vistasCaja.show(zonaCaja, operando ? "operaciones" : "accesos");
+        if (btnVolverCaja != null) btnVolverCaja.setVisible(jpRegistrarVentas.isVisible());
         zonaCaja.revalidate();
         zonaCaja.repaint();
     }
