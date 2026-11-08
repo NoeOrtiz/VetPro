@@ -25,6 +25,7 @@ import veterinaria.util.PermisoUI;
 import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteService;
 import veterinaria.reportes.core.ReporteTipo;
+import veterinaria.reportes.pdf.ReporteSelectorUtil;
 
 public class FormUsuario extends javax.swing.JPanel {
 
