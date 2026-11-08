@@ -40,93 +40,77 @@ public class UsuarioListadoPdfReporte extends AbstractPdfReporte {
     }
 
     @Override
+    protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
+        float y = pdf.getY();
+        renderLogo(pdf, (pdf.getPageW() - 160f) / 2f, y - 103f, 160f, 103f);
+        pdf.setY(y - 116f);
+        String t = titulo();
+        pdf.text(PdfStyle.H2_FONT, 14, pdf.centerX(pdf.textWidth(PdfStyle.H2_FONT, 14, t)), pdf.getY(), t);
+        pdf.down(22f);
+        pdf.line();
+    }
+
+    @Override
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
         JTable tabla = request.get("tabla", JTable.class);
         TableModel m = tabla.getModel();
-        
-  
-        float x = pdf.getMargin();
-      
-        
-        
-        pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(), "Total de usuarios listados: " + m.getRowCount());
-        pdf.down(16f);
-
-        pdf.line();
-        
-        int colNombre = 1;
-        int colApellido = 2;
-        int colDni = 3;
-        int colTelefono = 4;
-        int colRol = 6;
-        int colUsuario = 7;
-        int colEmail = 8;
-
-        final int fontSize = 9;
-        final float lineH = 11f;
-
-        final float[] w = new float[] {
-            95f,  // Nombre
-            95f,  // Apellido
-            55f,  // DNI
-            70f,  // Teléfono
-            80f,  // Rol
-            85f,  // Usuario
-            130f  // E-mail
-        };
-
-        final float[] cx = new float[w.length];
-        cx[0] = x;
-        for (int i = 1; i < w.length; i++) {
-            cx[i] = cx[i - 1] + w[i - 1];
-        }
-
-        pdf.ensureSpace(60f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[0], pdf.getY(), "NOMBRE");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[1], pdf.getY(), "APELLIDO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[2], pdf.getY(), "DNI");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[3], pdf.getY(), "TEL.");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[4], pdf.getY(), "ROL");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[5], pdf.getY(), "USUARIO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[6], pdf.getY(), "E-MAIL");
-        pdf.down(10f);
-        pdf.line();
-
+        String filtro = request.get("estadoFiltro", String.class);
+        if (filtro == null || filtro.isBlank()) filtro = "TODOS";
+        filtro = filtro.trim().toUpperCase(java.util.Locale.ROOT);
+        java.util.List<Integer> filas = new java.util.ArrayList<>();
         for (int r = 0; r < m.getRowCount(); r++) {
-            String nombre = safe(m.getValueAt(r, colNombre));
-            String apellido = safe(m.getValueAt(r, colApellido));
-            String dni = safe(m.getValueAt(r, colDni));
-            String tel = safe(m.getValueAt(r, colTelefono));
-            String rol = safe(m.getValueAt(r, colRol));
-            String usuario = safe(m.getValueAt(r, colUsuario));
-            String email = safe(m.getValueAt(r, colEmail));
-
-            java.util.List<String> l0 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, nombre, w[0] - 2);
-            java.util.List<String> l1 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, apellido, w[1] - 2);
-            java.util.List<String> l2 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, dni, w[2] - 2);
-            java.util.List<String> l3 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, tel, w[3] - 2);
-            java.util.List<String> l4 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, rol, w[4] - 2);
-            java.util.List<String> l5 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, usuario, w[5] - 2);
-            java.util.List<String> l6 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, email, w[6] - 2);
-
-            int maxLines = max(l0.size(), l1.size(), l2.size(), l3.size(), l4.size(), l5.size(), l6.size());
-            float rowH = Math.max(1, maxLines) * lineH;
-            pdf.ensureSpace(rowH + 6f);
-
-            float yTop = pdf.getY();
-            for (int i = 0; i < maxLines; i++) {
-                float yy = yTop - (i * lineH);
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[0], yy, pick(l0, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[1], yy, pick(l1, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[2], yy, pick(l2, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[3], yy, pick(l3, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[4], yy, pick(l4, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[5], yy, pick(l5, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[6], yy, pick(l6, i));
-            }
-
-            pdf.down(rowH + 2f);
+            String estado = safe(m.getValueAt(r, 9)).toUpperCase(java.util.Locale.ROOT);
+            if ("TODOS".equals(filtro) || estado.equals(filtro)) filas.add(r);
         }
+        pdf.down(6f);
+        pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(),
+                "Usuarios: " + filas.size() + "    |    Estado: " +
+                ("TODOS".equals(filtro) ? "Todos" : "ACTIVO".equals(filtro) ? "Activos" : "Inactivos"));
+        pdf.down(24f);
+        String[] headers = {"NOMBRE", "APELLIDO", "DNI", "TELÉFONO", "ROL", "USUARIO", "E-MAIL", "ESTADO"};
+        int[] indices = {1, 2, 3, 4, 6, 7, 8, 9};
+        float[] pesos = {12, 12, 8, 11, 12, 12, 24, 9};
+        float[] anchos = new float[pesos.length];
+        float[] xs = new float[pesos.length];
+        float x = pdf.getMargin();
+        for (int i = 0; i < pesos.length; i++) {
+            anchos[i] = pdf.getUsableWidth() * pesos[i] / 100f;
+            xs[i] = x + 4f;
+            x += anchos[i];
+        }
+        dibujarCabecera(pdf, headers, xs);
+        for (int r : filas) {
+            java.util.List<java.util.List<String>> celdas = new java.util.ArrayList<>();
+            int lineas = 1;
+            for (int c = 0; c < indices.length; c++) {
+                java.util.List<String> l = pdf.wrapText(PdfStyle.TXT_FONT, 8,
+                        safe(m.getValueAt(r, indices[c])), anchos[c] - 9f);
+                celdas.add(l);
+                lineas = Math.max(lineas, l.size());
+            }
+            float alto = lineas * 13f + 10f;
+            if (pdf.getY() - alto < pdf.getMargin() + 18f) {
+                pdf.nuevaPagina();
+                dibujarCabecera(pdf, headers, xs);
+            }
+            float y = pdf.getY();
+            for (int c = 0; c < indices.length; c++) {
+                for (int j = 0; j < celdas.get(c).size(); j++) {
+                    pdf.text(PdfStyle.TXT_FONT, 8, xs[c], y - j * 13f, celdas.get(c).get(j));
+                }
+            }
+            pdf.down(alto);
+        }
+    }
+
+    private void dibujarCabecera(PdfDocument pdf, String[] headers, float[] xs) throws Exception {
+        pdf.ensureSpace(40f);
+        for (int i = 0; i < headers.length; i++) {
+            pdf.text(PDType1Font.HELVETICA_BOLD, 8, xs[i], pdf.getY(), headers[i]);
+        }
+        pdf.down(16f);
+        pdf.line();
+        pdf.down(7f);
     }
 
     private String safe(Object o) {
