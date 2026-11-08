@@ -693,15 +693,67 @@ public class FormUsuario extends javax.swing.JPanel {
     private veterinaria.util.PaginacionTablas paginacionCompartida;
 
     private void instalarFiltroEstado() {
-        // Búsqueda y filtro juntos, sin ocupar el ancho del encabezado.
-        javax.swing.JPanel barra = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
-        barra.setOpaque(false);
-        barra.add(new javax.swing.JLabel("BUSCAR USUARIO"));
-        barra.add(javax.swing.Box.createHorizontalStrut(150));
-        barra.add(new javax.swing.JLabel("Estado:"));
-        barra.add(filtroEstado);
+        // Mismo patrón visual de Clientes: las etiquetas arriba y los campos
+        // de búsqueda y estado alineados horizontalmente.
         filtroEstado.addActionListener(e -> cargarUsuariosEnTabla());
-        ((javax.swing.GroupLayout) jpHeader.getLayout()).replace(lbUsuarioBusqueda, barra);
+
+        jpHeader.removeAll();
+        jpHeader.setLayout(new java.awt.BorderLayout(0, 12));
+
+        javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 7));
+        titulo.setOpaque(false);
+        titulo.add(lblGestionUsuarios, java.awt.BorderLayout.NORTH);
+        titulo.add(jSeparator2, java.awt.BorderLayout.SOUTH);
+        jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel centro = new javax.swing.JPanel(new java.awt.BorderLayout(15, 0));
+        centro.setOpaque(false);
+
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        filtros.setOpaque(false);
+        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+        c.anchor = java.awt.GridBagConstraints.WEST;
+        c.fill = java.awt.GridBagConstraints.NONE;
+        c.insets = new java.awt.Insets(0, 0, 6, 8);
+
+        c.gridx = 0; c.gridy = 0;
+        filtros.add(lbUsuarioBusqueda, c);
+        lbUsuarioBusqueda.setText("BUSCAR USUARIO");
+        c.gridx = 1;
+        filtros.add(new javax.swing.JLabel("Estado:"), c);
+
+        javax.swing.JPanel buscador = new javax.swing.JPanel(new java.awt.BorderLayout(7, 0));
+        buscador.setOpaque(false);
+        buscador.add(lbBuscar, java.awt.BorderLayout.WEST);
+        buscador.add(txtBusqueda, java.awt.BorderLayout.CENTER);
+        buscador.setPreferredSize(new java.awt.Dimension(285, 30));
+        c.gridx = 0; c.gridy = 1; c.insets = new java.awt.Insets(0, 0, 0, 8);
+        filtros.add(buscador, c);
+        filtroEstado.setPreferredSize(new java.awt.Dimension(140, 28));
+        c.gridx = 1;
+        filtros.add(filtroEstado, c);
+        centro.add(filtros, java.awt.BorderLayout.WEST);
+
+        javax.swing.JPanel acciones = new javax.swing.JPanel();
+        acciones.setOpaque(false);
+        acciones.setLayout(new javax.swing.BoxLayout(acciones, javax.swing.BoxLayout.Y_AXIS));
+        btnImprimir.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
+        acciones.add(btnImprimir);
+        acciones.add(javax.swing.Box.createVerticalStrut(8));
+        javax.swing.JPanel botones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        botones.setOpaque(false);
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{btnNuevo, btnEditar, btnEliminar}) {
+            boton.setPreferredSize(new java.awt.Dimension(90, 28));
+            botones.add(boton);
+        }
+        botones.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
+        acciones.add(botones);
+        centro.add(acciones, java.awt.BorderLayout.EAST);
+        jpHeader.add(centro, java.awt.BorderLayout.CENTER);
+        jpHeader.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 10));
+        jpHeader.revalidate();
+        jpHeader.repaint();
     }
 
     private void instalarPaginacionCompartida() {
