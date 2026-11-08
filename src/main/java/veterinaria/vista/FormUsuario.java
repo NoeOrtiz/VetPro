@@ -914,6 +914,10 @@ public class FormUsuario extends javax.swing.JPanel {
         if (u == null) {
             return;
         }
+        ReporteSelectorUtil.Formato formato = ReporteSelectorUtil.solicitarFormato(this);
+        if (formato == null) {
+            return;
+        }
         try {
             // Fallback de datos planos desde la JTable (por si falla la carga de Persona)
             int rowSel = operarTablas.comprobarElementoSeleccionado(table);
@@ -951,6 +955,7 @@ public class FormUsuario extends javax.swing.JPanel {
                     .put("direccion", fDireccion)
                     .put("rol", rolNombre)
                     .put("estado", u.isActivo() ? "Activo" : "Inactivo")
+                    .put("FORMATO_REPORTE", formato)
                     .put("emisor", Application.getNombreApellidoUsuarioLogeado());
 
             // 2. 🚀 AL EJECUTOR: Corre asíncronamente con su barra de progreso modal
