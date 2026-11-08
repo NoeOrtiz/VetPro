@@ -101,8 +101,7 @@ public class FormUsuario extends javax.swing.JPanel {
                 false); // solo visible si hay un registro seleccionado
         btnImprimir.setEnabled(
                 true);
-        btnImprimir.addActionListener(e
-                -> imprimirRegistroSeleccionado());
+        // El botón ya tiene el evento registrado por initComponents().
 
         btnImprimirLista.setVisible(
                 true);
