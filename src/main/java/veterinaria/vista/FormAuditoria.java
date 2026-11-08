@@ -43,7 +43,7 @@ public class FormAuditoria extends javax.swing.JPanel {
             }
             jDateDesde.setDateFormatString("dd/MM/yyyy");
             jDateHasta.setDateFormatString("dd/MM/yyyy");
-            organizarEncabezado();
+            organizarEncabezado(binder);
             scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
             for (com.toedter.calendar.JDateChooser fecha : new com.toedter.calendar.JDateChooser[]{jDateDesde, jDateHasta}) {
                 javax.swing.JTextField editor = (javax.swing.JTextField) fecha.getDateEditor().getUiComponent();
@@ -63,7 +63,7 @@ public class FormAuditoria extends javax.swing.JPanel {
 
     }
 
-    private void organizarEncabezado() {
+    private void organizarEncabezado(AuditoriaFormBinder binder) {
         // Disposición compacta y coherente con los demás módulos.
         jpHeader.removeAll();
         jpHeader.setLayout(new java.awt.BorderLayout(0, 12));
@@ -82,22 +82,9 @@ public class FormAuditoria extends javax.swing.JPanel {
         busqueda.add(lbBuscarEvento);
         busqueda.add(lbBuscar);
         busqueda.add(txtBusqueda);
-        javax.swing.JButton limpiarTexto = new javax.swing.JButton("×");
-        limpiarTexto.setFocusable(false);
-        limpiarTexto.setToolTipText("Limpiar búsqueda");
-        limpiarTexto.setMargin(new java.awt.Insets(2, 7, 2, 7));
-        limpiarTexto.setVisible(!txtBusqueda.getText().isEmpty());
-        limpiarTexto.addActionListener(e -> {
-            txtBusqueda.setText("");
-            veterinaria.util.GestorSeleccionTabla.limpiar(tableAuditoria);
-        });
-        txtBusqueda.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-            private void cambio() { limpiarTexto.setVisible(!txtBusqueda.getText().isEmpty()); }
-            public void insertUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
-            public void removeUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
-            public void changedUpdate(javax.swing.event.DocumentEvent e) { cambio(); }
-        });
-        busqueda.add(limpiarTexto);
+        // Misma X interna que Clientes y Usuarios; sin segundo listener.
+        txtBusqueda.setLayout(new java.awt.BorderLayout());
+        txtBusqueda.add(binder.getBotonLimpiarBusqueda(), java.awt.BorderLayout.EAST);
         contenido.add(busqueda);
         javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 4));
         filtros.setOpaque(false);
@@ -113,8 +100,16 @@ public class FormAuditoria extends javax.swing.JPanel {
             campo.setPreferredSize(new java.awt.Dimension(ancho, 51));
             filtros.add(campo);
         }
-        filtros.add(btnBuscar);
-        filtros.add(btnLimpiar);
+        // Alinear ambos botones con la línea inferior de los campos de filtro.
+        javax.swing.JPanel botonesFiltros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+        botonesFiltros.setOpaque(false);
+        botonesFiltros.add(btnBuscar);
+        botonesFiltros.add(btnLimpiar);
+        javax.swing.JPanel espacioBotones = new javax.swing.JPanel(new java.awt.BorderLayout());
+        espacioBotones.setOpaque(false);
+        espacioBotones.setPreferredSize(new java.awt.Dimension(165, 51));
+        espacioBotones.add(botonesFiltros, java.awt.BorderLayout.SOUTH);
+        filtros.add(espacioBotones);
         contenido.add(filtros);
         jpHeader.add(contenido, java.awt.BorderLayout.CENTER);
 
