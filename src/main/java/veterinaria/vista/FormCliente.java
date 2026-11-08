@@ -1086,7 +1086,7 @@ public class FormCliente extends javax.swing.JPanel {
         ficha.setLayout(new javax.swing.BoxLayout(ficha, javax.swing.BoxLayout.Y_AXIS));
         ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 18, 16, 18));
 
-        agregarSeccionFicha(ficha, "◉  DATOS PERSONALES", verde);
+        agregarSeccionFicha(ficha, "DATOS PERSONALES", verde);
         javax.swing.JPanel personales = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
         personales.setOpaque(false);
         agregarDatoFicha(personales, "Nombre y apellido", p == null ? null
@@ -1096,9 +1096,10 @@ public class FormCliente extends javax.swing.JPanel {
         agregarDatoFicha(personales, "Dirección", p == null ? null : p.getDireccion());
         agregarDatoFicha(personales, "Email", cliente.getEmail());
         agregarDatoFicha(personales, "Estado", cliente.isActivo() ? "Activo" : "Inactivo");
+        personales.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         ficha.add(personales);
 
-        agregarSeccionFicha(ficha, "▤  DATOS FISCALES Y ADMINISTRATIVOS", verde);
+        agregarSeccionFicha(ficha, "DATOS FISCALES Y ADMINISTRATIVOS", verde);
         javax.swing.JPanel fiscales = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
         fiscales.setOpaque(false);
         agregarDatoFicha(fiscales, "Razón social", cliente.getRazonSocial());
@@ -1106,9 +1107,10 @@ public class FormCliente extends javax.swing.JPanel {
         agregarDatoFicha(fiscales, "Fecha de alta", cliente.getFechaAlta() == null
                 ? null : cliente.getFechaAlta().format(
                         java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        fiscales.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         ficha.add(fiscales);
 
-        agregarSeccionFicha(ficha, "♧  MASCOTAS ASOCIADAS", verde);
+        agregarSeccionFicha(ficha, "MASCOTAS ASOCIADAS", verde);
         try {
             java.util.List<veterinaria.entidad.Mascota> mascotas =
                     new veterinaria.persistencia.MascotaDAO()
@@ -1122,7 +1124,7 @@ public class FormCliente extends javax.swing.JPanel {
                 tarjeta.setBorder(javax.swing.BorderFactory.createCompoundBorder(
                         javax.swing.BorderFactory.createLineBorder(new java.awt.Color(72, 113, 96)),
                         javax.swing.BorderFactory.createEmptyBorder(12, 14, 12, 14)));
-                javax.swing.JLabel nombre = new javax.swing.JLabel("🐾  " + valorFicha(m.getNombre()));
+                javax.swing.JLabel nombre = new javax.swing.JLabel("Mascota: " + valorFicha(m.getNombre()));
                 nombre.setFont(nombre.getFont().deriveFont(java.awt.Font.BOLD, 13f));
                 nombre.setForeground(verde);
                 javax.swing.JLabel detalle = new javax.swing.JLabel(valorFicha(m.getEspecie())
@@ -1136,6 +1138,7 @@ public class FormCliente extends javax.swing.JPanel {
                 tarjeta.add(info, java.awt.BorderLayout.CENTER);
                 tarjeta.add(estado, java.awt.BorderLayout.EAST);
                 tarjeta.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 72));
+                tarjeta.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
                 ficha.add(tarjeta);
                 ficha.add(javax.swing.Box.createVerticalStrut(8));
             }
@@ -1155,6 +1158,7 @@ public class FormCliente extends javax.swing.JPanel {
         etiqueta.setFont(etiqueta.getFont().deriveFont(java.awt.Font.BOLD, 12f));
         etiqueta.setForeground(verde);
         etiqueta.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        etiqueta.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         ficha.add(etiqueta);
         ficha.add(javax.swing.Box.createVerticalStrut(12));
     }
