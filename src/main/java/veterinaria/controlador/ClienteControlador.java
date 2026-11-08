@@ -109,6 +109,13 @@ public class ClienteControlador {
         return false;
     }
 
+    public boolean procesarReactivacionPorId(Integer idCliente) throws Exception {
+        if (idCliente == null) {
+            throw new Exception("Seleccione un cliente válido.");
+        }
+        return new veterinaria.servicio.ClienteService().reactivar(idCliente);
+    }
+
     public boolean procesarBajaPorId(Integer idCliente) throws Exception {
         if (idCliente == null) {
             throw new Exception("El ID del cliente no es válido.");
