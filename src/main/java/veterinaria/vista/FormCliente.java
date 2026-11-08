@@ -800,10 +800,10 @@ public class FormCliente extends javax.swing.JPanel {
             boolean saldoPendiente = detalle.contains("cuenta corriente tiene saldo");
             String mensaje = saldoPendiente
                     ? "No se puede desactivar este cliente porque su cuenta corriente "
-                      + "registra un saldo pendiente o a favor.\\n"
-                      + "Regularice el saldo antes de realizar la desactivación.\\n"
+                      + "registra un saldo pendiente o a favor.\n"
+                      + "Regularice el saldo antes de realizar la desactivación.\n"
                       + "El cliente y sus mascotas permanecen activos."
-                    : "No se pudo completar la desactivación del cliente.\\n" + detalle;
+                    : "No se pudo completar la desactivación del cliente.\n" + detalle;
             JOptionPane.showMessageDialog(this, mensaje,
                     saldoPendiente ? "Desactivación no permitida" : "Error al desactivar",
                     saldoPendiente ? JOptionPane.WARNING_MESSAGE : JOptionPane.ERROR_MESSAGE);
@@ -900,31 +900,25 @@ public class FormCliente extends javax.swing.JPanel {
     }//GEN-LAST:event_btnImprimirActionPerformed
 
     private void btnImprimirListaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnImprimirListaActionPerformed
-        // Desplegamos el Pop-up para elegir el filtro
-        JPopupMenu menuFiltro = new JPopupMenu();
-
-        JMenuItem itemTodos = new JMenuItem("Todos los Clientes");
-        JMenuItem itemActivos = new JMenuItem("Solo Activos");
-        JMenuItem itemInactivos = new JMenuItem("Solo Inactivos");
-
-        // Al hacer clic, enviamos el estado que se quiere imprimir
-        itemTodos.addActionListener(e -> solicitarFormatoEImprimir("TODOS"));
-        itemActivos.addActionListener(e -> solicitarFormatoEImprimir("ACTIVO"));
-        itemInactivos.addActionListener(e -> solicitarFormatoEImprimir("INACTIVO"));
-
-        menuFiltro.add(itemTodos);
-        menuFiltro.add(itemActivos);
-        menuFiltro.add(itemInactivos);
-
-        menuFiltro.show(btnImprimirLista, 0, btnImprimirLista.getHeight());
-    }//GEN-LAST:event_btnImprimirListaActionPerformed
-
-    private void solicitarFormatoEImprimir(String estadoFiltro) {
-        ReporteSelectorUtil.Formato formatoElegido = ReporteSelectorUtil.solicitarFormato(this);
-        if (formatoElegido != null) {
-            imprimirListaClientes(formatoElegido, estadoFiltro);
+        javax.swing.JComboBox<String> alcance = new javax.swing.JComboBox<>(
+                new String[]{"Todos los clientes", "Solo activos", "Solo inactivos"});
+        javax.swing.JComboBox<String> formato = new javax.swing.JComboBox<>(
+                new String[]{"PDF", "Excel (XLS)"});
+        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 2, 10, 10));
+        opciones.add(new javax.swing.JLabel("Clientes a incluir:"));
+        opciones.add(alcance);
+        opciones.add(new javax.swing.JLabel("Formato:"));
+        opciones.add(formato);
+        if (JOptionPane.showConfirmDialog(this, opciones, "Configurar informe de clientes",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) {
+            return;
         }
-    }
+        String estado = alcance.getSelectedIndex() == 1 ? "ACTIVO"
+                : alcance.getSelectedIndex() == 2 ? "INACTIVO" : "TODOS";
+        ReporteSelectorUtil.Formato elegido = formato.getSelectedIndex() == 0
+                ? ReporteSelectorUtil.Formato.PDF : ReporteSelectorUtil.Formato.XLS;
+        imprimirListaClientes(elegido, estado);
+    }//GEN-LAST:event_btnImprimirListaActionPerformed
 
     private String obtenerFiltroEstadoClienteSeleccionado() {
         Object seleccionado = jcbEstadoCliente.getSelectedItem();
