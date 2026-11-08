@@ -183,6 +183,7 @@ public class FormCliente extends javax.swing.JPanel {
         btnVerInfo.setVisible(seleccion);
         btnEditar.setEnabled(seleccion);
         btnEliminar.setEnabled(seleccion);
+        btnNuevo.setEnabled(!seleccion);
     }
 
     private void cancelarSeleccionCliente() {
@@ -755,20 +756,20 @@ public class FormCliente extends javax.swing.JPanel {
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         String perm = "FormCliente.ELIMINAR";
         if (sesion == null || !sesion.puede(perm)) {
-            JOptionPane.showMessageDialog(null, "No tienes permisos suficientes para eliminar clientes.", "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "No tiene permisos suficientes para desactivar clientes.", "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         Cliente clienteSeleccionado = obtenerClienteSeleccionadoDesdeTabla();
         if (clienteSeleccionado == null) {
-            JOptionPane.showMessageDialog(null, "Por favor seleccione un cliente a ELIMINAR", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Seleccione un cliente para desactivar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
             int confirm = JOptionPane.showConfirmDialog(
                     this, "¿Está seguro de que desea desactivar este cliente? Sus mascotas también serán desactivadas.",
-                    "Confirmar eliminación",
+                    "Confirmar desactivación",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE
             );
@@ -778,7 +779,7 @@ public class FormCliente extends javax.swing.JPanel {
                 if (operandoCliente.procesarBajaPorId(clienteSeleccionado.getIdCliente())) {
                     JOptionPane.showMessageDialog(this, "Cliente desactivado con éxito", "Información", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    JOptionPane.showMessageDialog(this, "No se pudo eliminar el cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "No se pudo desactivar el cliente. Verifique su estado y vuelva a intentarlo.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
 
                 cargarClientesEnTabla();
@@ -786,7 +787,26 @@ public class FormCliente extends javax.swing.JPanel {
                 jpDatosPersonales.setVisible(false);
             }
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error al eliminar: " + ex.getMessage(), "Advertencia", JOptionPane.WARNING_MESSAGE);
+            String detalle = ex.getMessage() == null ? "" : ex.getMessage();
+            Throwable causa = ex.getCause();
+            while (causa != null) {
+                if (causa.getMessage() != null
+                        && causa.getMessage().contains("cuenta corriente tiene saldo")) {
+                    detalle = causa.getMessage();
+                    break;
+                }
+                causa = causa.getCause();
+            }
+            boolean saldoPendiente = detalle.contains("cuenta corriente tiene saldo");
+            String mensaje = saldoPendiente
+                    ? "No se puede desactivar este cliente porque su cuenta corriente "
+                      + "registra un saldo pendiente o a favor.\\n"
+                      + "Regularice el saldo antes de realizar la desactivación.\\n"
+                      + "El cliente y sus mascotas permanecen activos."
+                    : "No se pudo completar la desactivación del cliente.\\n" + detalle;
+            JOptionPane.showMessageDialog(this, mensaje,
+                    saldoPendiente ? "Desactivación no permitida" : "Error al desactivar",
+                    saldoPendiente ? JOptionPane.WARNING_MESSAGE : JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnEliminarActionPerformed
 
@@ -1180,6 +1200,7 @@ public class FormCliente extends javax.swing.JPanel {
         }
         btnCancelarSeleccion.setVisible(haySeleccion);
         btnVerInfo.setVisible(haySeleccion);
+        btnNuevo.setEnabled(!haySeleccion);
     }
 
     private void ocultarColumnaIdCliente() {
