@@ -167,4 +167,31 @@ public class ClienteService {
         });
         return ok;
     }
+    public boolean reactivar(Integer idCliente) {
+        final String[] antes = new String[1];
+        final String[] despues = new String[1];
+        boolean ok = txRunner.runInTx(em -> {
+            Cliente managed = em.find(Cliente.class, idCliente);
+            if (managed == null || managed.isActivo()) {
+                throw new IllegalStateException("El cliente no está inactivo.");
+            }
+            antes[0] = JsonUtil.safeToJson(managed);
+            managed.setActivo(true);
+            managed.setEstado("ACTIVO");
+            // Recuperamos las mascotas desactivadas por la baja en cascada.
+            java.util.List<veterinaria.entidad.Mascota> mascotas = em.createQuery(
+                    "SELECT m FROM Mascota m WHERE m.cliente.idCliente = :id", veterinaria.entidad.Mascota.class)
+                    .setParameter("id", idCliente).getResultList();
+            for (veterinaria.entidad.Mascota mascota : mascotas) {
+                mascota.setActivo(true);
+            }
+            em.flush();
+            despues[0] = JsonUtil.safeToJson(managed);
+            return true;
+        }, () -> auditoriaService.registrar("REACTIVAR", "Cliente",
+                Long.valueOf(idCliente), "ClienteService", "Reactivación de cliente y mascotas",
+                AuditoriaService.RESULT_OK, antes[0], despues[0], null));
+        return ok;
+    }
+
 }
