@@ -28,6 +28,7 @@ import veterinaria.reportes.core.ReporteTipo;
 
 public class FormUsuario extends javax.swing.JPanel {
 
+    private boolean ajustandoSeleccionUsuario;
     private javax.swing.JButton btnVerContrasena;
     private char caracterOcultoContrasena;
 
@@ -74,6 +75,25 @@ public class FormUsuario extends javax.swing.JPanel {
         instalarFiltroEstado();
         actualizarForm();
         instalarPaginacionCompartida();
+        // En Usuarios solo se permite una selección a la vez, incluso
+        // cuando el usuario marca directamente la casilla de otra fila.
+        table.getModel().addTableModelListener(e -> {
+            if (ajustandoSeleccionUsuario || e.getType() != javax.swing.event.TableModelEvent.UPDATE
+                    || e.getColumn() != 0 || e.getFirstRow() < 0) return;
+            int fila = e.getFirstRow();
+            javax.swing.table.TableModel modelo = table.getModel();
+            if (!Boolean.TRUE.equals(modelo.getValueAt(fila, 0))) return;
+            ajustandoSeleccionUsuario = true;
+            try {
+                for (int i = 0; i < modelo.getRowCount(); i++) {
+                    if (i != fila && Boolean.TRUE.equals(modelo.getValueAt(i, 0))) {
+                        ((javax.swing.table.DefaultTableModel) modelo).setValueAt(false, i, 0);
+                    }
+                }
+            } finally {
+                ajustandoSeleccionUsuario = false;
+            }
+        });
 
         // Botones de impresión (patrón similar a FormHospitalizaciones)
         btnImprimir.setVisible(
