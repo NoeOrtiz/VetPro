@@ -155,7 +155,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         panelAccesosCaja.setBorder(javax.swing.BorderFactory.createEmptyBorder(22, 22, 22, 22));
         javax.swing.JButton[] botones = {btnAbrirCaja, btnCerrarCaja, btnVentas,
                 btnCobros, btnCompras, btnPagosProveedores};
-        String[] recursos = {"5.svg", "5.svg", "5.svg", "4.svg", "6.svg", "7.svg"};
+        String[] recursos = {"caja-abrir.svg", "caja-cerrar.svg", "5.svg", "4.svg", "6.svg", "7.svg"};
         String[] detalles = {"Iniciar operaciones", "Finalizar jornada",
                 "Registrar una venta", "Registrar un cobro",
                 "Registrar una compra", "Gestionar pagos"};
