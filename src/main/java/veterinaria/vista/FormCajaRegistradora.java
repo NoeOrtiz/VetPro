@@ -235,7 +235,7 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         }
 
         // Acción accesible durante el registro, sin alterar el formulario generado.
-        btnVolverCaja = new javax.swing.JButton("Cancelar venta / Volver a Caja");
+        btnVolverCaja = new javax.swing.JButton("Cancelar venta");
         btnVolverCaja.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
         btnVolverCaja.addActionListener(e -> {
             reiniciarFormulario();
@@ -250,10 +250,20 @@ public class FormCajaRegistradora extends javax.swing.JPanel {
         filaVolver.setOpaque(false);
         filaVolver.add(btnVolverCaja);
         filaVolver.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-        panelOperacionesCaja.add(filaVolver);
+        // El botón se muestra arriba, no al final del formulario.
+        javax.swing.JPanel encabezadoOperaciones = new javax.swing.JPanel(new java.awt.BorderLayout());
+        encabezadoOperaciones.setOpaque(false);
+        encabezadoOperaciones.add(filaVolver, java.awt.BorderLayout.EAST);
+        javax.swing.JPanel contenidoOperaciones = panelOperacionesCaja;
+        panelOperacionesCaja = new javax.swing.JPanel(new java.awt.BorderLayout());
+        panelOperacionesCaja.setOpaque(false);
+        panelOperacionesCaja.add(encabezadoOperaciones, java.awt.BorderLayout.NORTH);
+        panelOperacionesCaja.add(contenidoOperaciones, java.awt.BorderLayout.CENTER);
         // Separadores del GUI Builder colocados sobre etiquetas/campos.
         jSeparator4.setVisible(false);
         jSeparator7.setVisible(false);
+        jLabel6.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0,
+                new java.awt.Color(80, 99, 113)));
         vistasCaja = new java.awt.CardLayout();
         zonaCaja = new javax.swing.JPanel(vistasCaja);
         zonaCaja.setOpaque(false);
