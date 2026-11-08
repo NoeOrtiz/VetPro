@@ -63,6 +63,7 @@ public final class PaginacionTablas {
         siguiente.setToolTipText("Página siguiente");
         ultima.setToolTipText("Última página");
         limpiar.setToolTipText("Limpiar búsqueda");
+        limpiar.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
         for (JButton boton : new JButton[]{primera, anterior, siguiente, ultima, limpiar}) {
             boton.setFocusable(false);
         }
