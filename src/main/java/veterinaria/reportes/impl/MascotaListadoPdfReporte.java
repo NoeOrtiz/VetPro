@@ -68,9 +68,15 @@ public class MascotaListadoPdfReporte extends AbstractPdfReporte {
             if ("ACTIVO".equalsIgnoreCase(estado)) activos++;
             else inactivos++;
         }
+        int totalGeneral = modelo.getRowCount();
+        int activosGeneral = 0;
+        for (int r = 0; r < modelo.getRowCount(); r++)
+            if ("ACTIVO".equalsIgnoreCase(String.valueOf(modelo.getValueAt(r, 12)))) activosGeneral++;
         pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(),
-                "Total listados: " + total + "     Activos: " + activos + "     Inactivos: " + inactivos);
-        pdf.down(22f);
+                "Total registrados: " + totalGeneral + "     Activos: " + activosGeneral
+                + "     Inactivos: " + (totalGeneral - activosGeneral)
+                + "     Incluidos en este informe: " + total);
+        pdf.down(35f);
         dibujarEncabezadoTabla(pdf, titulos, posiciones);
 
         for (int r = 0; r < modelo.getRowCount(); r++) {
@@ -107,9 +113,9 @@ public class MascotaListadoPdfReporte extends AbstractPdfReporte {
         pdf.ensureSpace(30f);
         for (int i = 0; i < titulos.length; i++)
             pdf.text(PDType1Font.HELVETICA_BOLD, 9, posiciones[i] + 3f, pdf.getY(), titulos[i]);
-        pdf.down(16f);
+        pdf.down(22f);
         pdf.line();
-        pdf.down(5f);
+        pdf.down(10f);
     }
 
     private void renderFooterAllPages(PdfDocument pdf, ReporteRequest request) throws Exception {
