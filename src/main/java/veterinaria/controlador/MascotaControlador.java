@@ -6,6 +6,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import veterinaria.entidad.Mascota;
 import veterinaria.persistencia.MascotaDAO;
+import veterinaria.servicio.MascotaService;
 
 public class MascotaControlador {
     private MascotaDAO mascotaDAO = new MascotaDAO();
@@ -37,6 +38,16 @@ public class MascotaControlador {
         }
     }
     
+    public boolean cambiarEstadoMascota(Mascota mascota, boolean activar, String motivo) {
+        try {
+            MascotaService servicio = new MascotaService();
+            return activar ? servicio.reactivar(mascota) : servicio.desactivar(mascota, motivo);
+        } catch (Exception ex) {
+            Logger.getLogger(MascotaControlador.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
+        }
+    }
+
     public List<Mascota> buscarTodasLasMascotas(){
         return mascotaDAO.buscarTodos();
     }
