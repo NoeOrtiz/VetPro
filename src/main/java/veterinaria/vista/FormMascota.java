@@ -1465,19 +1465,19 @@ public class FormMascota extends javax.swing.JPanel {
 
             StringBuilder sb = new StringBuilder();
             sb.append("<html><body style='width:360px'>");
-            sb.append("<p>¿Confirma la eliminación del siguiente registro?</p>");
+            sb.append("<p>¿Confirma el cambio de estado de esta mascota?</p>");
             sb.append("<b>ID:</b> ").append(escapeHtml(String.valueOf(id))).append("<br>");
             sb.append("<b>Nombre:</b> ").append(escapeHtml(String.valueOf(nombre))).append("<br>");
             sb.append("<b>Especie:</b> ").append(escapeHtml(String.valueOf(especie))).append("<br>");
             sb.append("<b>Dueño:</b> ").append(escapeHtml(String.valueOf(dueño))).append("<br>");
-            sb.append("<br><b>Esta acción no se puede deshacer.</b>");
+            sb.append("<br>Podrá reactivar la mascota si fue un error.</p>");
             sb.append("</body></html>");
 
             Object[] opciones = {"SI", "NO"};
             int opcion = JOptionPane.showOptionDialog(
                     this,
                     sb.toString(),
-                    "Confirmar eliminación",
+                    "Confirmar cambio de estado",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE,
                     null,
@@ -1490,7 +1490,7 @@ public class FormMascota extends javax.swing.JPanel {
             int opcion = JOptionPane.showOptionDialog(
                     this,
                     "¿Estás seguro de que deseas eliminar esta mascota?",
-                    "Confirmar eliminación",
+                    "Confirmar cambio de estado",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.WARNING_MESSAGE,
                     null,
