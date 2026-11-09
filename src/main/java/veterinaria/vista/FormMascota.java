@@ -106,11 +106,11 @@ public class FormMascota extends javax.swing.JPanel {
         // -------------------- Impresión PDF (patrón similar a FormHospitalizaciones / FormUsuario) --------------------
         btnImprimir.setVisible(false); // solo visible si hay un registro seleccionado
         btnImprimir.setEnabled(true);
-        btnImprimir.addActionListener(e -> imprimirRegistroSeleccionado());
+        // El botón ya tiene su ActionListener generado por NetBeans.
 
         btnImprimirLista.setVisible(true);
         btnImprimirLista.setEnabled(true);
-        btnImprimirLista.addActionListener(e -> imprimirListaMascotas());
+        // El botón ya tiene su ActionListener generado por NetBeans.
 
         // Visibilidad del botón Imprimir según selección (checkbox col 0)
         tableMascotas.getModel().addTableModelListener(e -> {
@@ -129,6 +129,24 @@ public class FormMascota extends javax.swing.JPanel {
             }
         });
 
+        // Cancelar la selección sin entrar al formulario.
+        javax.swing.JButton cancelarSeleccion = new javax.swing.JButton("Cancelar");
+        cancelarSeleccion.setVisible(false);
+        cancelarSeleccion.addActionListener(e -> {
+            for (int fila = 0; fila < tableMascotas.getRowCount(); fila++) {
+                if (Boolean.TRUE.equals(tableMascotas.getValueAt(fila, 0))) {
+                    tableMascotas.setValueAt(false, fila, 0);
+                }
+            }
+            tableMascotas.clearSelection();
+            actualizarBotonImprimir();
+        });
+        btnNuevo.putClientProperty("cancelarSeleccionMascota", cancelarSeleccion);
+        javax.swing.JPanel contenedorAcciones = (javax.swing.JPanel) btnNuevo.getParent();
+        if (contenedorAcciones != null) {
+            contenedorAcciones.add(cancelarSeleccion);
+        }
+        cancelarSeleccion.setVisible(false);
         btnEliminar.setText("Desactivar");
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
     }
@@ -900,6 +918,10 @@ public class FormMascota extends javax.swing.JPanel {
     private void actualizarBotonImprimir() {
         boolean haySeleccion = (operarTablas.comprobarElementoSeleccionado(tableMascotas) != -1);
         btnImprimir.setVisible(haySeleccion);
+        Object cancelar = btnNuevo.getClientProperty("cancelarSeleccionMascota");
+        if (cancelar instanceof javax.swing.JButton) {
+            ((javax.swing.JButton) cancelar).setVisible(haySeleccion && !panelDatos.isVisible());
+        }
         btnNuevo.setEnabled(!haySeleccion && !panelDatos.isVisible());
     }
 
