@@ -142,8 +142,11 @@ public class ClienteService {
 
                 if (mascotas != null) {
                     for (veterinaria.entidad.Mascota mascota : mascotas) {
-                        mascota.setActivo(false);
-                        em.merge(mascota); // Guardamos el cambio de estado de cada mascota
+                        if (mascota.isActivo()) {
+                            mascota.setActivo(false);
+                            mascota.setBajaPorCliente(true);
+                            em.merge(mascota);
+                        } // Guardamos el cambio de estado de cada mascota
                     }
                 }
 
@@ -178,14 +181,22 @@ public class ClienteService {
             antes[0] = JsonUtil.safeToJson(managed);
             managed.setActivo(true);
             managed.setEstado("ACTIVO");
-            // Seguridad: sin un motivo de baja persistido no podemos distinguir
-            // mascotas inactivas previamente (fallecimiento, adopción, etc.).
-            // No reactivarlas automáticamente: requieren revisión individual.
+            // Recuperar solamente las mascotas activas al momento de la baja.
+            java.util.List<veterinaria.entidad.Mascota> mascotas = em.createQuery(
+                    "SELECT m FROM Mascota m WHERE m.cliente.idCliente = :idCliente AND m.bajaPorCliente = true",
+                    veterinaria.entidad.Mascota.class)
+                    .setParameter("idCliente", idCliente)
+                    .getResultList();
+            for (veterinaria.entidad.Mascota mascota : mascotas) {
+                mascota.setActivo(true);
+                mascota.setBajaPorCliente(false);
+                mascota.setMotivoBaja(null);
+            }
             em.flush();
             despues[0] = JsonUtil.safeToJson(managed);
             return true;
         }, () -> auditoriaService.registrar("REACTIVAR", "Cliente",
-                Long.valueOf(idCliente), "ClienteService", "Reactivación de cliente; mascotas conservan su estado hasta revisión",
+                Long.valueOf(idCliente), "ClienteService", "Reactivación de cliente y mascotas desactivadas exclusivamente en cascada",
                 AuditoriaService.RESULT_OK, antes[0], despues[0], null));
         return ok;
     }
