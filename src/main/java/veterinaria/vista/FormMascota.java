@@ -760,8 +760,29 @@ public class FormMascota extends javax.swing.JPanel {
                 + "?\nEl registro y su historial se conservarán.",
                 "Confirmar " + accion, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opcion != JOptionPane.YES_OPTION) return;
-        seleccionada.setActivo(activar);
-        if (operandoMascota.actualizarMascota(seleccionada)) {
+        String motivo = null;
+        if (!activar) {
+            Object[] motivos = {"Fallecimiento", "Adopción", "Traslado", "Otro"};
+            Object elegido = JOptionPane.showInputDialog(this,
+                    "Seleccione el motivo de baja de " + seleccionada.getNombre() + ":",
+                    "Motivo de baja", JOptionPane.QUESTION_MESSAGE,
+                    null, motivos, motivos[0]);
+            if (elegido == null) return;
+            motivo = elegido.toString();
+            if ("Otro".equals(motivo)) {
+                motivo = JOptionPane.showInputDialog(this, "Describa el motivo de baja:",
+                        "Motivo de baja", JOptionPane.QUESTION_MESSAGE);
+                if (motivo == null) return;
+                motivo = motivo.trim();
+                if (motivo.isEmpty() || motivo.length() > 255) {
+                    JOptionPane.showMessageDialog(this,
+                            "Ingrese un motivo de entre 1 y 255 caracteres.",
+                            "Motivo obligatorio", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+        }
+        if (operandoMascota.cambiarEstadoMascota(seleccionada, activar, motivo)) {
             cargarDatosTablaMascota();
             SwingUtilities.invokeLater(this::actualizarBotonImprimir);
             JOptionPane.showMessageDialog(this,
