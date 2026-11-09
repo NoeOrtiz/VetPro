@@ -1019,30 +1019,47 @@ public class FormMascota extends javax.swing.JPanel {
     private void mostrarInfoMascota() {
         Mascota m = obtenerMascotaSeleccionadaDesdeTabla();
         if (m == null) return;
-        Cliente c = m.getCliente();
+        Cliente cliente = m.getCliente();
         String dueno = "Sin dueño";
-        if (c != null && c.getPersona() != null) {
-            dueno = String.valueOf(c.getPersona().getNombre()) + " " + String.valueOf(c.getPersona().getApellido());
+        if (cliente != null && cliente.getPersona() != null) {
+            dueno = String.valueOf(cliente.getPersona().getNombre()) + " "
+                    + String.valueOf(cliente.getPersona().getApellido());
         }
-        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
-        String[][] datos = {
+        java.awt.Color verde = new java.awt.Color(66, 190, 115);
+        javax.swing.JPanel ficha = new javax.swing.JPanel();
+        ficha.setLayout(new javax.swing.BoxLayout(ficha, javax.swing.BoxLayout.Y_AXIS));
+        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 18, 16, 18));
+        javax.swing.JLabel seccion = new javax.swing.JLabel("DATOS DEL PACIENTE");
+        seccion.setForeground(verde);
+        seccion.setFont(seccion.getFont().deriveFont(java.awt.Font.BOLD, 12f));
+        seccion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(seccion);
+        ficha.add(javax.swing.Box.createVerticalStrut(14));
+        javax.swing.JPanel datos = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
+        datos.setOpaque(false);
+        String[][] campos = {
             {"Nombre", m.getNombre()}, {"Estado", m.isActivo() ? "Activo" : "Inactivo"},
             {"Especie", m.getEspecie()}, {"Raza", m.getRaza()},
             {"Sexo", m.getSexo()}, {"Dueño", dueno},
             {"Nacimiento", m.getFechaNacimiento() == null ? "-" : m.getFechaNacimiento().toString()},
-            {"Castrado", m.getCastrado()}, {"Tamaño", m.getTamano()}, {"Peso", m.getPeso()}
+            {"Castrado", m.getCastrado()}, {"Tamaño", m.getTamano()}, {"Peso (kg)", m.getPeso()}
         };
-        for (String[] dato : datos) {
-            javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
-            javax.swing.JLabel titulo = new javax.swing.JLabel(dato[0]);
-            titulo.setForeground(new java.awt.Color(40, 190, 125));
-            campo.add(titulo, java.awt.BorderLayout.NORTH);
-            javax.swing.JLabel valor = new javax.swing.JLabel(dato[1] == null ? "-" : dato[1]);
+        for (String[] campo : campos) {
+            javax.swing.JPanel celda = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 3));
+            celda.setOpaque(false);
+            javax.swing.JLabel etiqueta = new javax.swing.JLabel(campo[0]);
+            etiqueta.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
+            javax.swing.JLabel valor = new javax.swing.JLabel(campo[1] == null ? "No registrado" : campo[1]);
             valor.setFont(valor.getFont().deriveFont(java.awt.Font.BOLD));
-            campo.add(valor, java.awt.BorderLayout.CENTER);
-            panel.add(campo);
+            celda.add(etiqueta);
+            celda.add(valor);
+            datos.add(celda);
         }
-        JOptionPane.showMessageDialog(this, panel, "Información del Paciente · Solo lectura", JOptionPane.PLAIN_MESSAGE);
+        datos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(datos);
+        ficha.setPreferredSize(new java.awt.Dimension(600, 340));
+        JOptionPane.showMessageDialog(this, ficha, "Información del Paciente · Solo lectura",
+                JOptionPane.PLAIN_MESSAGE);
     }
 
     private void imprimirRegistroSeleccionado() {
