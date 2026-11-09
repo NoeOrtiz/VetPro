@@ -72,11 +72,15 @@ public class MascotaListadoPdfReporte extends AbstractPdfReporte {
         int activosGeneral = 0;
         for (int r = 0; r < modelo.getRowCount(); r++)
             if ("ACTIVO".equalsIgnoreCase(String.valueOf(modelo.getValueAt(r, 12)))) activosGeneral++;
-        pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(),
-                "Total registrados: " + totalGeneral + "     Activos: " + activosGeneral
-                + "     Inactivos: " + (totalGeneral - activosGeneral)
-                + "     Incluidos en este informe: " + total);
-        pdf.down(35f);
+        // Separar el resumen de la línea del título, como en Clientes.
+        String resumen = "Total listados: " + total + "    |    Activos: " + activos
+                + "    |    Inactivos: " + inactivos;
+        if (!"TODOS".equals(filtro)) {
+            resumen += "    |    Filtro: " + filtro;
+        }
+        pdf.down(10f);
+        pdf.text(PdfStyle.TXT_FONT, 9, pdf.getMargin(), pdf.getY(), resumen);
+        pdf.down(22f);
         dibujarEncabezadoTabla(pdf, titulos, posiciones);
 
         for (int r = 0; r < modelo.getRowCount(); r++) {
@@ -96,6 +100,7 @@ public class MascotaListadoPdfReporte extends AbstractPdfReporte {
             pdf.ensureSpace(altura + 12f);
             if (pdf.getCurrentPage() != paginaAnterior) {
                 renderHeader(pdf, request);
+                pdf.down(22f);
                 dibujarEncabezadoTabla(pdf, titulos, posiciones);
             }
             float y = pdf.getY();
