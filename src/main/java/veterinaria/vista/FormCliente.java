@@ -782,7 +782,7 @@ public class FormCliente extends javax.swing.JPanel {
         boolean reactivar = !clienteSeleccionado.isActivo();
         try {
             int confirm = JOptionPane.showConfirmDialog(this,
-                    reactivar ? "¿Reactivar este cliente y sus mascotas?" :
+                    reactivar ? "¿Reactivar este cliente y las mascotas desactivadas por su baja?" :
                             "¿Desactivar este cliente y sus mascotas?",
                     reactivar ? "Confirmar reactivación" : "Confirmar desactivación",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
