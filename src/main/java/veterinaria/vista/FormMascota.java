@@ -84,6 +84,9 @@ public class FormMascota extends javax.swing.JPanel {
             javax.swing.table.TableColumn col = tableMascotas.getColumnModel().getColumn(indice);
             col.setMinWidth(0); col.setMaxWidth(0); col.setPreferredWidth(0); col.setWidth(0);
         }
+        // Unificar el degradado desde la columna Seleccionar (checkbox).
+        tableMascotas.getColumnModel().getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.setMinimumSize(new java.awt.Dimension(0, 0));
         jpListaPacientes.setMinimumSize(new java.awt.Dimension(0, 0));
@@ -834,6 +837,9 @@ public class FormMascota extends javax.swing.JPanel {
 
     private void cargarDatosTablaMascota() {
         List<Mascota> mascotas = operandoMascota.buscarTodasLasMascotas();
+        // Cambiar de estado invalida siempre la selección y sus acciones.
+        veterinaria.util.GestorSeleccionTabla.limpiar(tableMascotas);
+        actualizarBotonImprimir();
         DefaultTableModel modelo = (DefaultTableModel) tableMascotas.getModel();
         modelo.setRowCount(0);
 
@@ -885,6 +891,8 @@ public class FormMascota extends javax.swing.JPanel {
         if (paginacionMascotas != null) {
             paginacionMascotas.actualizar();
         }
+        // También después de reconstruir el modelo, sin esperar otro clic.
+        actualizarBotonImprimir();
 
     }
 
