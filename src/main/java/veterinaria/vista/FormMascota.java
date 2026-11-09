@@ -70,33 +70,12 @@ public class FormMascota extends javax.swing.JPanel {
         javax.swing.JButton limpiarBusqueda = paginacionMascotas.getBotonLimpiar();
         txtBusqueda.setLayout(new java.awt.BorderLayout());
         txtBusqueda.add(limpiarBusqueda, java.awt.BorderLayout.EAST);
-        // El formulario de NetBeans declara tableMascotas como JTable.
-        // Activar la opción solo si la instancia real es AutoTable.
-        if (tableMascotas instanceof veterinaria.vista.table.AutoTable) {
-            ((veterinaria.vista.table.AutoTable) tableMascotas).setAjustarAnchoAutomaticamente(false);
-        }
-        // Cargar después de crear el filtro Estado, para respetar "Activos" desde el inicio.
-        // El modelo conserva el ID oculto (índice 1). El resto de las
-        // columnas se reparte proporcionalmente por todo el ancho disponible.
-        // No se utiliza AUTO_RESIZE_OFF: dejaba una gran zona vacía a la derecha.
+        // Reutilizar el ajuste de AutoTable, sin anchos fijos por formulario.
+        // JTable distribuye el ancho disponible entre las columnas visibles.
         tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        int[] anchos = {88, 0, 130, 85, 155, 125, 90, 190, 0, 0, 0, 0, 90};
-        javax.swing.table.TableColumnModel columnas = tableMascotas.getColumnModel();
-        for (int i = 0; i < anchos.length && i < columnas.getColumnCount(); i++) {
-            javax.swing.table.TableColumn columna = columnas.getColumn(i);
-            if (i == 1) {
-                columna.setMinWidth(0);
-                columna.setMaxWidth(0);
-                columna.setPreferredWidth(0);
-                columna.setWidth(0);
-                continue;
-            }
-            columna.setMinWidth(i == 0 ? 75 : 45);
-            columna.setMaxWidth(Integer.MAX_VALUE);
-            columna.setPreferredWidth(anchos[i]);
+        if (tableMascotas instanceof veterinaria.vista.table.AutoTable) {
+            ((veterinaria.vista.table.AutoTable) tableMascotas).setAjustarAnchoAutomaticamente(true);
         }
-        // El ajuste automático de AutoTable se ejecuta después de cargar filas.
-        // Desactivarlo para esta tabla evita que vuelva a estrechar las columnas.
         tableMascotas.setAutoCreateColumnsFromModel(false);
         tableMascotas.getColumnModel().getColumn(9).setHeaderValue("Fecha de Nac.");
         tableMascotas.getTableHeader().repaint();
