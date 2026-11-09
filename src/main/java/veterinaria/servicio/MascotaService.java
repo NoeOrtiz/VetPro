@@ -77,6 +77,16 @@ public class MascotaService {
     }
 
     public boolean desactivar(Mascota mascota) {
+        throw new IllegalArgumentException("Debe indicar el motivo de baja de la mascota.");
+    }
+
+    public boolean desactivar(Mascota mascota, String motivo) {
+        if (motivo == null || motivo.trim().isEmpty()) {
+            throw new IllegalArgumentException("El motivo de baja es obligatorio.");
+        }
+        if (motivo.trim().length() > 255) {
+            throw new IllegalArgumentException("El motivo de baja no puede superar 255 caracteres.");
+        }
         final Long id = mascota != null && mascota.getIdMascota() != null
                 ? Long.valueOf(mascota.getIdMascota()) : null;
         final String[] antes = new String[1];
@@ -93,7 +103,12 @@ public class MascotaService {
             }
 
             antes[0] = JsonUtil.safeToJson(managed);
+            if (!managed.isActivo()) {
+                throw new IllegalStateException("La mascota ya está inactiva.");
+            }
             managed.setActivo(false);
+            managed.setMotivoBaja(motivo.trim());
+            managed.setBajaPorCliente(false);
             em.flush();
             despues[0] = JsonUtil.safeToJson(managed);
             return true;
@@ -102,7 +117,7 @@ public class MascotaService {
                 "Mascota",
                 id,
                 "MascotaService",
-                "Baja lógica de mascota: " + nombreSeguro(mascota),
+                "Baja lógica de mascota: " + nombreSeguro(mascota) + ". Motivo: " + motivo.trim(),
                 AuditoriaService.RESULT_OK,
                 antes[0],
                 despues[0],
@@ -121,7 +136,12 @@ public class MascotaService {
             Mascota managed = em.find(Mascota.class, mascota.getIdMascota());
             if (managed == null) throw new IllegalArgumentException("No se encontró la mascota.");
             antes[0] = JsonUtil.safeToJson(managed);
+            if (!managed.getCliente().isActivo()) {
+                throw new IllegalStateException("No se puede reactivar una mascota cuyo cliente está inactivo.");
+            }
             managed.setActivo(true);
+            managed.setMotivoBaja(null);
+            managed.setBajaPorCliente(false);
             em.flush();
             despues[0] = JsonUtil.safeToJson(managed);
             return true;
