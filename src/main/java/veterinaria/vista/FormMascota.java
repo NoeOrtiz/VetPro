@@ -129,6 +129,7 @@ public class FormMascota extends javax.swing.JPanel {
             }
         });
 
+        btnEliminar.setText("Desactivar");
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
     }
 
@@ -757,7 +758,7 @@ public class FormMascota extends javax.swing.JPanel {
         if (sesion == null || !sesion.puede(perm)) {
             JOptionPane.showMessageDialog(
                     null,
-                    "No tienes permisos suficientes para eliminar mascotas.",
+                    "No tienes permisos suficientes para desactivar mascotas.",
                     "Acceso restringido",
                     JOptionPane.WARNING_MESSAGE
             );
@@ -777,7 +778,7 @@ public class FormMascota extends javax.swing.JPanel {
                 Application.actualizarEstadoUsuario("Eliminación cancelada");
             }
         } else {
-            JOptionPane.showMessageDialog(null, "Por favor seleccione una mascota a ELIMINAR", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Seleccione una mascota para desactivar", "Advertencia", JOptionPane.WARNING_MESSAGE);
         }
     }//GEN-LAST:event_btnEliminarActionPerformed
 
@@ -822,6 +823,7 @@ public class FormMascota extends javax.swing.JPanel {
         btnEditar.setEnabled(true);
         btnEliminar.setEnabled(true);
         Application.actualizarEstadoUsuario("InicioFormularioMascota");
+        SwingUtilities.invokeLater(this::actualizarBotonImprimir);
     }//GEN-LAST:event_btnCancelarActionPerformed
 
     private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
@@ -898,6 +900,7 @@ public class FormMascota extends javax.swing.JPanel {
     private void actualizarBotonImprimir() {
         boolean haySeleccion = (operarTablas.comprobarElementoSeleccionado(tableMascotas) != -1);
         btnImprimir.setVisible(haySeleccion);
+        btnNuevo.setEnabled(!haySeleccion && !panelDatos.isVisible());
     }
 
     // seleccionarFilaDesdeClick fue reemplazado por manejarClickTablaMascotas.
@@ -1296,7 +1299,7 @@ public class FormMascota extends javax.swing.JPanel {
             if (operandoMascota.eliminarMascota(mascota)) {
                 JOptionPane.showMessageDialog(null, "Mascota desactivada con éxito", "Información", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(null, "No se pudo eliminar la mascota.", "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "No se pudo desactivar la mascota.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (Exception ex) {
             Logger.getLogger(FormMascota.class.getName()).log(Level.SEVERE, null, ex);
