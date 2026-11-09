@@ -46,7 +46,7 @@ public class MascotaDAO {
                     "SELECT DISTINCT m FROM Mascota m "
                     + "JOIN FETCH m.cliente c "
                     + "JOIN FETCH c.persona "
-                    + "WHERE m.activo = true AND c.activo = true "
+                    + "" 
                     + "ORDER BY m.nombre",
                     Mascota.class
             );
