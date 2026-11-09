@@ -105,6 +105,9 @@ public class FormMascota extends javax.swing.JPanel {
             col.setMinWidth(0); col.setMaxWidth(0); col.setPreferredWidth(0); col.setWidth(0);
         }
         scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.setMinimumSize(new java.awt.Dimension(0, 0));
+        jpListaPacientes.setMinimumSize(new java.awt.Dimension(0, 0));
+        setMinimumSize(new java.awt.Dimension(0, 0));
         panelDatos.setVisible(false);
 
         // -------------------- Impresión PDF (patrón similar a FormHospitalizaciones / FormUsuario) --------------------
@@ -914,33 +917,32 @@ public class FormMascota extends javax.swing.JPanel {
     private void configurarBarraAccionesMascota() {
         // Conservar los controles y el estilo FlatLaf; distribuirlos en una sola fila.
         panelBotones.removeAll();
-        panelBotones.setLayout(new java.awt.BorderLayout(12, 0));
+        panelBotones.setLayout(new java.awt.BorderLayout(4, 0));
 
-        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.GridBagLayout());
-        busqueda.setOpaque(false);
-        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-        c.gridx = 0; c.gridy = 0; c.gridwidth = 2;
-        c.anchor = java.awt.GridBagConstraints.WEST;
-        c.insets = new java.awt.Insets(0, 0, 5, 0);
-        busqueda.add(lbUsuarioBusqueda, c);
-        c.gridy = 1; c.gridwidth = 1;
-        c.insets = new java.awt.Insets(0, 0, 0, 6);
-        busqueda.add(lbBuscar, c);
-        c.gridx = 1; c.weightx = 1; c.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        txtBusqueda.setPreferredSize(new java.awt.Dimension(245, 28));
-        busqueda.add(txtBusqueda, c);
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 12, 0));
+        // Filtros en la misma grilla: etiquetas y controles alineados como Clientes.
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.GridBagLayout());
         filtros.setOpaque(false);
-        filtros.add(busqueda);
-        javax.swing.JPanel estadoPanel = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
-        estadoPanel.setOpaque(false);
-        estadoPanel.add(new javax.swing.JLabel("Estado:"), java.awt.BorderLayout.NORTH);
+        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+        c.anchor = java.awt.GridBagConstraints.WEST;
+        c.insets = new java.awt.Insets(0, 0, 6, 8);
+        c.gridx = 0; c.gridy = 0;
+        filtros.add(lbUsuarioBusqueda, c);
+        c.gridx = 1;
+        filtros.add(new javax.swing.JLabel("Estado:"), c);
+        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.BorderLayout(7, 0));
+        busqueda.setOpaque(false);
+        busqueda.add(lbBuscar, java.awt.BorderLayout.WEST);
+        busqueda.add(txtBusqueda, java.awt.BorderLayout.CENTER);
+        busqueda.setPreferredSize(new java.awt.Dimension(280, 28));
+        c.gridx = 0; c.gridy = 1;
+        c.insets = new java.awt.Insets(0, 0, 0, 8);
+        filtros.add(busqueda, c);
         filtroEstadoMascota = new javax.swing.JComboBox<>(new String[]{"Todos", "Activos", "Inactivos"});
         filtroEstadoMascota.setSelectedItem("Activos");
         filtroEstadoMascota.setPreferredSize(new java.awt.Dimension(135, 28));
         filtroEstadoMascota.addActionListener(e -> cargarDatosTablaMascota());
-        estadoPanel.add(filtroEstadoMascota, java.awt.BorderLayout.SOUTH);
-        filtros.add(estadoPanel);
+        c.gridx = 1;
+        filtros.add(filtroEstadoMascota, c);
         panelBotones.add(filtros, java.awt.BorderLayout.WEST);
 
         javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridBagLayout());
@@ -958,12 +960,12 @@ public class FormMascota extends javax.swing.JPanel {
         verInfoMascota = new javax.swing.JButton("Ver Info");
         verInfoMascota.addActionListener(e -> mostrarInfoMascota());
         java.awt.GridBagConstraints ac = new java.awt.GridBagConstraints();
-        ac.insets = new java.awt.Insets(0, 3, 0, 3);
+        ac.insets = new java.awt.Insets(0, 2, 0, 2);
         ac.gridy = 1;
         int columna = 0;
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
                 btnNuevo, btnEditar, btnEliminar, verInfoMascota, cancelarSeleccionMascota}) {
-            boton.setPreferredSize(new java.awt.Dimension(83, 28));
+            boton.setPreferredSize(new java.awt.Dimension(78, 28));
             ac.gridx = columna++;
             acciones.add(boton, ac);
         }
@@ -973,6 +975,7 @@ public class FormMascota extends javax.swing.JPanel {
         btnImprimir.setPreferredSize(new java.awt.Dimension(83, 28));
         acciones.add(btnImprimir, ac);
         panelBotones.add(acciones, java.awt.BorderLayout.EAST);
+        panelBotones.setMinimumSize(new java.awt.Dimension(0, 78));
         panelBotones.revalidate();
         panelBotones.repaint();
     }
