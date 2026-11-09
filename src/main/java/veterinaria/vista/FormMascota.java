@@ -100,7 +100,11 @@ public class FormMascota extends javax.swing.JPanel {
         tableMascotas.setAutoCreateColumnsFromModel(false);
         tableMascotas.getColumnModel().getColumn(9).setHeaderValue("Fecha de Nac.");
         tableMascotas.getTableHeader().repaint();
-        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        for (int indice : new int[]{8, 9, 10, 11}) {
+            javax.swing.table.TableColumn col = tableMascotas.getColumnModel().getColumn(indice);
+            col.setMinWidth(0); col.setMaxWidth(0); col.setPreferredWidth(0); col.setWidth(0);
+        }
+        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         panelDatos.setVisible(false);
 
         // -------------------- Impresión PDF (patrón similar a FormHospitalizaciones / FormUsuario) --------------------
@@ -853,6 +857,11 @@ public class FormMascota extends javax.swing.JPanel {
         modelo.setRowCount(0);
 
         for (Mascota mascota : mascotas) {
+            if (filtroEstadoMascota != null) {
+                String filtro = String.valueOf(filtroEstadoMascota.getSelectedItem());
+                if ("Activos".equals(filtro) && !mascota.isActivo()) continue;
+                if ("Inactivos".equals(filtro) && mascota.isActivo()) continue;
+            }
             Cliente cliente = (mascota != null) ? mascota.getCliente() : null;
             String edad = calcularEdad(mascota.getFechaNacimiento());
             String nombreCliente = "(Sin dueño)";
@@ -900,6 +909,8 @@ public class FormMascota extends javax.swing.JPanel {
     // -------------------- Impresión PDF --------------------
 
     private javax.swing.JButton cancelarSeleccionMascota;
+    private javax.swing.JButton verInfoMascota;
+    private javax.swing.JComboBox<String> filtroEstadoMascota;
 
     private void configurarBarraAccionesMascota() {
         // Conservar los controles y el estilo FlatLaf; distribuirlos en una sola fila.
@@ -919,7 +930,19 @@ public class FormMascota extends javax.swing.JPanel {
         c.gridx = 1; c.weightx = 1; c.fill = java.awt.GridBagConstraints.HORIZONTAL;
         txtBusqueda.setPreferredSize(new java.awt.Dimension(245, 28));
         busqueda.add(txtBusqueda, c);
-        panelBotones.add(busqueda, java.awt.BorderLayout.WEST);
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 12, 0));
+        filtros.setOpaque(false);
+        filtros.add(busqueda);
+        javax.swing.JPanel estadoPanel = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        estadoPanel.setOpaque(false);
+        estadoPanel.add(new javax.swing.JLabel("Estado:"), java.awt.BorderLayout.NORTH);
+        filtroEstadoMascota = new javax.swing.JComboBox<>(new String[]{"Todos", "Activos", "Inactivos"});
+        filtroEstadoMascota.setSelectedItem("Activos");
+        filtroEstadoMascota.setPreferredSize(new java.awt.Dimension(135, 28));
+        filtroEstadoMascota.addActionListener(e -> cargarDatosTablaMascota());
+        estadoPanel.add(filtroEstadoMascota, java.awt.BorderLayout.SOUTH);
+        filtros.add(estadoPanel);
+        panelBotones.add(filtros, java.awt.BorderLayout.WEST);
 
         javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
@@ -933,8 +956,10 @@ public class FormMascota extends javax.swing.JPanel {
             tableMascotas.clearSelection();
             actualizarBotonImprimir();
         });
+        verInfoMascota = new javax.swing.JButton("Ver Info");
+        verInfoMascota.addActionListener(e -> mostrarInfoMascota());
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnEliminar, cancelarSeleccionMascota, btnImprimir}) {
+                btnNuevo, btnEditar, btnEliminar, verInfoMascota, cancelarSeleccionMascota, btnImprimir}) {
             boton.setPreferredSize(new java.awt.Dimension(88, 28));
             acciones.add(boton);
         }
@@ -946,6 +971,7 @@ public class FormMascota extends javax.swing.JPanel {
     private void actualizarBotonImprimir() {
         boolean haySeleccion = (operarTablas.comprobarElementoSeleccionado(tableMascotas) != -1);
         btnImprimir.setVisible(haySeleccion);
+        if (verInfoMascota != null) verInfoMascota.setVisible(haySeleccion && !panelDatos.isVisible());
         if (cancelarSeleccionMascota != null) {
             cancelarSeleccionMascota.setVisible(haySeleccion && !panelDatos.isVisible());
         }
@@ -971,6 +997,35 @@ public class FormMascota extends javax.swing.JPanel {
             JOptionPane.showMessageDialog(this, "No se pudo leer la mascota seleccionada.", "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
+    }
+
+    private void mostrarInfoMascota() {
+        Mascota m = obtenerMascotaSeleccionadaDesdeTabla();
+        if (m == null) return;
+        Cliente c = m.getCliente();
+        String dueno = "Sin dueño";
+        if (c != null && c.getPersona() != null) {
+            dueno = String.valueOf(c.getPersona().getNombre()) + " " + String.valueOf(c.getPersona().getApellido());
+        }
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
+        String[][] datos = {
+            {"Nombre", m.getNombre()}, {"Estado", m.isActivo() ? "Activo" : "Inactivo"},
+            {"Especie", m.getEspecie()}, {"Raza", m.getRaza()},
+            {"Sexo", m.getSexo()}, {"Dueño", dueno},
+            {"Nacimiento", m.getFechaNacimiento() == null ? "-" : m.getFechaNacimiento().toString()},
+            {"Castrado", m.getCastrado()}, {"Tamaño", m.getTamano()}, {"Peso", m.getPeso()}
+        };
+        for (String[] dato : datos) {
+            javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
+            javax.swing.JLabel titulo = new javax.swing.JLabel(dato[0]);
+            titulo.setForeground(new java.awt.Color(40, 190, 125));
+            campo.add(titulo, java.awt.BorderLayout.NORTH);
+            javax.swing.JLabel valor = new javax.swing.JLabel(dato[1] == null ? "-" : dato[1]);
+            valor.setFont(valor.getFont().deriveFont(java.awt.Font.BOLD));
+            campo.add(valor, java.awt.BorderLayout.CENTER);
+            panel.add(campo);
+        }
+        JOptionPane.showMessageDialog(this, panel, "Información del Paciente · Solo lectura", JOptionPane.PLAIN_MESSAGE);
     }
 
     private void imprimirRegistroSeleccionado() {
