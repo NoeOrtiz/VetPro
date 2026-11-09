@@ -27,6 +27,7 @@ import veterinaria.util.PermisoUI;
 import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteService;
 import veterinaria.reportes.core.ReporteTipo;
+import veterinaria.reportes.pdf.ReporteSelectorUtil;
 
 public class FormMascota extends javax.swing.JPanel {
 
@@ -100,7 +101,7 @@ public class FormMascota extends javax.swing.JPanel {
 
         btnImprimirLista.setVisible(true);
         btnImprimirLista.setEnabled(true);
-        // El botón ya tiene su ActionListener generado por NetBeans.
+        btnImprimirLista.addActionListener(e -> imprimirListaMascotas());
 
         // Visibilidad del botón Imprimir según selección (checkbox col 0)
         tableMascotas.getModel().addTableModelListener(e -> {
@@ -756,7 +757,7 @@ public class FormMascota extends javax.swing.JPanel {
         String accion = activar ? "reactivar" : "desactivar";
         int opcion = JOptionPane.showConfirmDialog(this,
                 "¿Confirma que desea " + accion + " a " + seleccionada.getNombre()
-                + "?\\nEl registro y su historial se conservarán.",
+                + "?\nEl registro y su historial se conservarán.",
                 "Confirmar " + accion, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (opcion != JOptionPane.YES_OPTION) return;
         seleccionada.setActivo(activar);
@@ -1057,9 +1058,12 @@ public class FormMascota extends javax.swing.JPanel {
             return;
         }
 
+        ReporteSelectorUtil.Formato formato = ReporteSelectorUtil.solicitarFormato(this);
+        if (formato == null) return;
         // 1. Armamos los parámetros para el reporte de la mascota
         ReporteRequest req = new ReporteRequest()
                 .put("mascota", m)
+                .put("FORMATO_REPORTE", formato)
                 .put("emisor", Application.getNombreApellidoUsuarioLogeado());
 
         // 2. 🚀 MANDAMOS AL EJECUTOR: Corre con el Singleton en segundo plano y muestra la barra animada
@@ -1078,13 +1082,28 @@ public class FormMascota extends javax.swing.JPanel {
     }
 
     private void imprimirListaMascotas() {
-        // 1. Armamos los parámetros para el listado de mascotas
-        ReporteRequest req = new ReporteRequest()
-                // Se imprime el modelo completo, no solamente la página visible.
-                .put("tabla", crearTablaCompletaParaImpresion())
-                .put("emisor", Application.getNombreApellidoUsuarioLogeado());
+        javax.swing.JComboBox<String> alcance = new javax.swing.JComboBox<>(
+                new String[]{"Todas las mascotas", "Solo activas", "Solo inactivas"});
+        javax.swing.JComboBox<String> formato = new javax.swing.JComboBox<>(
+                new String[]{"PDF", "Excel (XLS)"});
+        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 2, 12, 10));
+        opciones.add(new javax.swing.JLabel("Mascotas a incluir:"));
+        opciones.add(alcance);
+        opciones.add(new javax.swing.JLabel("Formato:"));
+        opciones.add(formato);
+        if (JOptionPane.showConfirmDialog(this, opciones, "Configurar informe de mascotas",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE) != JOptionPane.OK_OPTION) return;
 
-        // 2. 🚀 AL EJECUTOR: Limpio, seguro y en segundo plano
+        String filtro = alcance.getSelectedIndex() == 1 ? "ACTIVO"
+                : alcance.getSelectedIndex() == 2 ? "INACTIVO" : "TODOS";
+        ReporteSelectorUtil.Formato elegido = formato.getSelectedIndex() == 0
+                ? ReporteSelectorUtil.Formato.PDF : ReporteSelectorUtil.Formato.XLS;
+        javax.swing.JTable tabla = crearTablaCompletaParaImpresion();
+        ReporteRequest req = new ReporteRequest()
+                .put("tabla", tabla)
+                .put("estadoFiltro", filtro)
+                .put("FORMATO_REPORTE", elegido)
+                .put("emisor", Application.getNombreApellidoUsuarioLogeado());
         veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.MASCOTA_LISTADO, req);
     }
 
