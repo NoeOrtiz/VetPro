@@ -979,7 +979,9 @@ public class FormMascota extends javax.swing.JPanel {
 
     private void actualizarBotonImprimir() {
         boolean haySeleccion = (operarTablas.comprobarElementoSeleccionado(tableMascotas) != -1);
-        btnImprimir.setVisible(haySeleccion);
+        btnImprimir.setVisible(haySeleccion && !panelDatos.isVisible());
+        btnEditar.setVisible(haySeleccion && !panelDatos.isVisible());
+        btnEliminar.setVisible(haySeleccion && !panelDatos.isVisible());
         if (verInfoMascota != null) verInfoMascota.setVisible(haySeleccion && !panelDatos.isVisible());
         if (cancelarSeleccionMascota != null) {
             cancelarSeleccionMascota.setVisible(haySeleccion && !panelDatos.isVisible());
