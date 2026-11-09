@@ -178,18 +178,14 @@ public class ClienteService {
             antes[0] = JsonUtil.safeToJson(managed);
             managed.setActivo(true);
             managed.setEstado("ACTIVO");
-            // Recuperamos las mascotas desactivadas por la baja en cascada.
-            java.util.List<veterinaria.entidad.Mascota> mascotas = em.createQuery(
-                    "SELECT m FROM Mascota m WHERE m.cliente.idCliente = :id", veterinaria.entidad.Mascota.class)
-                    .setParameter("id", idCliente).getResultList();
-            for (veterinaria.entidad.Mascota mascota : mascotas) {
-                mascota.setActivo(true);
-            }
+            // Seguridad: sin un motivo de baja persistido no podemos distinguir
+            // mascotas inactivas previamente (fallecimiento, adopción, etc.).
+            // No reactivarlas automáticamente: requieren revisión individual.
             em.flush();
             despues[0] = JsonUtil.safeToJson(managed);
             return true;
         }, () -> auditoriaService.registrar("REACTIVAR", "Cliente",
-                Long.valueOf(idCliente), "ClienteService", "Reactivación de cliente y mascotas",
+                Long.valueOf(idCliente), "ClienteService", "Reactivación de cliente; mascotas conservan su estado hasta revisión",
                 AuditoriaService.RESULT_OK, antes[0], despues[0], null));
         return ok;
     }
