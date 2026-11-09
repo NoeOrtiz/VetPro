@@ -52,6 +52,17 @@ public class Mascota implements Serializable {
     @Column(name = "activo", nullable = false)
     private boolean activo = true;
 
+    @Column(name = "motivo_baja", length = 255)
+    private String motivoBaja;
+
+    @Column(name = "baja_por_cliente", nullable = false)
+    private boolean bajaPorCliente = false;
+
+    public String getMotivoBaja() { return motivoBaja; }
+    public void setMotivoBaja(String motivoBaja) { this.motivoBaja = motivoBaja; }
+    public boolean isBajaPorCliente() { return bajaPorCliente; }
+    public void setBajaPorCliente(boolean bajaPorCliente) { this.bajaPorCliente = bajaPorCliente; }
+
     public Mascota() {
     }
 
