@@ -110,6 +110,27 @@ public class MascotaService {
         ));
     }
 
+    public boolean reactivar(Mascota mascota) {
+        final Long id = mascota != null && mascota.getIdMascota() != null
+                ? Long.valueOf(mascota.getIdMascota()) : null;
+        final String[] antes = new String[1];
+        final String[] despues = new String[1];
+        return txRunner.runInTx(em -> {
+            if (mascota == null || mascota.getIdMascota() == null)
+                throw new IllegalArgumentException("La mascota seleccionada no es válida.");
+            Mascota managed = em.find(Mascota.class, mascota.getIdMascota());
+            if (managed == null) throw new IllegalArgumentException("No se encontró la mascota.");
+            antes[0] = JsonUtil.safeToJson(managed);
+            managed.setActivo(true);
+            em.flush();
+            despues[0] = JsonUtil.safeToJson(managed);
+            return true;
+        }, () -> auditoriaService.registrar(
+                "REACTIVAR", "Mascota", id, "MascotaService",
+                "Reactivación de mascota: " + nombreSeguro(mascota),
+                AuditoriaService.RESULT_OK, antes[0], despues[0], null));
+    }
+
     private static String nombreSeguro(Mascota mascota) {
         return mascota != null && mascota.getNombre() != null
                 ? mascota.getNombre() : "";
