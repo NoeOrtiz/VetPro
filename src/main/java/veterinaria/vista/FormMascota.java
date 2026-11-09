@@ -80,7 +80,7 @@ public class FormMascota extends javax.swing.JPanel {
         // columnas se reparte proporcionalmente por todo el ancho disponible.
         // No se utiliza AUTO_RESIZE_OFF: dejaba una gran zona vacía a la derecha.
         tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        int[] anchos = {85, 0, 85, 70, 135, 125, 70, 185, 80, 105, 80, 80};
+        int[] anchos = {85, 0, 100, 70, 130, 115, 80, 180, 80, 105, 80, 80, 85};
         javax.swing.table.TableColumnModel columnas = tableMascotas.getColumnModel();
         for (int i = 0; i < anchos.length && i < columnas.getColumnCount(); i++) {
             javax.swing.table.TableColumn columna = columnas.getColumn(i);
@@ -632,14 +632,14 @@ public class FormMascota extends javax.swing.JPanel {
 
             },
             new String [] {
-                "Seleccionar", "ID", "Nombre", "Sexo", "Raza", "Edad", "Especie", "Dueño", "Castrado", "Fecha de Nacimiento", "Tamaño", "Peso(KG)"
+                "Seleccionar", "ID", "Nombre", "Sexo", "Raza", "Edad", "Especie", "Dueño", "Castrado", "Fecha de Nacimiento", "Tamaño", "Peso(KG)", "Estado"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Boolean.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Boolean.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                true, false, false, false, false, false, false, false, false, false, false, false
+                true, false, false, false, false, false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -759,33 +759,31 @@ public class FormMascota extends javax.swing.JPanel {
     }//GEN-LAST:event_btnEditarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
-        Integer selectedRow = operarTablas.comprobarElementoSeleccionado(tableMascotas);
-
-        String perm = "FormMascota.ELIMINAR";
-        if (sesion == null || !sesion.puede(perm)) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "No tienes permisos suficientes para desactivar mascotas.",
-                    "Acceso restringido",
-                    JOptionPane.WARNING_MESSAGE
-            );
+        int fila = operarTablas.comprobarElementoSeleccionado(tableMascotas);
+        if (fila < 0) return;
+        if (sesion == null || !sesion.puede("FormMascota.ELIMINAR")) {
+            JOptionPane.showMessageDialog(this, "No tiene permisos para cambiar el estado de mascotas.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        if (selectedRow != -1) {
-            Application.actualizarEstadoUsuario("EliminandoMascota");
-
-            if (confirmarEliminacionMascota(selectedRow)) {
-                eliminarMascotaSeleccionada(selectedRow);
-                limpiarForm();
-                panelDatos.setVisible(false);
-                jpListaPacientes.setVisible(true);
-                cargarDatosTablaMascota();
-            } else {
-                Application.actualizarEstadoUsuario("Eliminación cancelada");
-            }
+        Mascota seleccionada = obtenerMascotaSeleccionadaDesdeTabla();
+        if (seleccionada == null) return;
+        boolean activar = !seleccionada.isActivo();
+        String accion = activar ? "reactivar" : "desactivar";
+        int opcion = JOptionPane.showConfirmDialog(this,
+                "¿Confirma que desea " + accion + " a " + seleccionada.getNombre()
+                + "?\\nEl registro y su historial se conservarán.",
+                "Confirmar " + accion, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (opcion != JOptionPane.YES_OPTION) return;
+        seleccionada.setActivo(activar);
+        if (operandoMascota.actualizarMascota(seleccionada)) {
+            cargarDatosTablaMascota();
+            SwingUtilities.invokeLater(this::actualizarBotonImprimir);
+            JOptionPane.showMessageDialog(this,
+                    "Mascota " + (activar ? "reactivada" : "desactivada") + " correctamente.");
         } else {
-            JOptionPane.showMessageDialog(null, "Seleccione una mascota para desactivar", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "No se pudo actualizar el estado.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_btnEliminarActionPerformed
 
@@ -895,7 +893,8 @@ public class FormMascota extends javax.swing.JPanel {
                 mascota.getCastrado(),
                 mascota.getFechaNacimiento(),
                 mascota.getTamano(),
-                formatearPesoTabla(mascota.getPeso())
+                formatearPesoTabla(mascota.getPeso()),
+                mascota.isActivo() ? "Activo" : "Inactivo"
             };
             modelo.addRow(fila);
         }
@@ -988,6 +987,10 @@ public class FormMascota extends javax.swing.JPanel {
         if (verInfoMascota != null) verInfoMascota.setVisible(haySeleccion && !panelDatos.isVisible());
         if (cancelarSeleccionMascota != null) {
             cancelarSeleccionMascota.setVisible(haySeleccion && !panelDatos.isVisible());
+        }
+        if (haySeleccion) {
+            int fila = operarTablas.comprobarElementoSeleccionado(tableMascotas);
+            btnEliminar.setText("Activo".equals(String.valueOf(tableMascotas.getValueAt(fila, 12))) ? "Desactivar" : "Reactivar");
         }
         btnNuevo.setEnabled(!haySeleccion && !panelDatos.isVisible());
     }
