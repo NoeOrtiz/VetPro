@@ -134,6 +134,7 @@ public class FormMascota extends javax.swing.JPanel {
         });
 
         configurarBarraAccionesMascota();
+        SwingUtilities.invokeLater(() -> paginacionMascotas.activarTamanoAdaptable());
         btnEliminar.setText("Desactivar");
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
     }
@@ -711,7 +712,7 @@ public class FormMascota extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(panelHadear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelBotones, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(panelBotones, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panelDatos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -942,7 +943,7 @@ public class FormMascota extends javax.swing.JPanel {
         filtros.add(estadoPanel);
         panelBotones.add(filtros, java.awt.BorderLayout.WEST);
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridBagLayout());
         acciones.setOpaque(false);
         cancelarSeleccionMascota = new javax.swing.JButton("Cancelar");
         cancelarSeleccionMascota.addActionListener(e -> {
@@ -956,11 +957,21 @@ public class FormMascota extends javax.swing.JPanel {
         });
         verInfoMascota = new javax.swing.JButton("Ver Info");
         verInfoMascota.addActionListener(e -> mostrarInfoMascota());
+        java.awt.GridBagConstraints ac = new java.awt.GridBagConstraints();
+        ac.insets = new java.awt.Insets(0, 3, 0, 3);
+        ac.gridy = 1;
+        int columna = 0;
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnEliminar, verInfoMascota, cancelarSeleccionMascota, btnImprimir}) {
-            boton.setPreferredSize(new java.awt.Dimension(88, 28));
-            acciones.add(boton);
+                btnNuevo, btnEditar, btnEliminar, verInfoMascota, cancelarSeleccionMascota}) {
+            boton.setPreferredSize(new java.awt.Dimension(83, 28));
+            ac.gridx = columna++;
+            acciones.add(boton, ac);
         }
+        ac.gridx = 4;
+        ac.gridy = 0;
+        ac.anchor = java.awt.GridBagConstraints.EAST;
+        btnImprimir.setPreferredSize(new java.awt.Dimension(83, 28));
+        acciones.add(btnImprimir, ac);
         panelBotones.add(acciones, java.awt.BorderLayout.EAST);
         panelBotones.revalidate();
         panelBotones.repaint();
