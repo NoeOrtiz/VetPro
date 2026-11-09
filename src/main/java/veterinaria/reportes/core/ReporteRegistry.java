@@ -51,6 +51,7 @@ public class ReporteRegistry {
         registrar(ReporteSelectorUtil.Formato.XLS, new CajaMovimientosListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new ClienteListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new MascotaListadoXlsReporte());
+        registrar(ReporteSelectorUtil.Formato.XLS, new MascotaRegistroXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new UsuarioListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new ClienteRegistroXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new ProductoListadoXlsReporte()
