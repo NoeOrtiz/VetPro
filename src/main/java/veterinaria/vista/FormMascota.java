@@ -75,12 +75,12 @@ public class FormMascota extends javax.swing.JPanel {
         if (tableMascotas instanceof veterinaria.vista.table.AutoTable) {
             ((veterinaria.vista.table.AutoTable) tableMascotas).setAjustarAnchoAutomaticamente(false);
         }
-        cargarDatosTablaMascota();
+        // Cargar después de crear el filtro Estado, para respetar "Activos" desde el inicio.
         // El modelo conserva el ID oculto (índice 1). El resto de las
         // columnas se reparte proporcionalmente por todo el ancho disponible.
         // No se utiliza AUTO_RESIZE_OFF: dejaba una gran zona vacía a la derecha.
         tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
-        int[] anchos = {85, 0, 100, 70, 130, 115, 80, 180, 80, 105, 80, 80, 85};
+        int[] anchos = {88, 0, 130, 85, 155, 125, 90, 190, 0, 0, 0, 0, 90};
         javax.swing.table.TableColumnModel columnas = tableMascotas.getColumnModel();
         for (int i = 0; i < anchos.length && i < columnas.getColumnCount(); i++) {
             javax.swing.table.TableColumn columna = columnas.getColumn(i);
@@ -137,6 +137,7 @@ public class FormMascota extends javax.swing.JPanel {
         });
 
         configurarBarraAccionesMascota();
+        cargarDatosTablaMascota();
         SwingUtilities.invokeLater(() -> paginacionMascotas.activarTamanoAdaptable());
         btnEliminar.setText("Desactivar");
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
