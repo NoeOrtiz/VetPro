@@ -1081,6 +1081,53 @@ public class FormMascota extends javax.swing.JPanel {
         return copia;
     }
 
+    private javax.swing.JTable crearTablaMascotasParaReporte() {
+        // El reporte consulta todos los registros, independientemente del filtro
+        // visual, la búsqueda y la página actualmente mostrada.
+        javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(
+                new Object[]{"Seleccionar", "ID", "Nombre", "Sexo", "Raza", "Edad",
+                    "Especie", "Dueño", "Castrado", "Fecha de Nacimiento",
+                    "Tamaño", "Peso(KG)", "Estado"}, 0);
+        for (Mascota mascota : operandoMascota.buscarTodasLasMascotas()) {
+            Cliente cliente = (mascota != null) ? mascota.getCliente() : null;
+            String edad = calcularEdad(mascota.getFechaNacimiento());
+            String nombreCliente = "(Sin dueño)";
+            try {
+                if (cliente != null && cliente.getPersona() != null) {
+                    String nombre = (cliente.getPersona().getNombre() != null) ? cliente.getPersona().getNombre() : "";
+                    String apellido = (cliente.getPersona().getApellido() != null) ? cliente.getPersona().getApellido() : "";
+                    String tmp = (nombre + " " + apellido).trim();
+                    if (!tmp.isEmpty()) {
+                        nombreCliente = tmp;
+                    } else if (cliente.getIdCliente() != null) {
+                        nombreCliente = "Cliente " + cliente.getIdCliente();
+                    }
+                } else if (cliente != null && cliente.getIdCliente() != null) {
+                    nombreCliente = "Cliente " + cliente.getIdCliente();
+                }
+            } catch (Exception ex) {
+                veterinaria.util.AppLog.warn(FormMascota.class, "Excepción no fatal en UI", ex);
+            }
+            Object[] fila = new Object[]{
+                false,
+                mascota.getIdMascota(),
+                mascota.getNombre(),
+                mascota.getSexo(),
+                mascota.getRaza(),
+                edad,
+                mascota.getEspecie(),
+                nombreCliente,
+                mascota.getCastrado(),
+                mascota.getFechaNacimiento(),
+                mascota.getTamano(),
+                formatearPesoTabla(mascota.getPeso()),
+                mascota.isActivo() ? "Activo" : "Inactivo"
+            };
+            modelo.addRow(fila);
+        }
+        return new javax.swing.JTable(modelo);
+    }
+
     private void imprimirListaMascotas() {
         javax.swing.JComboBox<String> alcance = new javax.swing.JComboBox<>(
                 new String[]{"Todas las mascotas", "Solo activas", "Solo inactivas"});
@@ -1098,7 +1145,7 @@ public class FormMascota extends javax.swing.JPanel {
                 : alcance.getSelectedIndex() == 2 ? "INACTIVO" : "TODOS";
         ReporteSelectorUtil.Formato elegido = formato.getSelectedIndex() == 0
                 ? ReporteSelectorUtil.Formato.PDF : ReporteSelectorUtil.Formato.XLS;
-        javax.swing.JTable tabla = crearTablaCompletaParaImpresion();
+        javax.swing.JTable tabla = crearTablaMascotasParaReporte();
         ReporteRequest req = new ReporteRequest()
                 .put("tabla", tabla)
                 .put("estadoFiltro", filtro)
