@@ -129,24 +129,7 @@ public class FormMascota extends javax.swing.JPanel {
             }
         });
 
-        // Cancelar la selección sin entrar al formulario.
-        javax.swing.JButton cancelarSeleccion = new javax.swing.JButton("Cancelar");
-        cancelarSeleccion.setVisible(false);
-        cancelarSeleccion.addActionListener(e -> {
-            for (int fila = 0; fila < tableMascotas.getRowCount(); fila++) {
-                if (Boolean.TRUE.equals(tableMascotas.getValueAt(fila, 0))) {
-                    tableMascotas.setValueAt(false, fila, 0);
-                }
-            }
-            tableMascotas.clearSelection();
-            actualizarBotonImprimir();
-        });
-        btnNuevo.putClientProperty("cancelarSeleccionMascota", cancelarSeleccion);
-        javax.swing.JPanel contenedorAcciones = (javax.swing.JPanel) btnNuevo.getParent();
-        if (contenedorAcciones != null) {
-            contenedorAcciones.add(cancelarSeleccion);
-        }
-        cancelarSeleccion.setVisible(false);
+        configurarBarraAccionesMascota();
         btnEliminar.setText("Desactivar");
         SwingUtilities.invokeLater(this::actualizarBotonImprimir);
     }
@@ -915,12 +898,56 @@ public class FormMascota extends javax.swing.JPanel {
     }
 
     // -------------------- Impresión PDF --------------------
+
+    private javax.swing.JButton cancelarSeleccionMascota;
+
+    private void configurarBarraAccionesMascota() {
+        // Conservar los controles y el estilo FlatLaf; distribuirlos en una sola fila.
+        panelBotones.removeAll();
+        panelBotones.setLayout(new java.awt.BorderLayout(12, 0));
+
+        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        busqueda.setOpaque(false);
+        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+        c.gridx = 0; c.gridy = 0; c.gridwidth = 2;
+        c.anchor = java.awt.GridBagConstraints.WEST;
+        c.insets = new java.awt.Insets(0, 0, 5, 0);
+        busqueda.add(lbUsuarioBusqueda, c);
+        c.gridy = 1; c.gridwidth = 1;
+        c.insets = new java.awt.Insets(0, 0, 0, 6);
+        busqueda.add(lbBuscar, c);
+        c.gridx = 1; c.weightx = 1; c.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        txtBusqueda.setPreferredSize(new java.awt.Dimension(245, 28));
+        busqueda.add(txtBusqueda, c);
+        panelBotones.add(busqueda, java.awt.BorderLayout.WEST);
+
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        acciones.setOpaque(false);
+        cancelarSeleccionMascota = new javax.swing.JButton("Cancelar");
+        cancelarSeleccionMascota.addActionListener(e -> {
+            for (int fila = 0; fila < tableMascotas.getRowCount(); fila++) {
+                if (Boolean.TRUE.equals(tableMascotas.getValueAt(fila, 0))) {
+                    tableMascotas.setValueAt(false, fila, 0);
+                }
+            }
+            tableMascotas.clearSelection();
+            actualizarBotonImprimir();
+        });
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnNuevo, btnEditar, btnEliminar, cancelarSeleccionMascota, btnImprimir}) {
+            boton.setPreferredSize(new java.awt.Dimension(88, 28));
+            acciones.add(boton);
+        }
+        panelBotones.add(acciones, java.awt.BorderLayout.EAST);
+        panelBotones.revalidate();
+        panelBotones.repaint();
+    }
+
     private void actualizarBotonImprimir() {
         boolean haySeleccion = (operarTablas.comprobarElementoSeleccionado(tableMascotas) != -1);
         btnImprimir.setVisible(haySeleccion);
-        Object cancelar = btnNuevo.getClientProperty("cancelarSeleccionMascota");
-        if (cancelar instanceof javax.swing.JButton) {
-            ((javax.swing.JButton) cancelar).setVisible(haySeleccion && !panelDatos.isVisible());
+        if (cancelarSeleccionMascota != null) {
+            cancelarSeleccionMascota.setVisible(haySeleccion && !panelDatos.isVisible());
         }
         btnNuevo.setEnabled(!haySeleccion && !panelDatos.isVisible());
     }
