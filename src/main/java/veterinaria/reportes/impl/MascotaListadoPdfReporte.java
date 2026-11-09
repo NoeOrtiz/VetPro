@@ -42,103 +42,74 @@ public class MascotaListadoPdfReporte extends AbstractPdfReporte {
     @Override
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
         JTable tabla = request.get("tabla", JTable.class);
-        TableModel m = tabla.getModel();
+        TableModel modelo = tabla.getModel();
+        String filtro = request.get("estadoFiltro", String.class);
+        if (filtro == null || filtro.isBlank()) filtro = "TODOS";
+        filtro = filtro.toUpperCase();
 
-        pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(), "Total de mascotas listadas: " + m.getRowCount());
-        pdf.down(16f);
-
-        int colId = 1;
-        int colNombre = 2;
-        int colEspecie = 6;
-        int colRaza = 4;
-        int colSexo = 3;
-        int colEdad = 5;
-        int colDueno = 7;
-        int colCastrado = 8;
-        int colTam = 10;
-        int colPeso = 11;
-
-        final int fontSize = 9;
-        final float lineH = 11f;
-
-        final float[] w = new float[]{
-            40f, // ID
-            85f, // Nombre
-            70f, // Especie
-            90f, // Raza
-            55f, // Sexo
-            60f, // Edad
-            135f, // Dueño
-            60f, // Castrado
-            65f, // Tamaño
-            55f // Peso
-        };
-
-        float x = pdf.getMargin();
-        final float[] cx = new float[w.length];
-        cx[0] = x;
-        for (int i = 1; i < w.length; i++) {
-            cx[i] = cx[i - 1] + w[i - 1];
+        int[] columnas = {2, 6, 4, 3, 5, 7, 12};
+        String[] titulos = {"NOMBRE", "ESPECIE", "RAZA", "SEXO", "EDAD", "DUEÑO", "ESTADO"};
+        float[] proporciones = {0.15f, 0.11f, 0.16f, 0.09f, 0.13f, 0.25f, 0.11f};
+        float disponible = pdf.getPageW() - 2 * pdf.getMargin();
+        float[] anchos = new float[proporciones.length];
+        float[] posiciones = new float[proporciones.length];
+        float cursor = pdf.getMargin();
+        for (int i = 0; i < anchos.length; i++) {
+            anchos[i] = disponible * proporciones[i];
+            posiciones[i] = cursor;
+            cursor += anchos[i];
         }
 
-        pdf.ensureSpace(60f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[0], pdf.getY(), "ID");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[1], pdf.getY(), "NOMBRE");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[2], pdf.getY(), "ESPECIE");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[3], pdf.getY(), "RAZA");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[4], pdf.getY(), "SEXO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[5], pdf.getY(), "EDAD");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[6], pdf.getY(), "DUEÑO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[7], pdf.getY(), "CASTR.");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[8], pdf.getY(), "TAMAÑO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[9], pdf.getY(), "PESO");
-        pdf.down(10f);
-        pdf.line();
+        int total = 0, activos = 0, inactivos = 0;
+        for (int r = 0; r < modelo.getRowCount(); r++) {
+            String estado = String.valueOf(modelo.getValueAt(r, 12));
+            if (!"TODOS".equals(filtro) && !filtro.equalsIgnoreCase(estado)) continue;
+            total++;
+            if ("ACTIVO".equalsIgnoreCase(estado)) activos++;
+            else inactivos++;
+        }
+        pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(),
+                "Total listados: " + total + "     Activos: " + activos + "     Inactivos: " + inactivos);
+        pdf.down(22f);
+        dibujarEncabezadoTabla(pdf, titulos, posiciones);
 
-        for (int r = 0; r < m.getRowCount(); r++) {
-            String id = safe(m.getValueAt(r, colId));
-            String nombre = safe(m.getValueAt(r, colNombre));
-            String especie = safe(m.getValueAt(r, colEspecie));
-            String raza = safe(m.getValueAt(r, colRaza));
-            String sexo = safe(m.getValueAt(r, colSexo));
-            String edad = safe(m.getValueAt(r, colEdad));
-            String dueno = safe(m.getValueAt(r, colDueno));
-            String castrado = safe(m.getValueAt(r, colCastrado));
-            String tam = safe(m.getValueAt(r, colTam));
-            String peso = safe(m.getValueAt(r, colPeso));
-
-            java.util.List<String> l0 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, id, w[0] - 2);
-            java.util.List<String> l1 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, nombre, w[1] - 2);
-            java.util.List<String> l2 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, especie, w[2] - 2);
-            java.util.List<String> l3 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, raza, w[3] - 2);
-            java.util.List<String> l4 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, sexo, w[4] - 2);
-            java.util.List<String> l5 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, edad, w[5] - 2);
-            java.util.List<String> l6 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, dueno, w[6] - 2);
-            java.util.List<String> l7 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, castrado, w[7] - 2);
-            java.util.List<String> l8 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, tam, w[8] - 2);
-            java.util.List<String> l9 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, peso, w[9] - 2);
-
-            int maxLines = max(l0.size(), l1.size(), l2.size(), l3.size(), l4.size(), l5.size(), l6.size(), l7.size(), l8.size(), l9.size());
-            float rowH = Math.max(1, maxLines) * lineH;
-            pdf.ensureSpace(rowH + 6f);
-
-            float yTop = pdf.getY();
-            for (int i = 0; i < maxLines; i++) {
-                float yy = yTop - (i * lineH);
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[0], yy, pick(l0, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[1], yy, pick(l1, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[2], yy, pick(l2, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[3], yy, pick(l3, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[4], yy, pick(l4, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[5], yy, pick(l5, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[6], yy, pick(l6, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[7], yy, pick(l7, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[8], yy, pick(l8, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[9], yy, pick(l9, i));
+        for (int r = 0; r < modelo.getRowCount(); r++) {
+            String estado = String.valueOf(modelo.getValueAt(r, 12));
+            if (!"TODOS".equals(filtro) && !filtro.equalsIgnoreCase(estado)) continue;
+            java.util.List<java.util.List<String>> celdas = new java.util.ArrayList<>();
+            int lineas = 1;
+            for (int i = 0; i < columnas.length; i++) {
+                Object valor = modelo.getValueAt(r, columnas[i]);
+                java.util.List<String> texto = pdf.wrapText(PdfStyle.TXT_FONT, 9,
+                        valor == null ? "" : valor.toString(), anchos[i] - 10f);
+                celdas.add(texto);
+                lineas = Math.max(lineas, texto.size());
             }
-
-            pdf.down(rowH + 2f);
+            float altura = lineas * 13f + 9f;
+            int paginaAnterior = pdf.getCurrentPage();
+            pdf.ensureSpace(altura + 12f);
+            if (pdf.getCurrentPage() != paginaAnterior) {
+                renderHeader(pdf, request);
+                dibujarEncabezadoTabla(pdf, titulos, posiciones);
+            }
+            float y = pdf.getY();
+            for (int i = 0; i < columnas.length; i++) {
+                java.util.List<String> texto = celdas.get(i);
+                for (int j = 0; j < texto.size(); j++)
+                    pdf.text(PdfStyle.TXT_FONT, 9, posiciones[i] + 3f, y - j * 13f, texto.get(j));
+            }
+            pdf.down(altura);
         }
+    }
+
+    private void dibujarEncabezadoTabla(PdfDocument pdf, String[] titulos, float[] posiciones)
+            throws Exception {
+        pdf.ensureSpace(30f);
+        for (int i = 0; i < titulos.length; i++)
+            pdf.text(PDType1Font.HELVETICA_BOLD, 9, posiciones[i] + 3f, pdf.getY(), titulos[i]);
+        pdf.down(16f);
+        pdf.line();
+        pdf.down(5f);
     }
 
     private void renderFooterAllPages(PdfDocument pdf, ReporteRequest request) throws Exception {
