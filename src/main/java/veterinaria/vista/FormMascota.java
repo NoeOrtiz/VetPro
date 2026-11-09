@@ -634,7 +634,7 @@ public class FormMascota extends javax.swing.JPanel {
         // La altura la administra JScrollPane; una preferredSize fija genera
         // espacios vacíos y una barra horizontal que no corresponde.
         tableMascotas.setMinimumSize(new java.awt.Dimension(0, 0));
-        tableMascotas.setPreferredScrollableViewportSize(new java.awt.Dimension(1100, 300));
+        tableMascotas.setPreferredScrollableViewportSize(new java.awt.Dimension(700, 300));
         tableMascotas.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(tableMascotas);
 
@@ -654,7 +654,7 @@ public class FormMascota extends javax.swing.JPanel {
                             .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(jpListaPacientesLayout.createSequentialGroup()
                                 .addComponent(lbListaDePacientes)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 645, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 0, Short.MAX_VALUE)
                                 .addComponent(btnImprimirLista)))
                         .addContainerGap())))
         );
