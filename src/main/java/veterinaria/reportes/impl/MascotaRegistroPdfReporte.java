@@ -40,54 +40,59 @@ public class MascotaRegistroPdfReporte extends AbstractPdfReporte {
     }
 
     @Override
+    protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
+        float ancho = pdf.getPageW();
+        float y = pdf.getY();
+        renderLogo(pdf, (ancho - 150f) / 2f, y - 94f, 150f, 94f);
+        pdf.setY(y - 115f);
+        String titulo = titulo();
+        pdf.text(PDType1Font.HELVETICA_BOLD, 15,
+                (ancho - pdf.textWidth(PDType1Font.HELVETICA_BOLD, 15, titulo)) / 2f,
+                pdf.getY(), titulo);
+        pdf.down(22f);
+        pdf.line();
+        pdf.down(12f);
+    }
+
+    @Override
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
         Mascota m = request.get("mascota", Mascota.class);
-        String emisor = request.get("emisor", String.class);
-
-        float x = pdf.getMargin();
-
-        pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, pdf.getY(), "ID Mascota: " + safe(m.getIdMascota()));
-        pdf.down(16f);
-
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Nombre: " + safe(m.getNombre()));
-        pdf.down(14f);
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Especie: " + safe(m.getEspecie()));
-        pdf.down(14f);
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Raza: " + safe(m.getRaza()));
-        pdf.down(14f);
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Sexo: " + safe(m.getSexo()));
-        pdf.down(14f);
-
-        LocalDate fn = m.getFechaNacimiento();
-        String fechaNac = (fn != null) ? fn.format(DTF_FECHA) : "";
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Fecha de nacimiento: " + fechaNac);
-        pdf.down(14f);
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Edad: " + calcularEdad(fn));
-        pdf.down(14f);
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Castrado: " + safe(m.getCastrado()));
-        pdf.down(14f);
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Tamaño: " + safe(m.getTamano()));
-        pdf.down(14f);
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Peso: " + safe(m.getPeso()));
-        pdf.down(14f);
-
-        Cliente c = m.getCliente();
-        Persona p = (c != null) ? c.getPersona() : null;
-        String dueno = "";
-        if (p != null) {
-            dueno = (safe(p.getApellido()) + " " + safe(p.getNombre())).trim();
-        }
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Dueño: " + dueno);
-        pdf.down(14f);
-
+        Cliente cliente = m.getCliente();
+        Persona persona = cliente == null ? null : cliente.getPersona();
+        String dueno = persona == null ? "Sin especificar"
+                : (safe(persona.getNombre()) + " " + safe(persona.getApellido())).trim();
+        float izquierda = pdf.getMargin() + 12f;
+        float derecha = pdf.getPageW() / 2f + 8f;
+        pdf.text(PDType1Font.HELVETICA_BOLD, 11, pdf.getMargin(), pdf.getY(), "DATOS DEL PACIENTE");
+        pdf.down(27f);
+        campo(pdf, izquierda, "Nombre", safe(m.getNombre()));
+        campo(pdf, derecha, "Estado", m.isActivo() ? "Activo" : "Inactivo");
+        pdf.down(51f);
+        campo(pdf, izquierda, "Especie", safe(m.getEspecie()));
+        campo(pdf, derecha, "Raza", safe(m.getRaza()));
+        pdf.down(51f);
+        campo(pdf, izquierda, "Sexo", safe(m.getSexo()));
+        campo(pdf, derecha, "Castrado", safe(m.getCastrado()));
+        pdf.down(51f);
+        LocalDate nacimiento = m.getFechaNacimiento();
+        campo(pdf, izquierda, "Fecha de nacimiento",
+                nacimiento == null ? "Sin especificar" : nacimiento.format(DTF_FECHA));
+        campo(pdf, derecha, "Edad", calcularEdad(nacimiento));
+        pdf.down(51f);
+        campo(pdf, izquierda, "Tamaño", safe(m.getTamano()));
+        campo(pdf, derecha, "Peso (kg)", safe(m.getPeso()));
+        pdf.down(57f);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 11, pdf.getMargin(), pdf.getY(), "RESPONSABLE");
+        pdf.down(26f);
+        campo(pdf, izquierda, "Dueño", dueno);
+        pdf.down(52f);
         pdf.line();
+    }
 
-        if (emisor != null && !emisor.isBlank()) {
-            pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), "Emitido por: " + emisor);
-            pdf.down(12f);
-            pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), "Fecha y hora: " + LocalDateTime.now().format(DTF_EMISION));
-            pdf.down(14f);
-        }
+    private void campo(PdfDocument pdf, float x, String etiqueta, String valor) throws Exception {
+        float y = pdf.getY();
+        pdf.text(PdfStyle.TXT_FONT, 9, x, y, etiqueta);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, y - 20f, valor);
     }
 
     private String calcularEdad(LocalDate fechaNacimiento) {
