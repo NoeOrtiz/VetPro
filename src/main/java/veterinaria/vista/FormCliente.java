@@ -103,7 +103,7 @@ public class FormCliente extends javax.swing.JPanel {
         paginacionCompartida = veterinaria.util.GestorTablas.paginar(
                 tableClientes, txtBusqueda,
                 new veterinaria.util.GestorTablas.Configuracion(
-                        new int[]{2, 3, 4, 6, 8, 9}, new int[]{2, 3, 4, 6, 8, 9}, 15));
+                        new int[]{2, 3, 4}, new int[]{2, 3, 4}, 15));
         paginacionCompartida.activarBusquedaPorPrefijo();
         contenedor.add(paginacionCompartida.getControles(), java.awt.BorderLayout.SOUTH);
         txtBusqueda.setLayout(new java.awt.BorderLayout());
