@@ -770,7 +770,7 @@ public class FormUsuario extends javax.swing.JPanel {
         paginacionCompartida = veterinaria.util.GestorTablas.paginar(
                 table, txtBusqueda,
                 new veterinaria.util.GestorTablas.Configuracion(
-                        new int[]{1, 2, 3, 6, 7}, new int[]{1, 2, 3, 6, 7}, 15));
+                        new int[]{6, 7}, new int[]{6, 7}, 15));
         paginacionCompartida.activarBusquedaPorPrefijo();
         contenedor.add(paginacionCompartida.getControles(), java.awt.BorderLayout.SOUTH);
         txtBusqueda.setLayout(new java.awt.BorderLayout());
