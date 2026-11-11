@@ -1050,6 +1050,9 @@ public class FormMascota extends javax.swing.JPanel {
         datos.setOpaque(false);
         String[][] campos = {
             {"Nombre", m.getNombre()}, {"Estado", m.isActivo() ? "Activo" : "Inactivo"},
+            {"Motivo de baja", m.isActivo() ? "No corresponde" :
+                (m.getMotivoBaja() != null && !m.getMotivoBaja().trim().isEmpty()
+                    ? m.getMotivoBaja() : (m.isBajaPorCliente() ? "Baja asociada al cliente" : "No registrado"))},
             {"Especie", m.getEspecie()}, {"Raza", m.getRaza()},
             {"Sexo", m.getSexo()}, {"Dueño", dueno},
             {"Nacimiento", m.getFechaNacimiento() == null ? "-" : m.getFechaNacimiento().toString()},
