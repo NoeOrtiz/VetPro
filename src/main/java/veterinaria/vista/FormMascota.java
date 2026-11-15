@@ -1064,8 +1064,17 @@ public class FormMascota extends javax.swing.JPanel {
         if (haySeleccion) {
             int fila = operarTablas.comprobarElementoSeleccionado(tableMascotas);
             boolean activo = "Activo".equals(String.valueOf(tableMascotas.getValueAt(fila, 12)));
+            boolean fallecimiento = false;
+            if (!activo) {
+                Mascota seleccionada = obtenerMascotaSeleccionadaDesdeTabla();
+                fallecimiento = seleccionada != null && seleccionada.getMotivoBaja() != null
+                        && "Fallecimiento".equalsIgnoreCase(seleccionada.getMotivoBaja().trim());
+            }
             btnEliminar.setText(activo ? "Desactivar" :
-                    (esAdministradorMascota() ? "Reactivar" : "Solicitar reactivación"));
+                    (esAdministradorMascota()
+                        ? (fallecimiento ? "Rectificar baja" : "Reactivar")
+                        : (fallecimiento ? "Solicitar rectificación" : "Solicitar reactivación")));
+            btnEliminar.setPreferredSize(new java.awt.Dimension(activo ? 78 : 152, 28));
             btnEliminar.setVisible(!activo || (sesion != null && sesion.puede("FormMascota.ELIMINAR")));
         }
         btnNuevo.setEnabled(!haySeleccion && !panelDatos.isVisible());
