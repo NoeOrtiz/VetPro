@@ -1604,11 +1604,61 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     }//GEN-LAST:event_btnEliminarActionPerformed
 
+    /** No cambia el estado del paciente: vincula la atención a una solicitud urgente. */
+    private boolean prepararAtencionProvisional() {
+        if (mascotaSeleccionada.isActivo()) {
+            visita.setAtencionProvisional(false);
+            visita.setIdSolicitudReactivacion(null);
+            return true;
+        }
+        veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
+        String rol = sesion == null || sesion.getRol() == null ? "" :
+                sesion.getRol().getNombreRol();
+        if (!"Veterinario".equalsIgnoreCase(rol)
+                && !"Administrador".equalsIgnoreCase(rol)) {
+            JOptionPane.showMessageDialog(this,
+                    "El paciente está inactivo. Solo el veterinario o administrador "
+                    + "pueden registrar una atención urgente provisional.",
+                    "Atención restringida", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        Integer solicitud;
+        try {
+            solicitud = new veterinaria.servicio.SolicitudReactivacionService()
+                    .solicitudUrgentePendiente(mascotaSeleccionada.getIdMascota());
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo verificar la solicitud urgente.\n"
+                    + "Consulte al administrador o verifique la migración SQL.",
+                    "Verificación pendiente", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        if (solicitud == null) {
+            JOptionPane.showMessageDialog(this,
+                    "El paciente está inactivo. Antes de registrar una atención provisional, "
+                    + "debe existir una solicitud de reactivación URGENTE y PENDIENTE.",
+                    "Solicitud urgente requerida", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        int confirmacion = JOptionPane.showConfirmDialog(this,
+                "La mascota " + mascotaSeleccionada.getNombre() + " permanece inactiva.\n"
+                + "Se registrará una consulta PROVISIONAL vinculada a la solicitud #"
+                + solicitud + ".\n"
+                + "Esto NO reactiva al paciente ni modifica el motivo de baja.\n"
+                + "¿Confirma que se trata de una atención urgente?",
+                "Atención urgente provisional", JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+        if (confirmacion != JOptionPane.YES_OPTION) return false;
+        visita.setAtencionProvisional(true);
+        visita.setIdSolicitudReactivacion(solicitud);
+        return true;
+    }
+
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         if (!validarFormulario()) {
             return;
         }
         if (mascotaSeleccionada != null) {
+            if (visita.getIdVisita() == null && !prepararAtencionProvisional()) return;
             String userGestion = Application.getNombreApellidoUsuarioLogeado();
             if (userGestion == null || userGestion.trim().isEmpty()) {
                 userGestion = "Sistema";
