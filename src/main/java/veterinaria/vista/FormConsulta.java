@@ -575,8 +575,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     private void avanzarEstadoSeleccionado() {
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
-        if (sesion == null || !sesion.puede("FormConsulta.EDITAR")) {
-            JOptionPane.showMessageDialog(this, "No tiene permiso para modificar consultas.",
+        if (sesion == null || !sesion.puede("FormConsulta.EDITAR") || !usuarioClinico()) {
+            JOptionPane.showMessageDialog(this,
+                    "Solo el veterinario o administrador puede iniciar o finalizar la atención.",
                     "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -589,21 +590,33 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             return;
         }
         String siguiente = "EN_ESPERA".equals(actual) ? "ATENDIENDO" : "FINALIZADO";
-        String titulo = "FINALIZADO".equals(siguiente) ? "Finalizar consulta" : "Iniciar atención";
-        String mensaje = "FINALIZADO".equals(siguiente)
-                ? "¿Confirma que finalizó la atención de " + seleccionada.getMascota().getNombre()
-                    + "?\nLa consulta quedará cerrada y no podrá editarse."
-                : "¿Comenzar la atención de " + seleccionada.getMascota().getNombre() + "?";
+        boolean iniciar = "ATENDIENDO".equals(siguiente);
+        String mensaje = iniciar
+                ? "¿Comenzar la atención de " + seleccionada.getMascota().getNombre()
+                   + "?\nSe abrirá su ficha para que el veterinario registre diagnóstico y tratamiento."
+                : "¿Confirma que finalizó la atención de " + seleccionada.getMascota().getNombre()
+                   + "?\nLa consulta quedará cerrada y no podrá editarse.";
         int respuesta = JOptionPane.showConfirmDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
-                mensaje, titulo, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                mensaje, iniciar ? "Iniciar atención" : "Finalizar consulta",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (respuesta != JOptionPane.YES_OPTION) return;
         try {
-            visitaControlador.avanzarEstado(seleccionada.getIdVisita(), actual, siguiente);
+            Visita actualizada = visitaControlador.avanzarEstado(seleccionada.getIdVisita(), actual, siguiente);
             cargarVisitasEnTabla();
-            JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
-                    "FINALIZADO".equals(siguiente) ? "Consulta finalizada correctamente."
-                            : "La consulta ahora está en atención.",
-                    "Estado actualizado", JOptionPane.INFORMATION_MESSAGE);
+            if (iniciar) {
+                if (editarVisita(actualizada)) {
+                    configurarModoEdicionRestringida();
+                    mostrarSoloFormulario();
+                    btnGuardar.setEnabled(true);
+                    btnNuevo.setEnabled(false);
+                    btnEditar.setEnabled(false);
+                    btnEliminar.setEnabled(false);
+                }
+            } else {
+                JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                        "Consulta finalizada correctamente. Se conservará en la historia clínica.",
+                        "Atención finalizada", JOptionPane.INFORMATION_MESSAGE);
+            }
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
                     "No se pudo actualizar el estado.\n" + ex.getMessage(),
