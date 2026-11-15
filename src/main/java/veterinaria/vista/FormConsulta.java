@@ -785,8 +785,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             Object estadoObj = tableVisitas.getValueAt(row, 8); // Columna Estado
             String estado = estadoObj != null ? estadoObj.toString() : "";
 
-            esFinalizado = Constantes.EstadoVisita.FINALIZADO.name()
-                    .equalsIgnoreCase(normalizarEstadoBD(estado));
+            esFinalizado = "FINALIZADO".equalsIgnoreCase(normalizarEstadoBD(estado))
+                    || "CANCELADO".equalsIgnoreCase(normalizarEstadoBD(estado));
 
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class,
@@ -821,7 +821,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     private void configurarModoEdicionRestringida() {
         try {
-            // En edición solo se permite Estado + Tratamiento
+            // En edición solo se permite actualizar el tratamiento.
             jcbPaciente.setEnabled(false);
             jdcFecha.setEnabled(false);
             spinnerHora.setEnabled(false);
@@ -990,6 +990,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             return Constantes.EstadoVisita.ATENDIENDO.name();
         }
 
+        if (estadoBD.equals("CANCELADO")) return "CANCELADO";
         if (estadoBD.equals("FINALIZADO") || estadoBD.equals("FINALIZADA")) {
             return Constantes.EstadoVisita.FINALIZADO.name();
         }
@@ -1101,8 +1102,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 // Confirmar eliminación
                 int respuesta = JOptionPane.showConfirmDialog(
                         this,
-                        "¿Estás seguro de que deseas eliminar esta visita?",
-                        "Confirmar eliminación",
+                        "¿Desea cancelar esta consulta?\nEl registro permanecerá en el historial.",
+                        "Confirmar cancelación",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE
                 );
@@ -1110,10 +1111,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 if (respuesta == JOptionPane.YES_OPTION) {
                     // Eliminar visita solo si su estado es "Finalizado"
                     if (visitaControlador.eliminarVisita(visita)) {
-                        JOptionPane.showMessageDialog(this, "Visita eliminada con éxito.", "Información", JOptionPane.INFORMATION_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Consulta cancelada. El registro se conserva.", "Información", JOptionPane.INFORMATION_MESSAGE);
                         return true;
                     } else {
-                        JOptionPane.showMessageDialog(this, "No se pudo eliminar la visita. Solo se pueden eliminar visitas en estado 'Finalizado'.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "No se puede cancelar una consulta finalizada o ya cancelada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                     }
                 } else {
                     // Deseleccionar la fila si se elige NO
