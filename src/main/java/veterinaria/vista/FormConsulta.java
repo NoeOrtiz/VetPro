@@ -1689,7 +1689,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                                 ? "Consulta provisoria guardada correctamente.\n"
                                   + "La mascota permanece inactiva y la solicitud de reactivación "
                                   + "sigue pendiente de revisión.\n"
-                                  + "La atención queda registrada en su historia clínica."
+                                  + "La consulta quedó vinculada al paciente y se incorporará a su historia clínica al finalizarla."
                                 : "Consulta registrada correctamente.",
                             "Consulta guardada", JOptionPane.INFORMATION_MESSAGE);
                 } else {
