@@ -59,7 +59,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private static final int[] COLUMNAS_BUSQUEDA = {2, 3, 4, 5, 9};
     private veterinaria.util.PaginacionTablas paginacionConsultas;
     private javax.swing.JButton btnCambiarEstado;
-    private boolean enRegistroRecepcion = false;
+    private final java.util.Map<String, Integer> cargaVeterinarios = new java.util.HashMap<>();
 
     public FormConsulta() {
         initComponents();
@@ -250,6 +250,19 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 model.addElement(nombreCompletoUsuario(u));
             }
             jcbVeterinario.setModel(model);
+            jcbVeterinario.setRenderer(new javax.swing.DefaultListCellRenderer() {
+                @Override
+                public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> lista,
+                        Object valor, int index, boolean seleccionado, boolean foco) {
+                    super.getListCellRendererComponent(lista, valor, index, seleccionado, foco);
+                    if (valor instanceof String && index >= 0 && index != 0) {
+                        String nombre = (String) valor;
+                        setText(nombre + "  ·  " + cargaVeterinarios.getOrDefault(nombre, 0)
+                                + " consulta(s) en espera/atención");
+                    }
+                    return this;
+                }
+            });
         } catch (Exception e) {
             jcbVeterinario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Seleccione veterinario"}));
             listaVeterinarios = new ArrayList<>();
@@ -830,7 +843,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     /** Solo indica carga de consultas asignadas, no disponibilidad presencial ni turnos. */
     private void prepararAsignacionPorCola() {
-        java.util.Map<String, Integer> carga = new java.util.HashMap<>();
+        java.util.Map<String, Integer> carga = cargaVeterinarios;
+        carga.clear();
         try {
             for (Visita v : visitaControlador.obtenerTodasLasVisitas()) {
                 if (v.getUsuarioAtiende() == null) continue;
@@ -849,6 +863,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 }
             }
             if (mejor != null) {
+                jcbVeterinario.repaint();
                 jcbVeterinario.setSelectedItem(mejor);
                 jcbVeterinario.setToolTipText("Asignado por menor carga de consultas activas: "
                         + minimo + ". No verifica horarios ni presencia.");
@@ -1869,7 +1884,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             visita.setMotivoVisita((String) jcbMotivo.getSelectedItem());
             boolean registroInicial = visita.getIdVisita() == null;
             if (registroInicial) {
-                visita.setPatologia(null);
+                visita.setPatologia("");
                 visita.setTratamiento("");
             } else {
                 visita.setPatologia((String) jcbPatologia.getSelectedItem());
