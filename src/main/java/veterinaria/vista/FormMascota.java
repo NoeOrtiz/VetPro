@@ -758,8 +758,8 @@ public class FormMascota extends javax.swing.JPanel {
         if (activar && seleccionada.getMotivoBaja() != null
                 && "Fallecimiento".equalsIgnoreCase(seleccionada.getMotivoBaja().trim())) {
             JOptionPane.showMessageDialog(this,
-                    "No se puede reactivar a " + seleccionada.getNombre() +
-                    " porque figura como fallecida.\n" +
+                    "No se puede reactivar: la mascota " + seleccionada.getNombre() +
+                    " figura como fallecida.\n" +
                     "El registro y su historia clínica se conservarán.\n" +
                     "Si se registró el fallecimiento por error, solicite su corrección al administrador.",
                     "Reactivación no permitida", JOptionPane.WARNING_MESSAGE);
