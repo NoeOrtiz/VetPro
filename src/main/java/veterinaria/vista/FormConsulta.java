@@ -59,6 +59,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private static final int[] COLUMNAS_BUSQUEDA = {2, 3, 4, 5, 9};
     private veterinaria.util.PaginacionTablas paginacionConsultas;
     private javax.swing.JButton btnCambiarEstado;
+    private boolean enRegistroRecepcion = false;
 
     public FormConsulta() {
         initComponents();
@@ -800,6 +801,48 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             btnCambiarEstado.setEnabled(!esFinalizado && !jpDatos.isVisible());
         // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
         btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible());
+    }
+
+    private boolean usuarioClinico() {
+        veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
+        String rol = sesion == null || sesion.getRol() == null ? "" : sesion.getRol().getNombreRol();
+        return "Veterinario".equalsIgnoreCase(rol) || "Administrador".equalsIgnoreCase(rol);
+    }
+
+    private void mostrarSoloFormulario() {
+        jpHeader.setVisible(false);
+        jpListaVisitas.setVisible(false);
+        jpDatos.setVisible(true);
+    }
+
+    /** Solo indica carga de consultas asignadas, no disponibilidad presencial ni turnos. */
+    private void prepararAsignacionPorCola() {
+        java.util.Map<String, Integer> carga = new java.util.HashMap<>();
+        try {
+            for (Visita v : visitaControlador.obtenerTodasLasVisitas()) {
+                if (v.getUsuarioAtiende() == null) continue;
+                String estado = v.getEstado() == null ? "" : v.getEstado().trim();
+                if ("EN_ESPERA".equalsIgnoreCase(estado) || "ATENDIENDO".equalsIgnoreCase(estado))
+                    carga.merge(v.getUsuarioAtiende(), 1, Integer::sum);
+            }
+            String mejor = null;
+            int minimo = Integer.MAX_VALUE;
+            for (int i = 1; i < jcbVeterinario.getItemCount(); i++) {
+                String nombre = jcbVeterinario.getItemAt(i);
+                int cantidad = carga.getOrDefault(nombre, 0);
+                if (cantidad < minimo) {
+                    minimo = cantidad;
+                    mejor = nombre;
+                }
+            }
+            if (mejor != null) {
+                jcbVeterinario.setSelectedItem(mejor);
+                jcbVeterinario.setToolTipText("Asignado por menor carga de consultas activas: "
+                        + minimo + ". No verifica horarios ni presencia.");
+            }
+        } catch (RuntimeException ex) {
+            veterinaria.util.AppLog.warn(FormConsulta.class, "No se pudo calcular carga de veterinarios", ex);
+        }
     }
 
     private void configurarModoNuevo() {
@@ -1693,6 +1736,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         visita = new Visita();
         limpiarCamposFormulario();
         configurarModoNuevo();
+        prepararAsignacionPorCola();
+        mostrarSoloFormulario();
         jpListaVisitas.setVisible(false);
         jpDatos.setVisible(true);
         btnGuardar.setEnabled(true);
@@ -1713,6 +1758,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             }
 
             configurarModoEdicionRestringida();
+            mostrarSoloFormulario();
             jpDatos.setVisible(true);
             jpListaVisitas.setVisible(false);
             btnGuardar.setEnabled(true);
@@ -1834,6 +1880,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             cargarVisitasEnTabla();
             limpiarCamposFormulario();
             jpDatos.setVisible(false);
+            jpHeader.setVisible(true);
             btnNuevo.setEnabled(true);
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
@@ -1846,6 +1893,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         limpiarCamposFormulario();
         jpDatos.setVisible(false);
+        jpHeader.setVisible(true);
         btnNuevo.setEnabled(true);
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
