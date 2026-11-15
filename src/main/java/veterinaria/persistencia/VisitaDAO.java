@@ -93,9 +93,10 @@ public class VisitaDAO {
             if (ocupadas.longValue() > 0)
                 throw new IllegalStateException("Todavía tiene una consulta en atención. Finalícela antes de llamar a otro paciente.");
 
+            // Incluye tickets anteriores asignados pero nunca iniciados:
+            // la asignación efectiva se realiza al comenzar la atención.
             java.util.List<?> ids = em.createNativeQuery(
                     "SELECT idVisita FROM visita WHERE estado='EN_ESPERA' "
-                    + "AND (usuarioAtiende IS NULL OR usuarioAtiende='') "
                     + "ORDER BY CASE prioridad_atencion "
                     + "WHEN 'EMERGENCIA' THEN 0 WHEN 'URGENCIA' THEN 1 ELSE 2 END, "
                     + "fecha ASC, hora ASC, idVisita ASC LIMIT 1 FOR UPDATE")
@@ -106,9 +107,7 @@ public class VisitaDAO {
             }
             Integer id = ((Number) ids.get(0)).intValue();
             Visita siguiente = em.find(Visita.class, id);
-            if (siguiente == null || !"EN_ESPERA".equals(siguiente.getEstado())
-                    || (siguiente.getUsuarioAtiende() != null
-                    && !siguiente.getUsuarioAtiende().isBlank()))
+            if (siguiente == null || !"EN_ESPERA".equals(siguiente.getEstado()))
                 throw new IllegalStateException("La cola cambió. Vuelva a intentar.");
             siguiente.setUsuarioAtiende(profesional);
             siguiente.setEstado("ATENDIENDO");
