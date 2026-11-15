@@ -877,7 +877,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
         btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible()
                 && Application.getSesionUsuario() != null
-                && Application.getSesionUsuario().puede("FormConsulta.ELIMINAR"));
+                && Application.getSesionUsuario().puede("FormConsulta.CANCELAR"));
     }
 
     private void configurarAccionesPorRol() {
@@ -889,7 +889,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnLlamarSiguiente.setVisible(clinico);
         btnCambiarEstado.setVisible(clinico);
         btnEditar.setVisible(clinico);
-        btnEliminar.setVisible(sesion.puede("FormConsulta.ELIMINAR"));
+        btnEliminar.setVisible(sesion.puede("FormConsulta.CANCELAR"));
+        btnEliminar.setText("Cancelar consulta");
         btnImprimirVisita.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
         btnImprimirListaVisitas.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
     }
@@ -1790,6 +1791,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNuevoActionPerformed
+        if (Application.getSesionUsuario() == null
+                || !Application.getSesionUsuario().puede("FormConsulta.NUEVO")) {
+            JOptionPane.showMessageDialog(this, "No tiene permiso para registrar consultas.");
+            return;
+        }
         visita = new Visita();
         limpiarCamposFormulario();
         configurarModoNuevo();
@@ -1838,6 +1844,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }//GEN-LAST:event_btnEditarActionPerformed
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
+        if (Application.getSesionUsuario() == null
+                || !Application.getSesionUsuario().puede("FormConsulta.CANCELAR")) {
+            JOptionPane.showMessageDialog(this, "No tiene permiso para cancelar consultas.");
+            return;
+        }
         if (eliminarVisitaSeleccionada()) {
             limpiarCamposFormulario();
             jpDatos.setVisible(false);
