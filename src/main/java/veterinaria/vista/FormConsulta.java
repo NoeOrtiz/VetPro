@@ -660,9 +660,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel botones = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
         botones.setOpaque(false);
-        btnGuardar.setPreferredSize(new java.awt.Dimension(185, 36));
-        btnCancelar.setPreferredSize(new java.awt.Dimension(115, 36));
-        btnLimpiar.setPreferredSize(new java.awt.Dimension(105, 36));
+        btnGuardar.setPreferredSize(new java.awt.Dimension(153, 30));
+        btnCancelar.setPreferredSize(new java.awt.Dimension(88, 30));
+        btnLimpiar.setPreferredSize(new java.awt.Dimension(83, 30));
         botones.add(btnGuardar);
         botones.add(btnCancelar);
         botones.add(btnLimpiar);
@@ -977,7 +977,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnCambiarEstado.setVisible(clinico);
         btnEditar.setVisible(clinico);
         btnEliminar.setVisible(sesion.puede("FormConsulta.CANCELAR"));
-        btnEliminar.setText("Cancelar consulta");
+        btnEliminar.setText("Cancelar");
+        btnEliminar.setToolTipText("Cancelar la consulta seleccionada sin borrar su registro.");
         btnImprimirVisita.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
         btnImprimirListaVisitas.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
     }
@@ -1038,7 +1039,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbPatologia.setEnabled(false); // Diagnóstico exclusivo de atención clínica.
             jcbVeterinario.setEnabled(false); // Asignación dinámica al iniciar la atención.
             jcbVeterinario.setToolTipText("Se asignará automáticamente cuando un veterinario esté disponible.");
-            lbVeterinarioAsignado.setText("Veterinario (asignación automática)");
+            lbVeterinarioAsignado.setText("Veterinario");
             jcbEstado.setEnabled(false); // Siempre inicia EN ESPERA; se cambia desde la lista.
             jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
             prioridadConsulta.setEnabled(true);
@@ -1059,7 +1060,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbMotivo.setEnabled(false);
             jcbPatologia.setEnabled(usuarioClinico());
             jcbVeterinario.setEnabled(false);
-            lbVeterinarioAsignado.setText("Veterinario asignado");
+            lbVeterinarioAsignado.setText("Veterinario");
 
             jcbEstado.setEnabled(false); // El estado se cambia solo desde Cambiar estado.
             prioridadConsulta.setEnabled(false);
