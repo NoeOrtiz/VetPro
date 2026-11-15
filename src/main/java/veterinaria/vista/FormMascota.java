@@ -777,7 +777,7 @@ public class FormMascota extends javax.swing.JPanel {
         javax.swing.JScrollPane area = new javax.swing.JScrollPane(texto);
         area.setPreferredSize(new java.awt.Dimension(320, 85));
         panel.add(area, c);
-        int opcion = JOptionPane.showConfirmDialog(this, panel,
+        int opcion = JOptionPane.showConfirmDialog(javax.swing.SwingUtilities.getWindowAncestor(this), panel,
                 "Solicitud de " + causa, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (opcion != JOptionPane.OK_OPTION) return;
         try {
@@ -785,13 +785,14 @@ public class FormMascota extends javax.swing.JPanel {
                     seleccionada.getIdMascota(), sesion.getUsuario().getIdUsuario(),
                     "Urgente".equals(prioridad.getSelectedItem()) ? "URGENTE" : "NORMAL",
                     texto.getText());
-            JOptionPane.showMessageDialog(this,
-                    "Solicitud Nº " + id + " registrada.\n"
-                    + "El objetivo de resolución es de hasta 24 horas; no es una espera obligatoria.\n"
+            JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                    "Solicitud N.º " + id + " registrada correctamente.\n"
+                    + "Ese número identifica su pedido de " + causa + ".\n\n"
+                    + "La solicitud puede demorar hasta 24 horas; no es una espera obligatoria.\n"
                     + "Las urgencias deben informarse al responsable de la clínica.",
                     "Solicitud pendiente", JOptionPane.INFORMATION_MESSAGE);
         } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this, "No se pudo registrar la solicitud:\n" + ex.getMessage(),
+            JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this), "No se pudo registrar la solicitud:\n" + ex.getMessage(),
                     "Solicitud no registrada", JOptionPane.WARNING_MESSAGE);
         }
     }
