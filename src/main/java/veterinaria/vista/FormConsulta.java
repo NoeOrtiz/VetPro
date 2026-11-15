@@ -67,6 +67,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         initComponents();
         configurarPresentacionConsultas();
         PermisoUI.aplicar(this);
+        configurarAccionesPorRol();
 
         // Estado inicial de acciones
         btnEditar.setEnabled(false);
@@ -555,18 +556,23 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filtros.add(estado);
         herramientas.add(filtros, java.awt.BorderLayout.WEST);
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
+        // Dos filas por función: evita controles encimados en ventanas reducidas.
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 4));
         acciones.setOpaque(false);
-        javax.swing.JPanel accionPrincipal = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
-        accionPrincipal.setOpaque(false);
-        for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnLlamarSiguiente, btnCambiarEstado, btnEliminar})
-            accionPrincipal.add(boton);
-        acciones.add(accionPrincipal, java.awt.BorderLayout.SOUTH);
-        javax.swing.JPanel impresion = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
-        impresion.setOpaque(false);
-        impresion.add(btnImprimirVisita);
-        acciones.add(impresion, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel accionesRecepcion = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        accionesRecepcion.setOpaque(false);
+        accionesRecepcion.add(btnNuevo);
+        accionesRecepcion.add(btnEliminar);
+        accionesRecepcion.add(btnImprimirVisita);
+        javax.swing.JPanel accionesClinicas = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        accionesClinicas.setOpaque(false);
+        accionesClinicas.add(btnLlamarSiguiente);
+        accionesClinicas.add(btnEditar);
+        accionesClinicas.add(btnCambiarEstado);
+        acciones.add(accionesRecepcion);
+        acciones.add(accionesClinicas);
         herramientas.add(acciones, java.awt.BorderLayout.EAST);
         jpHeader.add(herramientas, java.awt.BorderLayout.CENTER);
         jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
@@ -869,7 +875,23 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             btnCambiarEstado.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
                     && !jpDatos.isVisible());
         // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
-        btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible());
+        btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible()
+                && Application.getSesionUsuario() != null
+                && Application.getSesionUsuario().puede("FormConsulta.ELIMINAR"));
+    }
+
+    private void configurarAccionesPorRol() {
+        veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
+        if (sesion == null) return;
+        boolean clinico = usuarioClinico();
+        // Los permisos históricos del módulo siguen siendo FormVisita.*.
+        btnNuevo.setEnabled(sesion.puede("FormConsulta.NUEVO"));
+        btnLlamarSiguiente.setVisible(clinico);
+        btnCambiarEstado.setVisible(clinico);
+        btnEditar.setVisible(clinico);
+        btnEliminar.setVisible(sesion.puede("FormConsulta.ELIMINAR"));
+        btnImprimirVisita.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
+        btnImprimirListaVisitas.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
     }
 
     private boolean usuarioClinico() {
@@ -1305,16 +1327,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         if (viewRow < 0) {
             return;
-        }
-
-        // Habilitar acciones sobre selección (solo si estamos en modo lista)
-        try {
-            if (!jpDatos.isVisible()) {
-                btnEditar.setEnabled(true);
-                btnEliminar.setEnabled(true);
-            }
-        } catch (Exception ex) {
-            veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
         }
 
         // Selección visual de la fila
