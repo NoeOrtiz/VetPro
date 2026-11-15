@@ -2041,8 +2041,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 visita.setPatologia((String) jcbPatologia.getSelectedItem());
                 visita.setTratamiento(txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "");
             }
-            visita.setFecha(jdcFecha.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
-            visita.setHora(((Date) spinnerHora.getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalTime());
+            // La recepción registra fecha y hora reales del sistema al guardar el ticket.
+            // Al actualizar una consulta clínica se conservan sus datos temporales históricos.
+            if (registroInicial) {
+                visita.setFecha(LocalDate.now());
+                visita.setHora(LocalTime.now().withSecond(0).withNano(0));
+            }
             // EstadoVisita ahora es un enum (no String)
             Constantes.EstadoVisita estadoSel = (Constantes.EstadoVisita) jcbEstado.getSelectedItem();
             visita.setEstado(estadoSel != null ? estadoSel.name() : Constantes.EstadoVisita.EN_ESPERA.name());
