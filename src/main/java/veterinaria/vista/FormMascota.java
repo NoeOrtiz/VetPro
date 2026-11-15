@@ -1157,6 +1157,14 @@ public class FormMascota extends javax.swing.JPanel {
                 + String.valueOf(c.getPersona().getNombre())).trim();
     }
 
+    private java.awt.GridBagConstraints configurarFilaTransferencia(
+            java.awt.GridBagConstraints base, int fila, int arriba, int abajo) {
+        java.awt.GridBagConstraints c = (java.awt.GridBagConstraints) base.clone();
+        c.gridy = fila;
+        c.insets = new java.awt.Insets(arriba, 0, abajo, 0);
+        return c;
+    }
+
     private void mostrarTransferenciaMascota() {
         if (sesion == null || !sesion.puede("FormMascota.EDITAR")) {
             JOptionPane.showMessageDialog(this, "No tiene permisos para transferir pacientes.",
@@ -1187,18 +1195,35 @@ public class FormMascota extends javax.swing.JPanel {
         javax.swing.JTextArea observaciones = new javax.swing.JTextArea(3, 25);
         observaciones.setLineWrap(true);
         observaciones.setWrapStyleWord(true);
-        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(0, 1, 0, 5));
-        panel.add(new javax.swing.JLabel("Paciente: " + seleccionada.getNombre()));
+        // Formulario compacto: conservar tema FlatLaf sin filas de altura uniforme.
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        panel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 12, 8, 12));
+        java.awt.GridBagConstraints pc = new java.awt.GridBagConstraints();
+        pc.gridx = 0;
+        pc.gridy = 0;
+        pc.weightx = 1;
+        pc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        pc.anchor = java.awt.GridBagConstraints.WEST;
+        pc.insets = new java.awt.Insets(0, 0, 8, 0);
+        panel.add(new javax.swing.JLabel("Paciente: " + seleccionada.getNombre()), pc);
         Cliente actual = seleccionada.getCliente();
         panel.add(new javax.swing.JLabel("Dueño actual: " + (actual == null ? "-" :
                 actual.getPersona() == null ? "Cliente " + actual.getIdCliente() :
-                actual.getPersona().getApellido() + " " + actual.getPersona().getNombre())));
-        panel.add(new javax.swing.JLabel("Nuevo propietario *"));
-        panel.add(nuevos);
-        panel.add(new javax.swing.JLabel("Motivo *"));
-        panel.add(motivos);
-        panel.add(new javax.swing.JLabel("Observaciones"));
-        panel.add(new javax.swing.JScrollPane(observaciones));
+                actual.getPersona().getApellido() + " " + actual.getPersona().getNombre())),
+                configurarFilaTransferencia(pc, 1, 0, 14));
+        panel.add(new javax.swing.JLabel("Nuevo propietario *"),
+                configurarFilaTransferencia(pc, 2, 0, 4));
+        nuevos.setPreferredSize(new java.awt.Dimension(320, 32));
+        panel.add(nuevos, configurarFilaTransferencia(pc, 3, 0, 12));
+        panel.add(new javax.swing.JLabel("Motivo *"),
+                configurarFilaTransferencia(pc, 4, 0, 4));
+        motivos.setPreferredSize(new java.awt.Dimension(320, 32));
+        panel.add(motivos, configurarFilaTransferencia(pc, 5, 0, 12));
+        panel.add(new javax.swing.JLabel("Observaciones"),
+                configurarFilaTransferencia(pc, 6, 0, 4));
+        javax.swing.JScrollPane areaObservaciones = new javax.swing.JScrollPane(observaciones);
+        areaObservaciones.setPreferredSize(new java.awt.Dimension(320, 74));
+        panel.add(areaObservaciones, configurarFilaTransferencia(pc, 7, 0, 0));
         int opcion = JOptionPane.showConfirmDialog(this, panel, "Cambiar propietario",
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (opcion != JOptionPane.OK_OPTION) return;
@@ -1220,7 +1245,7 @@ public class FormMascota extends javax.swing.JPanel {
         }
         int confirmar = JOptionPane.showConfirmDialog(this,
                 "¿Confirma la transferencia de " + seleccionada.getNombre()
-                        + "?\\nSe conservará toda su historia clínica.",
+                        + "?\nSe conservará toda su historia clínica.",
                 "Confirmar transferencia", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (confirmar != JOptionPane.YES_OPTION) return;
         try {
@@ -1234,8 +1259,8 @@ public class FormMascota extends javax.swing.JPanel {
         } catch (RuntimeException ex) {
             Logger.getLogger(FormMascota.class.getName()).log(Level.SEVERE, "Transferencia fallida", ex);
             JOptionPane.showMessageDialog(this,
-                    "No se realizó la transferencia.\\n" + ex.getMessage()
-                    + "\\nVerifique que se haya ejecutado la migración SQL.",
+                    "No se realizó la transferencia.\n" + ex.getMessage()
+                    + "\nVerifique que se haya ejecutado la migración SQL.",
                     "Transferencia no realizada", JOptionPane.ERROR_MESSAGE);
         }
     }
