@@ -941,6 +941,7 @@ public class FormMascota extends javax.swing.JPanel {
 
     private javax.swing.JButton cancelarSeleccionMascota;
     private javax.swing.JButton verInfoMascota;
+    private javax.swing.JButton cambiarDuenoMascota;
     private javax.swing.JComboBox<String> filtroEstadoMascota;
 
     private void configurarBarraAccionesMascota() {
@@ -988,17 +989,19 @@ public class FormMascota extends javax.swing.JPanel {
         });
         verInfoMascota = new javax.swing.JButton("Ver Info");
         verInfoMascota.addActionListener(e -> mostrarInfoMascota());
+        cambiarDuenoMascota = new javax.swing.JButton("Cambiar dueño");
+        cambiarDuenoMascota.addActionListener(e -> mostrarTransferenciaMascota());
         java.awt.GridBagConstraints ac = new java.awt.GridBagConstraints();
         ac.insets = new java.awt.Insets(0, 2, 0, 2);
         ac.gridy = 1;
         int columna = 0;
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnEliminar, verInfoMascota, cancelarSeleccionMascota}) {
-            boton.setPreferredSize(new java.awt.Dimension(78, 28));
+                btnNuevo, btnEditar, btnEliminar, verInfoMascota, cambiarDuenoMascota, cancelarSeleccionMascota}) {
+            boton.setPreferredSize(new java.awt.Dimension(boton == cambiarDuenoMascota ? 110 : 78, 28));
             ac.gridx = columna++;
             acciones.add(boton, ac);
         }
-        ac.gridx = 4;
+        ac.gridx = 5;
         ac.gridy = 0;
         ac.anchor = java.awt.GridBagConstraints.EAST;
         btnImprimir.setPreferredSize(new java.awt.Dimension(83, 28));
@@ -1015,6 +1018,8 @@ public class FormMascota extends javax.swing.JPanel {
         btnEditar.setVisible(haySeleccion && !panelDatos.isVisible());
         btnEliminar.setVisible(haySeleccion && !panelDatos.isVisible());
         if (verInfoMascota != null) verInfoMascota.setVisible(haySeleccion && !panelDatos.isVisible());
+        if (cambiarDuenoMascota != null) cambiarDuenoMascota.setVisible(haySeleccion && !panelDatos.isVisible()
+                && sesion != null && sesion.puede("FormMascota.EDITAR"));
         if (cancelarSeleccionMascota != null) {
             cancelarSeleccionMascota.setVisible(haySeleccion && !panelDatos.isVisible());
         }
@@ -1093,6 +1098,89 @@ public class FormMascota extends javax.swing.JPanel {
         ficha.setPreferredSize(new java.awt.Dimension(600, 340));
         JOptionPane.showMessageDialog(this, ficha, "Información del Paciente · Solo lectura",
                 JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private void mostrarTransferenciaMascota() {
+        if (sesion == null || !sesion.puede("FormMascota.EDITAR")) {
+            JOptionPane.showMessageDialog(this, "No tiene permisos para transferir pacientes.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        Mascota seleccionada = obtenerMascotaSeleccionadaDesdeTabla();
+        if (seleccionada == null) return;
+        if (!seleccionada.isActivo()) {
+            JOptionPane.showMessageDialog(this,
+                    "El paciente está inactivo. No se puede transferir.",
+                    "Transferencia no permitida", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        java.util.List<Cliente> clientes = operandoCliente.buscarClientesActivos();
+        javax.swing.JComboBox<ClienteItem> nuevos = new javax.swing.JComboBox<>();
+        nuevos.addItem(new ClienteItem(0, "Seleccionar"));
+        for (Cliente c : clientes) {
+            if (c.getIdCliente() == null || (seleccionada.getCliente() != null
+                    && c.getIdCliente().equals(seleccionada.getCliente().getIdCliente()))) continue;
+            String nombre = c.getPersona() == null ? "Cliente " + c.getIdCliente()
+                    : String.valueOf(c.getPersona().getApellido()) + " "
+                    + String.valueOf(c.getPersona().getNombre());
+            nuevos.addItem(new ClienteItem(c.getIdCliente(), nombre.trim()));
+        }
+        javax.swing.JComboBox<String> motivos = new javax.swing.JComboBox<>(
+                new String[]{"Adopción", "Transferencia entre refugios", "Cambio de responsable", "Otro"});
+        javax.swing.JTextArea observaciones = new javax.swing.JTextArea(3, 25);
+        observaciones.setLineWrap(true);
+        observaciones.setWrapStyleWord(true);
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(0, 1, 0, 5));
+        panel.add(new javax.swing.JLabel("Paciente: " + seleccionada.getNombre()));
+        Cliente actual = seleccionada.getCliente();
+        panel.add(new javax.swing.JLabel("Dueño actual: " + (actual == null ? "-" :
+                actual.getPersona() == null ? "Cliente " + actual.getIdCliente() :
+                actual.getPersona().getApellido() + " " + actual.getPersona().getNombre())));
+        panel.add(new javax.swing.JLabel("Nuevo propietario *"));
+        panel.add(nuevos);
+        panel.add(new javax.swing.JLabel("Motivo *"));
+        panel.add(motivos);
+        panel.add(new javax.swing.JLabel("Observaciones"));
+        panel.add(new javax.swing.JScrollPane(observaciones));
+        int opcion = JOptionPane.showConfirmDialog(this, panel, "Cambiar propietario",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (opcion != JOptionPane.OK_OPTION) return;
+        ClienteItem elegido = (ClienteItem) nuevos.getSelectedItem();
+        if (elegido == null || elegido.getIdCliente() == null || elegido.getIdCliente() == 0) {
+            JOptionPane.showMessageDialog(this, "Seleccione un nuevo propietario activo.",
+                    "Dato obligatorio", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String motivo = String.valueOf(motivos.getSelectedItem());
+        if ("Otro".equals(motivo)) {
+            motivo = JOptionPane.showInputDialog(this, "Indique el motivo (máximo 100 caracteres):");
+            if (motivo == null) return;
+        }
+        if (motivo.isBlank() || motivo.length() > 100 || observaciones.getText().length() > 500) {
+            JOptionPane.showMessageDialog(this, "Revise el motivo (1 a 100 caracteres) y "
+                    + "las observaciones (máximo 500).", "Datos inválidos", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        int confirmar = JOptionPane.showConfirmDialog(this,
+                "¿Confirma la transferencia de " + seleccionada.getNombre()
+                        + "?\\nSe conservará toda su historia clínica.",
+                "Confirmar transferencia", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (confirmar != JOptionPane.YES_OPTION) return;
+        try {
+            Integer usuarioId = sesion.getUsuario() == null ? null : sesion.getUsuario().getIdUsuario();
+            new veterinaria.servicio.TransferenciaMascotaService().transferir(
+                    seleccionada.getIdMascota(), elegido.getIdCliente(), motivo,
+                    observaciones.getText(), usuarioId);
+            cargarDatosTablaMascota();
+            cargarClientesEnCombo();
+            JOptionPane.showMessageDialog(this, "Propietario actualizado. El historial del paciente se conserva.");
+        } catch (RuntimeException ex) {
+            Logger.getLogger(FormMascota.class.getName()).log(Level.SEVERE, "Transferencia fallida", ex);
+            JOptionPane.showMessageDialog(this,
+                    "No se realizó la transferencia.\\n" + ex.getMessage()
+                    + "\\nVerifique que se haya ejecutado la migración SQL.",
+                    "Transferencia no realizada", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void imprimirRegistroSeleccionado() {
@@ -1208,6 +1296,7 @@ public class FormMascota extends javax.swing.JPanel {
         mascota.setTamano(jcbTamaño.getSelectedItem().toString());
         mascota.setPeso(normalizarPeso(txtPeso.getText()));
 
+        // En edición el dueño se conserva. Las transferencias utilizan su circuito auditado.
         // Dueño: setear explícitamente desde el combo (no depender del ActionListener)
         try {
             ClienteItem item = (ClienteItem) jcbDueño.getSelectedItem();
@@ -1219,7 +1308,7 @@ public class FormMascota extends javax.swing.JPanel {
                         cacheClientesPorId.put(item.getIdCliente(), c);
                     }
                 }
-                mascota.setCliente(c);
+                if ("CreandoMascota".equals(Application.consultarEstadoUsuario())) mascota.setCliente(c);
             }
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormMascota.class, "Excepción no fatal en UI", ex);
