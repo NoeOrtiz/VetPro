@@ -1400,6 +1400,9 @@ public class FormMascota extends javax.swing.JPanel {
             originalCastrado = mascota.getCastrado();
             originalFechaNacimiento = mascota.getFechaNacimiento();
             originalIdCliente = (mascota.getCliente() != null) ? mascota.getCliente().getIdCliente() : null;
+            // El cambio de propietario está reservado al circuito de transferencia.
+            jcbDueño.setEnabled(false);
+            jcbDueño.setToolTipText("Para cambiar el propietario, utilice Cambiar dueño desde la lista.");
 
             txtNombre.setText(mascota.getNombre());
             jcbSexo.setSelectedItem(mascota.getSexo());
