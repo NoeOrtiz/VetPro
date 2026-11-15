@@ -1643,7 +1643,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 "La mascota " + mascotaSeleccionada.getNombre() + " figura como inactiva.\n\n"
                 + "Se guardará una CONSULTA PROVISORIA por una atención urgente.\n"
                 + "Quedará relacionada con la solicitud de reactivación N.º " + solicitud + ".\n"
-                + "Ese número permite identificar y consultar el pedido.\n\n"
                 + "La consulta NO reactiva a la mascota ni modifica su motivo de baja.\n\n"
                 + "¿Desea guardar esta atención urgente?",
                 "Confirmar consulta provisoria", JOptionPane.YES_NO_OPTION,
