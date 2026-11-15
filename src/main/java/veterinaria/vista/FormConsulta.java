@@ -1259,8 +1259,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new String[]{"En curso", "Finalizadas", "Todas"});
         filtro.setSelectedItem(jcbEstadoFiltro.getSelectedItem());
         javax.swing.JComboBox<String> formato = new javax.swing.JComboBox<>(
-                new String[]{"PDF", "Excel (.xls)"});
-        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(4, 1, 0, 8));
+                new String[]{"PDF", "Excel (XLS)"});
+        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 2, 10, 10));
         opciones.add(new javax.swing.JLabel("Consultas a incluir:"));
         opciones.add(filtro);
         opciones.add(new javax.swing.JLabel("Formato:"));
