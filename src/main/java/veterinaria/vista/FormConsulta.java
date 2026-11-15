@@ -59,7 +59,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private static final int[] COLUMNAS_BUSQUEDA = {2, 3, 4, 5, 9};
     private veterinaria.util.PaginacionTablas paginacionConsultas;
     private javax.swing.JButton btnCambiarEstado;
-    private final java.util.Map<String, Integer> cargaVeterinarios = new java.util.HashMap<>();
+    private final javax.swing.JComboBox<String> prioridadConsulta =
+            new javax.swing.JComboBox<>(new String[]{"CONTROL", "URGENCIA", "EMERGENCIA"});
+    private javax.swing.JButton btnLlamarSiguiente;
 
     public FormConsulta() {
         initComponents();
@@ -526,6 +528,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         setMinimumSize(new java.awt.Dimension(0, 0));
 
         btnCambiarEstado = new javax.swing.JButton("Cambiar estado");
+        btnLlamarSiguiente = new javax.swing.JButton("Llamar siguiente");
+        btnLlamarSiguiente.addActionListener(e -> llamarSiguientePaciente());
         btnCambiarEstado.addActionListener(e -> avanzarEstadoSeleccionado());
         btnCambiarEstado.setEnabled(false);
 
@@ -564,7 +568,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel accionPrincipal = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
         accionPrincipal.setOpaque(false);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnCambiarEstado, btnEliminar})
+                btnNuevo, btnEditar, btnLlamarSiguiente, btnCambiarEstado, btnEliminar})
             accionPrincipal.add(boton);
         acciones.add(accionPrincipal, java.awt.BorderLayout.SOUTH);
         javax.swing.JPanel impresion = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
@@ -576,6 +580,17 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
         jpHeader.revalidate();
         jpHeader.repaint();
+
+        javax.swing.JPanel cabeceraClinica = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        cabeceraClinica.setOpaque(false);
+        cabeceraClinica.add(lbDatos, java.awt.BorderLayout.WEST);
+        javax.swing.JPanel grupoPrioridad = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        grupoPrioridad.setOpaque(false);
+        grupoPrioridad.add(new javax.swing.JLabel("Prioridad de atención:"));
+        prioridadConsulta.setPreferredSize(new java.awt.Dimension(145, 28));
+        grupoPrioridad.add(prioridadConsulta);
+        cabeceraClinica.add(grupoPrioridad, java.awt.BorderLayout.EAST);
+        ((javax.swing.GroupLayout) jpDatos.getLayout()).replace(lbDatos, cabeceraClinica);
     }
 
     private boolean coincideEstadoModelo(int fila) {
