@@ -56,6 +56,13 @@ public class NotificationBell extends JPanel {
     private boolean cargando;
     private long cantidad;
     private ResumenInicioService.Indicadores ultimos;
+    private long solicitudesPendientes;
+    private boolean esAdmin() {
+        veterinaria.util.SesionUsuario sesion = veterinaria.vista.application.Application.getSesionUsuario();
+        return sesion != null && sesion.getRol() != null
+                && "Administrador".equalsIgnoreCase(sesion.getRol().getNombreRol());
+    }
+
 
     public NotificationBell() {
         setOpaque(false);
@@ -95,6 +102,17 @@ public class NotificationBell extends JPanel {
                     ultimos = get();
                     cantidad = ultimos.productosStockCritico
                             + (ultimos.pacientesEnEspera > 0 ? 1 : 0);
+                    // La cuenta de solicitudes se consulta al abrir la campanita.
+                    if (esAdmin()) {
+                        try {
+                            solicitudesPendientes = new veterinaria.servicio.SolicitudReactivacionService()
+                                    .contarPendientes();
+                            cantidad += solicitudesPendientes;
+                        } catch (RuntimeException ex) {
+                            Logger.getLogger(NotificationBell.class.getName()).log(
+                                    Level.WARNING, "No se pudieron cargar solicitudes", ex);
+                        }
+                    }
                     boton.repaint();
                     if (popup.isVisible()) construirPopup();
                 } catch (InterruptedException ex) {
@@ -130,12 +148,77 @@ public class NotificationBell extends JPanel {
                 agregarFila(panel, "Stock crítico", ultimos.productosStockCritico + " producto(s) con stock mínimo o inferior");
             if (ultimos.pacientesEnEspera > 0)
                 agregarFila(panel, "Pacientes en espera", ultimos.pacientesEnEspera + " pendiente(s) de atención");
+            if (esAdmin() && solicitudesPendientes > 0) {
+                JButton solicitudes = new JButton("Solicitudes de reactivación (" + solicitudesPendientes + ")");
+                solicitudes.setAlignmentX(Component.LEFT_ALIGNMENT);
+                solicitudes.addActionListener(e -> {
+                    popup.setVisible(false);
+                    abrirSolicitudes();
+                });
+                panel.add(solicitudes);
+                panel.add(Box.createVerticalStrut(10));
+            }
             if (cantidad == 0)
                 agregarFila(panel, "Todo al día", "No hay alertas pendientes");
         }
         popup.add(panel);
         popup.revalidate();
         popup.repaint();
+    }
+
+    private void abrirSolicitudes() {
+        if (!esAdmin()) return;
+        try {
+            veterinaria.servicio.SolicitudReactivacionService servicio =
+                    new veterinaria.servicio.SolicitudReactivacionService();
+            java.util.List<Object[]> pendientes = servicio.listarPendientes();
+            if (pendientes.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay solicitudes pendientes.");
+                refrescar();
+                return;
+            }
+            String[] opciones = new String[pendientes.size()];
+            for (int i = 0; i < pendientes.size(); i++) {
+                Object[] s = pendientes.get(i);
+                opciones[i] = "#" + s[0] + " · " + s[1] + " · " + s[2]
+                        + " · " + s[3] + " · " + s[5];
+            }
+            Object seleccionado = JOptionPane.showInputDialog(this,
+                    "Seleccione una solicitud para revisar:",
+                    "Solicitudes pendientes", JOptionPane.PLAIN_MESSAGE,
+                    null, opciones, opciones[0]);
+            if (seleccionado == null) return;
+            int indice = java.util.Arrays.asList(opciones).indexOf(seleccionado.toString());
+            if (indice < 0) return;
+            Object[] item = pendientes.get(indice);
+            javax.swing.JTextArea descripcion = new javax.swing.JTextArea(
+                    "Paciente: " + item[1] + "\nTipo: " + item[2]
+                    + "\nPrioridad: " + item[3]
+                    + "\nMotivo de baja original: " + item[7]
+                    + "\nJustificación: " + item[4], 7, 38);
+            descripcion.setEditable(false);
+            descripcion.setLineWrap(true);
+            descripcion.setWrapStyleWord(true);
+            Object[] acciones = {"Aprobar", "Rechazar", "Volver"};
+            int accion = JOptionPane.showOptionDialog(this,
+                    new JScrollPane(descripcion), "Resolver solicitud #" + item[0],
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    null, acciones, acciones[2]);
+            if (accion < 0 || accion == 2) return;
+            String justificacion = JOptionPane.showInputDialog(this,
+                    "Indique el fundamento de la " + (accion == 0 ? "aprobación" : "rechazo") + ":",
+                    "Resolución de solicitud", JOptionPane.QUESTION_MESSAGE);
+            if (justificacion == null) return;
+            veterinaria.util.SesionUsuario sesion =
+                    veterinaria.vista.application.Application.getSesionUsuario();
+            servicio.resolver(((Number)item[0]).intValue(),
+                    sesion.getUsuario().getIdUsuario(), accion == 0, justificacion);
+            JOptionPane.showMessageDialog(this, "Solicitud resuelta correctamente.");
+            refrescar();
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo resolver la solicitud:\n" + ex.getMessage(),
+                    "Solicitud pendiente", JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     private void agregarFila(JPanel panel, String titulo, String detalle) {
