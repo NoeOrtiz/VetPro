@@ -777,7 +777,15 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     && seleccionada.getUsuarioAtiende() != null
                     && sesion.getNombreApellido().trim().equalsIgnoreCase(
                             seleccionada.getUsuarioAtiende().trim())) {
-                llamarSiguientePaciente();
+                String profesionalActual = sesion.getNombreApellido().trim();
+                java.util.List<Visita> pendientes = visitaControlador.obtenerTodasLasVisitas();
+                boolean sigueAtendiendo = pendientes.stream().anyMatch(v ->
+                        "ATENDIENDO".equals(normalizarEstadoBD(v.getEstado()))
+                        && profesionalActual.equalsIgnoreCase(
+                                v.getUsuarioAtiende() == null ? "" : v.getUsuarioAtiende().trim()));
+                boolean haySiguiente = pendientes.stream().anyMatch(v ->
+                        "EN_ESPERA".equals(normalizarEstadoBD(v.getEstado())));
+                if (!sigueAtendiendo && haySiguiente) llamarSiguientePaciente();
             }
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
