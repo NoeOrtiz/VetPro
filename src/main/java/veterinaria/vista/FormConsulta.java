@@ -1618,7 +1618,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 && !"Administrador".equalsIgnoreCase(rol)) {
             JOptionPane.showMessageDialog(this,
                     "El paciente está inactivo. Solo el veterinario o administrador "
-                    + "pueden registrar una atención urgente provisional.",
+                    + "pueden registrar una atención urgente provisoria.",
                     "Atención restringida", JOptionPane.WARNING_MESSAGE);
             return false;
         }
@@ -1634,18 +1634,19 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
         if (solicitud == null) {
             JOptionPane.showMessageDialog(this,
-                    "El paciente está inactivo. Antes de registrar una atención provisional, "
-                    + "debe existir una solicitud de reactivación URGENTE y PENDIENTE.",
+                    "El paciente está inactivo. Para registrar una atención urgente provisoria, "
+                    + "primero debe existir una solicitud urgente que aún no haya sido resuelta.",
                     "Solicitud urgente requerida", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-        int confirmacion = JOptionPane.showConfirmDialog(this,
-                "La mascota " + mascotaSeleccionada.getNombre() + " permanece inactiva.\n"
-                + "Se registrará una consulta PROVISIONAL vinculada a la solicitud #"
-                + solicitud + ".\n"
-                + "Esto NO reactiva al paciente ni modifica el motivo de baja.\n"
-                + "¿Confirma que se trata de una atención urgente?",
-                "Atención urgente provisional", JOptionPane.YES_NO_OPTION,
+        int confirmacion = JOptionPane.showConfirmDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                "La mascota " + mascotaSeleccionada.getNombre() + " figura como inactiva.\n\n"
+                + "Se guardará una CONSULTA PROVISORIA por una atención urgente.\n"
+                + "Quedará relacionada con la solicitud de reactivación N.º " + solicitud + ".\n"
+                + "Ese número permite identificar y consultar el pedido.\n\n"
+                + "La consulta NO reactiva a la mascota ni modifica su motivo de baja.\n\n"
+                + "¿Desea guardar esta atención urgente?",
+                "Confirmar consulta provisoria", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
         if (confirmacion != JOptionPane.YES_OPTION) return false;
         visita.setAtencionProvisional(true);
