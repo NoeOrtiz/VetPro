@@ -1258,9 +1258,13 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JComboBox<String> filtro = new javax.swing.JComboBox<>(
                 new String[]{"En curso", "Finalizadas", "Todas"});
         filtro.setSelectedItem(jcbEstadoFiltro.getSelectedItem());
-        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 8));
+        javax.swing.JComboBox<String> formato = new javax.swing.JComboBox<>(
+                new String[]{"PDF", "Excel (.xls)"});
+        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(4, 1, 0, 8));
         opciones.add(new javax.swing.JLabel("Consultas a incluir:"));
         opciones.add(filtro);
+        opciones.add(new javax.swing.JLabel("Formato:"));
+        opciones.add(formato);
         int decision = JOptionPane.showConfirmDialog(
                 javax.swing.SwingUtilities.getWindowAncestor(this), opciones,
                 "Configurar informe de consultas", JOptionPane.OK_CANCEL_OPTION,
@@ -1293,6 +1297,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         ReporteRequest req = new ReporteRequest()
                 .put("filas", filas)
                 .put("filtro", filtroElegido)
+                .put("FORMATO_REPORTE", formato.getSelectedIndex() == 0
+                    ? veterinaria.reportes.pdf.ReporteSelectorUtil.Formato.PDF
+                    : veterinaria.reportes.pdf.ReporteSelectorUtil.Formato.XLS)
                 .put("emisor", Application.getNombreApellidoUsuarioLogeado());
         veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this,
                 ReporteTipo.VISITA_LISTADO, req);
