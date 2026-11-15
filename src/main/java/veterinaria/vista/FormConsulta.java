@@ -573,6 +573,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void avanzarEstadoSeleccionado() {
+        veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
+        if (sesion == null || !sesion.puede("FormConsulta.EDITAR")) {
+            JOptionPane.showMessageDialog(this, "No tiene permiso para modificar consultas.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         Visita seleccionada = obtenerVisitaSeleccionadaDesdeTabla();
         if (seleccionada == null) return;
         String actual = normalizarEstadoBD(seleccionada.getEstado());
@@ -805,7 +811,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbMotivo.setEnabled(true);
             jcbPatologia.setEnabled(true);
             jcbVeterinario.setEnabled(true);
-            jcbEstado.setEnabled(true);
+            jcbEstado.setEnabled(false); // Siempre inicia EN ESPERA; se cambia desde la lista.
+            jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
             txtTratamiento.setEditable(true);
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
@@ -822,7 +829,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbPatologia.setEnabled(false);
             jcbVeterinario.setEnabled(false);
 
-            jcbEstado.setEnabled(true);
+            jcbEstado.setEnabled(false); // El estado se cambia solo desde Cambiar estado.
             txtTratamiento.setEditable(true);
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
