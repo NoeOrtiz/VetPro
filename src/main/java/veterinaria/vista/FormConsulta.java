@@ -63,6 +63,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             new javax.swing.JComboBox<>(new String[]{"CONTROL", "URGENCIA", "EMERGENCIA"});
     private javax.swing.JButton btnLlamarSiguiente;
     private javax.swing.JButton btnVerInfo;
+    private javax.swing.JButton btnQuitarSeleccion;
     private javax.swing.JPanel herramientasConsultas;
 
     public FormConsulta() {
@@ -532,6 +533,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnVerInfo = new javax.swing.JButton("Ver info");
         btnVerInfo.addActionListener(e -> mostrarInformacionConsulta());
         btnVerInfo.setEnabled(false);
+        btnQuitarSeleccion = new javax.swing.JButton("Limpiar selección");
+        btnQuitarSeleccion.setToolTipText("Desmarca la consulta sin modificar su estado.");
+        btnQuitarSeleccion.setEnabled(false);
+        btnQuitarSeleccion.addActionListener(e -> {
+            if (paginacionConsultas != null) paginacionConsultas.limpiarSeleccion();
+            tableVisitas.clearSelection();
+            actualizarBotonImprimir();
+        });
         btnLlamarSiguiente = new javax.swing.JButton("Llamar siguiente");
         btnLlamarSiguiente.setToolTipText("Asigna automáticamente el ticket de mayor prioridad disponible.");
         btnLlamarSiguiente.addActionListener(e -> llamarSiguientePaciente());
@@ -578,6 +587,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         accionesRecepcion.setOpaque(false);
         accionesRecepcion.add(btnNuevo);
         accionesRecepcion.add(btnVerInfo);
+        accionesRecepcion.add(btnQuitarSeleccion);
         accionesRecepcion.add(btnEliminar);
         accionesRecepcion.add(btnImprimirVisita);
         javax.swing.JPanel accionesClinicas = new javax.swing.JPanel(
@@ -911,6 +921,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
 
         boolean haySeleccion = (obtenerFilaSeleccionadaPorCheck() != -1);
+        if (btnQuitarSeleccion != null) btnQuitarSeleccion.setEnabled(haySeleccion && !jpDatos.isVisible());
 
         btnImprimirVisita.setVisible(haySeleccion && !jpDatos.isVisible());
         actualizarAccionesPorSeleccion();
@@ -977,7 +988,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnCambiarEstado.setVisible(clinico);
         btnEditar.setVisible(clinico);
         btnEliminar.setVisible(sesion.puede("FormConsulta.CANCELAR"));
-        btnEliminar.setText("Cancelar");
+        btnQuitarSeleccion.setVisible(true);
+        btnEliminar.setText("Cancelar consulta");
         btnEliminar.setToolTipText("Cancelar la consulta seleccionada sin borrar su registro.");
         btnImprimirVisita.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
         btnImprimirListaVisitas.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
@@ -1620,7 +1632,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             }
         });
 
-        btnEliminar.setText("Cancelar");
+        btnEliminar.setText("Cancelar consulta");
         btnEliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnEliminarActionPerformed(evt);
