@@ -62,6 +62,34 @@ public class VisitaDAO {
         }
     }
 
+    /** Cambio de estado atómico, sin editar datos clínicos ni crear otra visita. */
+    public Visita avanzarEstado(Integer idVisita, String esperado, String nuevoEstado) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            Visita managed = em.find(Visita.class, idVisita, LockModeType.PESSIMISTIC_WRITE);
+            if (managed == null) throw new IllegalArgumentException("No se encontró la consulta.");
+            String actual = managed.getEstado() == null ? "" : managed.getEstado().trim().toUpperCase();
+            if (!actual.equals(esperado))
+                throw new IllegalStateException("El estado de la consulta cambió. Actualice la lista.");
+            if (!(("EN_ESPERA".equals(actual) && "ATENDIENDO".equals(nuevoEstado))
+                    || ("ATENDIENDO".equals(actual) && "FINALIZADO".equals(nuevoEstado))))
+                throw new IllegalStateException("Solo se puede avanzar al siguiente estado de atención.");
+            managed.setEstado(nuevoEstado);
+            em.flush();
+            em.getTransaction().commit();
+            auditoriaService.registrar("CAMBIAR_ESTADO", "Visita", Long.valueOf(idVisita),
+                    "VisitaDAO", "Consulta: " + actual + " → " + nuevoEstado,
+                    AuditoriaService.RESULT_OK, null, null, null);
+            return managed;
+        } catch (RuntimeException ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw ex;
+        } finally {
+            em.close();
+        }
+    }
+
     public Visita buscarPorId(Integer idVisita) {
         EntityManager em = getEntityManager();
         Visita visita = em.find(Visita.class, idVisita);
