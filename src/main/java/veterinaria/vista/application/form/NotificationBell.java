@@ -182,7 +182,7 @@ public class NotificationBell extends JPanel {
             for (int i = 0; i < pendientes.size(); i++) {
                 Object[] s = pendientes.get(i);
                 opciones[i] = "#" + s[0] + " · " + s[1] + " · " + s[2]
-                        + " · " + s[3] + " · " + s[5];
+                        + " · " + s[3] + " · Solicitó: " + s[8];
             }
             Object seleccionado = JOptionPane.showInputDialog(this,
                     "Seleccione una solicitud para revisar:",
