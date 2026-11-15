@@ -852,11 +852,13 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jdcFecha.setEnabled(true);
             spinnerHora.setEnabled(true);
             jcbMotivo.setEnabled(true);
-            jcbPatologia.setEnabled(true);
-            jcbVeterinario.setEnabled(true);
+            jcbPatologia.setEnabled(false); // Diagnóstico exclusivo de atención clínica.
+            jcbVeterinario.setEnabled(usuarioClinico()); // Recepción usa asignación por menor carga.
             jcbEstado.setEnabled(false); // Siempre inicia EN ESPERA; se cambia desde la lista.
             jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
-            txtTratamiento.setEditable(true);
+            txtTratamiento.setEditable(false);
+            txtTratamiento.setText("");
+            lbTratamiento.setText("Tratamiento (completa el veterinario)");
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
         }
@@ -869,11 +871,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jdcFecha.setEnabled(false);
             spinnerHora.setEnabled(false);
             jcbMotivo.setEnabled(false);
-            jcbPatologia.setEnabled(false);
+            jcbPatologia.setEnabled(usuarioClinico());
             jcbVeterinario.setEnabled(false);
 
             jcbEstado.setEnabled(false); // El estado se cambia solo desde Cambiar estado.
-            txtTratamiento.setEditable(true);
+            txtTratamiento.setEditable(usuarioClinico());
+            lbTratamiento.setText("Tratamiento:");
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
         }
@@ -1194,13 +1197,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             JOptionPane.showMessageDialog(this, "Debe seleccionar un motivo de visita.");
             return false;
         }
-        if (jcbPatologia.getSelectedIndex() <= 0) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar una patología o diagnóstico.");
+        boolean esNueva = visita == null || visita.getIdVisita() == null;
+        if (!esNueva && usuarioClinico() && jcbPatologia.getSelectedIndex() <= 0) {
+            JOptionPane.showMessageDialog(this, "El veterinario debe completar el diagnóstico.");
             return false;
         }
         String tratamiento = txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "";
-        if (tratamiento.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Debe ingresar el tratamiento u observaciones de la visita.");
+        if (!esNueva && usuarioClinico() && tratamiento.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "El veterinario debe registrar el tratamiento o la evolución.");
             return false;
         }
         try {
@@ -1834,6 +1838,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (!validarFormulario()) {
             return;
         }
+        if (visita != null && visita.getIdVisita() != null && !usuarioClinico()) {
+            JOptionPane.showMessageDialog(this,
+                    "El diagnóstico y el tratamiento deben ser registrados por el veterinario.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         if (mascotaSeleccionada != null) {
             if (visita.getIdVisita() == null && !prepararAtencionProvisional()) return;
             String userGestion = Application.getNombreApellidoUsuarioLogeado();
@@ -1844,8 +1854,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             visita.setMascota(mascotaSeleccionada);
             visita.setCliente(mascotaSeleccionada.getCliente());
             visita.setMotivoVisita((String) jcbMotivo.getSelectedItem());
-            visita.setPatologia((String) jcbPatologia.getSelectedItem());
-            visita.setTratamiento(txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "");
+            boolean registroInicial = visita.getIdVisita() == null;
+            if (registroInicial) {
+                visita.setPatologia(null);
+                visita.setTratamiento("");
+            } else {
+                visita.setPatologia((String) jcbPatologia.getSelectedItem());
+                visita.setTratamiento(txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "");
+            }
             visita.setFecha(jdcFecha.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
             visita.setHora(((Date) spinnerHora.getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalTime());
             // EstadoVisita ahora es un enum (no String)
