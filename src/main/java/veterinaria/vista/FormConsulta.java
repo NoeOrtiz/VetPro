@@ -986,33 +986,85 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private void mostrarInformacionConsulta() {
         Visita v = obtenerVisitaSeleccionadaDesdeTabla();
         if (v == null) return;
-        String fecha = v.getFecha() == null ? "-" : v.getFecha().toString();
-        String hora = v.getHora() == null ? "-" : v.getHora().toString();
         String responsable = v.getCliente() == null || v.getCliente().getPersona() == null
                 ? "-" : v.getCliente().getPersona().getNombre() + " "
-                        + v.getCliente().getPersona().getApellido();
-        String texto = "Ticket N.º " + v.getIdVisita()
-                + "\nPaciente: " + (v.getMascota() == null ? "-" : v.getMascota().getNombre())
-                + "\nResponsable: " + responsable
-                + "\nFecha y hora: " + fecha + " " + hora
-                + "\nEstado: " + v.getEstado()
-                + "\nPrioridad: " + (v.getPrioridadAtencion() == null ? "CONTROL" : v.getPrioridadAtencion())
-                + "\nMotivo: " + (v.getMotivoVisita() == null ? "-" : v.getMotivoVisita())
-                + "\nVeterinario: " + (v.getUsuarioAtiende() == null || v.getUsuarioAtiende().isBlank()
-                        ? "Pendiente de asignación" : v.getUsuarioAtiende())
-                + "\nDiagnóstico: " + (v.getPatologia() == null || v.getPatologia().isBlank()
-                        ? "Pendiente" : v.getPatologia())
-                + "\nEvolución y tratamiento: " + (v.getTratamiento() == null || v.getTratamiento().isBlank()
-                        ? "Pendiente" : v.getTratamiento());
-        javax.swing.JTextArea area = new javax.swing.JTextArea(texto, 13, 46);
-        area.setEditable(false);
-        area.setLineWrap(true);
-        area.setWrapStyleWord(true);
-        area.setBackground(javax.swing.UIManager.getColor("Panel.background"));
-        javax.swing.JScrollPane contenido = new javax.swing.JScrollPane(area);
-        contenido.setPreferredSize(new java.awt.Dimension(520, 310));
-        JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
-                contenido, "Información de la consulta · Solo lectura", JOptionPane.PLAIN_MESSAGE);
+                    + v.getCliente().getPersona().getApellido();
+        String fecha = v.getFecha() == null ? "-" :
+                v.getFecha().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        String hora = v.getHora() == null ? "-" :
+                v.getHora().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+
+        javax.swing.JPanel ficha = new javax.swing.JPanel();
+        ficha.setLayout(new javax.swing.BoxLayout(ficha, javax.swing.BoxLayout.Y_AXIS));
+        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 18, 16, 18));
+        javax.swing.JLabel titulo = new javax.swing.JLabel("DATOS DE LA CONSULTA");
+        titulo.setForeground(new java.awt.Color(66, 190, 115));
+        titulo.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD, 12f));
+        titulo.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(titulo);
+        ficha.add(javax.swing.Box.createVerticalStrut(14));
+
+        String[][] campos = {
+            {"Ticket", "N.º " + v.getIdVisita()},
+            {"Estado", textoInfo(v.getEstado())},
+            {"Paciente", v.getMascota() == null ? "-" : textoInfo(v.getMascota().getNombre())},
+            {"Prioridad", textoInfo(v.getPrioridadAtencion())},
+            {"Responsable", textoInfo(responsable)},
+            {"Fecha y hora", fecha + "  " + hora},
+            {"Motivo", textoInfo(v.getMotivoVisita())},
+            {"Veterinario", textoInfo(v.getUsuarioAtiende())}
+        };
+        javax.swing.JPanel resumen = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
+        resumen.setOpaque(false);
+        for (String[] campo : campos) {
+            javax.swing.JPanel celda = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 3));
+            celda.setOpaque(false);
+            javax.swing.JLabel etiqueta = new javax.swing.JLabel(campo[0]);
+            etiqueta.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
+            javax.swing.JLabel valor = new javax.swing.JLabel(campo[1]);
+            valor.setFont(valor.getFont().deriveFont(java.awt.Font.BOLD));
+            celda.add(etiqueta);
+            celda.add(valor);
+            resumen.add(celda);
+        }
+        resumen.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(resumen);
+        ficha.add(javax.swing.Box.createVerticalStrut(16));
+
+        javax.swing.JLabel seccion = new javax.swing.JLabel("INFORMACIÓN CLÍNICA");
+        seccion.setForeground(new java.awt.Color(66, 190, 115));
+        seccion.setFont(seccion.getFont().deriveFont(java.awt.Font.BOLD, 12f));
+        seccion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(seccion);
+        ficha.add(javax.swing.Box.createVerticalStrut(10));
+        ficha.add(campoInfoConsulta("Diagnóstico", textoInfo(v.getPatologia())));
+        ficha.add(javax.swing.Box.createVerticalStrut(10));
+        ficha.add(campoInfoConsulta("Evolución y tratamiento", textoInfo(v.getTratamiento())));
+        ficha.setPreferredSize(new java.awt.Dimension(600, 405));
+        JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this), ficha,
+                "Información de la consulta · Solo lectura", JOptionPane.PLAIN_MESSAGE);
+    }
+
+    private String textoInfo(String valor) {
+        return valor == null || valor.isBlank() ? "-" : valor.trim();
+    }
+
+    private javax.swing.JPanel campoInfoConsulta(String etiqueta, String valor) {
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        panel.setOpaque(false);
+        panel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        javax.swing.JLabel titulo = new javax.swing.JLabel(etiqueta);
+        titulo.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
+        panel.add(titulo, java.awt.BorderLayout.NORTH);
+        javax.swing.JTextArea detalle = new javax.swing.JTextArea(valor, 2, 44);
+        detalle.setEditable(false);
+        detalle.setOpaque(false);
+        detalle.setLineWrap(true);
+        detalle.setWrapStyleWord(true);
+        detalle.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD));
+        panel.add(detalle, java.awt.BorderLayout.CENTER);
+        panel.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 75));
+        return panel;
     }
 
     private boolean usuarioClinico() {
