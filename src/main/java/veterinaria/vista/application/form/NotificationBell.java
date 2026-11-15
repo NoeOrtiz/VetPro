@@ -169,22 +169,25 @@ public class NotificationBell extends JPanel {
 
     private void abrirSolicitudes() {
         if (!esAdmin()) return;
+        java.awt.Component centro = SwingUtilities.getWindowAncestor(this);
         try {
             veterinaria.servicio.SolicitudReactivacionService servicio =
                     new veterinaria.servicio.SolicitudReactivacionService();
             java.util.List<Object[]> pendientes = servicio.listarPendientes();
             if (pendientes.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "No hay solicitudes pendientes.");
+                JOptionPane.showMessageDialog(centro, "No hay solicitudes pendientes.");
                 refrescar();
                 return;
             }
             String[] opciones = new String[pendientes.size()];
             for (int i = 0; i < pendientes.size(); i++) {
                 Object[] s = pendientes.get(i);
-                opciones[i] = "#" + s[0] + " · " + s[1] + " · " + s[2]
-                        + " · " + s[3] + " · Solicitó: " + s[8];
+                opciones[i] = "Solicitud N.º " + s[0] + " · " + s[1] + " · "
+                        + ("RECTIFICACION".equals(s[2]) ? "Corregir baja" : "Reactivar")
+                        + " · " + ("URGENTE".equals(s[3]) ? "Urgente" : "Normal")
+                        + " · Solicitó: " + s[8];
             }
-            Object seleccionado = JOptionPane.showInputDialog(this,
+            Object seleccionado = JOptionPane.showInputDialog(centro,
                     "Seleccione una solicitud para revisar:",
                     "Solicitudes pendientes", JOptionPane.PLAIN_MESSAGE,
                     null, opciones, opciones[0]);
@@ -192,34 +195,47 @@ public class NotificationBell extends JPanel {
             int indice = java.util.Arrays.asList(opciones).indexOf(seleccionado.toString());
             if (indice < 0) return;
             Object[] item = pendientes.get(indice);
+            String fechaSolicitud = String.valueOf(item[5]);
+            if (item[5] instanceof java.sql.Timestamp) {
+                fechaSolicitud = ((java.sql.Timestamp) item[5]).toLocalDateTime()
+                        .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            }
             javax.swing.JTextArea descripcion = new javax.swing.JTextArea(
-                    "Paciente: " + item[1] + "\nSolicitante: " + item[8]
-                    + "\nFecha de solicitud: " + item[5]
-                    + "\nTipo: " + item[2]
-                    + "\nPrioridad: " + item[3]
-                    + "\nMotivo de baja original: " + item[7]
-                    + "\nJustificación: " + item[4], 8, 38);
+                    "Paciente: " + item[1] + "\nSolicitado por: " + item[8]
+                    + "\nFecha: " + fechaSolicitud
+                    + "\nPedido: " + ("RECTIFICACION".equals(item[2])
+                            ? "Corregir una baja registrada por error" : "Reactivar al paciente")
+                    + "\nPrioridad: " + ("URGENTE".equals(item[3]) ? "Urgente" : "Normal")
+                    + "\nMotivo de baja registrado: " + (item[7] == null ? "-" : item[7])
+                    + "\nExplicación del solicitante: " + item[4], 8, 38);
             descripcion.setEditable(false);
             descripcion.setLineWrap(true);
             descripcion.setWrapStyleWord(true);
             Object[] acciones = {"Aprobar", "Rechazar", "Volver"};
-            int accion = JOptionPane.showOptionDialog(this,
-                    new JScrollPane(descripcion), "Resolver solicitud #" + item[0],
+            int accion = JOptionPane.showOptionDialog(centro,
+                    new JScrollPane(descripcion), "Revisar solicitud N.º " + item[0],
                     JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
                     null, acciones, acciones[2]);
             if (accion < 0 || accion == 2) return;
-            String justificacion = JOptionPane.showInputDialog(this,
-                    "Indique el fundamento de la " + (accion == 0 ? "aprobación" : "rechazo") + ":",
-                    "Resolución de solicitud", JOptionPane.QUESTION_MESSAGE);
+            String justificacion = JOptionPane.showInputDialog(centro,
+                    "Explique por qué " + (accion == 0 ? "aprueba" : "rechaza")
+                            + " la solicitud de " + item[1] + ":",
+                    "Motivo de la decisión", JOptionPane.QUESTION_MESSAGE);
             if (justificacion == null) return;
             veterinaria.util.SesionUsuario sesion =
                     veterinaria.vista.application.Application.getSesionUsuario();
             servicio.resolver(((Number)item[0]).intValue(),
                     sesion.getUsuario().getIdUsuario(), accion == 0, justificacion);
-            JOptionPane.showMessageDialog(this, "Solicitud resuelta correctamente.");
+            JOptionPane.showMessageDialog(centro,
+                    accion == 0
+                        ? "Solicitud aprobada. La mascota " + item[1]
+                            + " fue reactivada y el motivo de la decisión quedó registrado."
+                        : "Solicitud rechazada. La mascota " + item[1]
+                            + " continúa inactiva y el motivo de la decisión quedó registrado.",
+                    "Solicitud resuelta", JOptionPane.INFORMATION_MESSAGE);
             refrescar();
         } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this, "No se pudo resolver la solicitud:\n" + ex.getMessage(),
+            JOptionPane.showMessageDialog(centro, "No se pudo resolver la solicitud:\n" + ex.getMessage(),
                     "Solicitud pendiente", JOptionPane.WARNING_MESSAGE);
         }
     }
