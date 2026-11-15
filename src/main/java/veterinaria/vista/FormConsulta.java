@@ -252,19 +252,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 model.addElement(nombreCompletoUsuario(u));
             }
             jcbVeterinario.setModel(model);
-            jcbVeterinario.setRenderer(new javax.swing.DefaultListCellRenderer() {
-                @Override
-                public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> lista,
-                        Object valor, int index, boolean seleccionado, boolean foco) {
-                    super.getListCellRendererComponent(lista, valor, index, seleccionado, foco);
-                    if (valor instanceof String && index >= 0 && index != 0) {
-                        String nombre = (String) valor;
-                        setText(nombre + "  ·  " + cargaVeterinarios.getOrDefault(nombre, 0)
-                                + " consulta(s) en espera/atención");
-                    }
-                    return this;
-                }
-            });
+
         } catch (Exception e) {
             jcbVeterinario.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Seleccione veterinario"}));
             listaVeterinarios = new ArrayList<>();
@@ -484,6 +472,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbPatologia.setSelectedIndex(0);
         jcbMotivo.setSelectedIndex(0);
         jcbVeterinario.setSelectedIndex(0);
+        prioridadConsulta.setSelectedItem("CONTROL");
         configurarSpinnerHora(null);
         jdcFecha.setDate(new Date());
         txtTratamiento.setText("");
@@ -858,37 +847,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     /** Solo indica carga de consultas asignadas, no disponibilidad presencial ni turnos. */
-    private void prepararAsignacionPorCola() {
-        java.util.Map<String, Integer> carga = cargaVeterinarios;
-        carga.clear();
-        try {
-            for (Visita v : visitaControlador.obtenerTodasLasVisitas()) {
-                if (v.getUsuarioAtiende() == null) continue;
-                String estado = v.getEstado() == null ? "" : v.getEstado().trim();
-                if ("EN_ESPERA".equalsIgnoreCase(estado) || "ATENDIENDO".equalsIgnoreCase(estado))
-                    carga.merge(v.getUsuarioAtiende(), 1, Integer::sum);
-            }
-            String mejor = null;
-            int minimo = Integer.MAX_VALUE;
-            for (int i = 1; i < jcbVeterinario.getItemCount(); i++) {
-                String nombre = jcbVeterinario.getItemAt(i);
-                int cantidad = carga.getOrDefault(nombre, 0);
-                if (cantidad < minimo) {
-                    minimo = cantidad;
-                    mejor = nombre;
-                }
-            }
-            if (mejor != null) {
-                jcbVeterinario.repaint();
-                jcbVeterinario.setSelectedItem(mejor);
-                jcbVeterinario.setToolTipText("Asignado por menor carga de consultas activas: "
-                        + minimo + ". No verifica horarios ni presencia.");
-            }
-        } catch (RuntimeException ex) {
-            veterinaria.util.AppLog.warn(FormConsulta.class, "No se pudo calcular carga de veterinarios", ex);
-        }
-    }
-
     private void configurarModoNuevo() {
         try {
             // Se permite cargar todos los campos
@@ -897,9 +855,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             spinnerHora.setEnabled(true);
             jcbMotivo.setEnabled(true);
             jcbPatologia.setEnabled(false); // Diagnóstico exclusivo de atención clínica.
-            jcbVeterinario.setEnabled(usuarioClinico()); // Recepción usa asignación por menor carga.
+            jcbVeterinario.setEnabled(false); // Asignación dinámica al iniciar la atención.
             jcbEstado.setEnabled(false); // Siempre inicia EN ESPERA; se cambia desde la lista.
             jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
+            prioridadConsulta.setEnabled(true);
             txtTratamiento.setEditable(false);
             txtTratamiento.setText("");
             lbTratamiento.setText("Tratamiento (completa el veterinario)");
@@ -919,6 +878,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbVeterinario.setEnabled(false);
 
             jcbEstado.setEnabled(false); // El estado se cambia solo desde Cambiar estado.
+            prioridadConsulta.setEnabled(false);
             txtTratamiento.setEditable(usuarioClinico());
             lbTratamiento.setText("Evolución y tratamiento:");
         } catch (Exception ex) {
@@ -977,7 +937,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     + "Cliente: " + clienteTxt + "\n"
                     + "Fecha: " + fechaTxt + "  Hora: " + horaTxt + "\n"
                     + "Motivo de consulta: " + motivo + "\n"
-                    + "Veterinario asignado: " + veterinario + "\n\n"
+                    + "Veterinario: se asignará al comenzar la atención.\n"
+                    + "Prioridad: " + prioridadConsulta.getSelectedItem() + "\n\n"
                     + "El diagnóstico y el tratamiento se completan durante la atención."
                 : "¿Guardar los datos registrados por el veterinario?\n\n"
                     + "Paciente: " + mascotaTxt + "\n"
@@ -1181,6 +1142,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                         normalizarEstadoBD(visita.getEstado())));
 
         seleccionarVeterinarioEnCombo(visita.getUsuarioAtiende());
+        prioridadConsulta.setSelectedItem(visita.getPrioridadAtencion() == null
+                ? "CONTROL" : visita.getPrioridadAtencion());
 
         return true;
     }
@@ -1221,10 +1184,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             JOptionPane.showMessageDialog(this, "Debe seleccionar una mascota.");
             return false;
         }
-        if (getVeterinarioSeleccionado() == null) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar un veterinario.");
-            return false;
-        }
+        // La asignación de veterinario es automática al llamar al paciente.
         if (jdcFecha.getDate() == null) {
             JOptionPane.showMessageDialog(this, "Debe seleccionar la fecha.");
             return false;
@@ -1888,8 +1848,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
         if (visita != null && visita.getIdVisita() == null && !usuarioClinico()) {
-            // Recalcular la cola al guardar, porque otras recepciones pueden asignar pacientes.
-            prepararAsignacionPorCola();
+            // El veterinario se asigna cuando toma el siguiente paciente de la cola.
         }
         if (!validarFormulario()) {
             return;
@@ -1923,7 +1882,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             // EstadoVisita ahora es un enum (no String)
             Constantes.EstadoVisita estadoSel = (Constantes.EstadoVisita) jcbEstado.getSelectedItem();
             visita.setEstado(estadoSel != null ? estadoSel.name() : Constantes.EstadoVisita.EN_ESPERA.name());
-            visita.setUsuarioAtiende((String) jcbVeterinario.getSelectedItem());
+            if (registroInicial) {
+                visita.setUsuarioAtiende(null);
+                visita.setPrioridadAtencion(String.valueOf(prioridadConsulta.getSelectedItem()));
+            }
 
             try {
                 boolean esNueva = (visita.getIdVisita() == null);
