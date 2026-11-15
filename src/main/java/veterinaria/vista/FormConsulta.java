@@ -1854,7 +1854,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jpDatos.setVisible(false);
             cargarVisitasEnTabla();
             jpListaVisitas.setVisible(true);
-            btnNuevo.setEnabled(true);
+            btnNuevo.setEnabled(Application.getSesionUsuario() != null
+                && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
         }
@@ -1978,7 +1979,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             limpiarCamposFormulario();
             jpDatos.setVisible(false);
             jpHeader.setVisible(true);
-            btnNuevo.setEnabled(true);
+            btnNuevo.setEnabled(Application.getSesionUsuario() != null
+                && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
             jpListaVisitas.setVisible(true);
@@ -1991,7 +1993,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         limpiarCamposFormulario();
         jpDatos.setVisible(false);
         jpHeader.setVisible(true);
-        btnNuevo.setEnabled(true);
+        btnNuevo.setEnabled(Application.getSesionUsuario() != null
+                && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
         txtBusqueda.setEnabled(true);
