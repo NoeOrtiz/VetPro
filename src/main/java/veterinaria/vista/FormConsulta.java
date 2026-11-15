@@ -619,6 +619,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             if (iniciar) {
                 if (editarVisita(actualizada)) {
                     configurarModoEdicionRestringida();
+                    lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
+                    btnGuardar.setText("Guardar atención");
                     mostrarSoloFormulario();
                     btnGuardar.setEnabled(true);
                     btnNuevo.setEnabled(false);
@@ -903,7 +905,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
             jcbEstado.setEnabled(false); // El estado se cambia solo desde Cambiar estado.
             txtTratamiento.setEditable(usuarioClinico());
-            lbTratamiento.setText("Tratamiento:");
+            lbTratamiento.setText("Evolución y tratamiento:");
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
         }
@@ -1759,6 +1761,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         visita = new Visita();
         limpiarCamposFormulario();
         configurarModoNuevo();
+        lbDatos.setText("Registro de llegada · Ticket de consulta");
+        btnGuardar.setText("Registrar ticket");
         prepararAsignacionPorCola();
         mostrarSoloFormulario();
         jpListaVisitas.setVisible(false);
@@ -1789,6 +1793,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             }
 
             configurarModoEdicionRestringida();
+            lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
+            btnGuardar.setText("Guardar atención");
             mostrarSoloFormulario();
             jpDatos.setVisible(true);
             jpListaVisitas.setVisible(false);
