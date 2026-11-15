@@ -921,10 +921,18 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
 
         boolean haySeleccion = (obtenerFilaSeleccionadaPorCheck() != -1);
+        actualizarNuevoSegunSeleccion(haySeleccion);
         if (btnQuitarSeleccion != null) btnQuitarSeleccion.setEnabled(haySeleccion && !jpDatos.isVisible());
 
         btnImprimirVisita.setVisible(haySeleccion && !jpDatos.isVisible());
         actualizarAccionesPorSeleccion();
+    }
+
+    /** Nuevo solo corresponde cuando no hay una consulta seleccionada. */
+    private void actualizarNuevoSegunSeleccion(boolean seleccion) {
+        veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
+        btnNuevo.setEnabled(!seleccion && !jpDatos.isVisible()
+                && sesion != null && sesion.puede("FormConsulta.NUEVO"));
     }
 
     private void actualizarAccionesPorSeleccion() {
@@ -983,7 +991,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (sesion == null) return;
         boolean clinico = usuarioClinico();
         // Los permisos históricos del módulo siguen siendo FormVisita.*.
-        btnNuevo.setEnabled(sesion.puede("FormConsulta.NUEVO"));
+        actualizarNuevoSegunSeleccion(obtenerFilaSeleccionadaPorCheck() != -1);
         btnLlamarSiguiente.setVisible(clinico);
         btnCambiarEstado.setVisible(clinico);
         btnEditar.setVisible(clinico);
