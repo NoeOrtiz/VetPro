@@ -517,8 +517,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jpListaVisitas.setMinimumSize(new java.awt.Dimension(0, 0));
         setMinimumSize(new java.awt.Dimension(0, 0));
 
-        btnCambiarEstado = new javax.swing.JButton("Cambiar estado");
+        btnCambiarEstado = new javax.swing.JButton("Finalizar atención");
         btnLlamarSiguiente = new javax.swing.JButton("Llamar siguiente");
+        btnLlamarSiguiente.setToolTipText("Asigna automáticamente el ticket de mayor prioridad disponible.");
         btnLlamarSiguiente.addActionListener(e -> llamarSiguientePaciente());
         btnCambiarEstado.addActionListener(e -> avanzarEstadoSeleccionado());
         btnCambiarEstado.setEnabled(false);
@@ -641,7 +642,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (seleccionada == null) return;
         String actual = normalizarEstadoBD(seleccionada.getEstado());
         if ("EN_ESPERA".equals(actual)) {
-            llamarSiguientePaciente();
+            JOptionPane.showMessageDialog(this, "Para comenzar una atención utilice Llamar siguiente.\n"
+                    + "El sistema seleccionará automáticamente el caso de mayor prioridad.");
             return;
         }
         if ("FINALIZADO".equals(actual) || "CANCELADO".equals(actual)) {
@@ -649,7 +651,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     "Cambio de estado no permitido", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        String siguiente = "EN_ESPERA".equals(actual) ? "ATENDIENDO" : "FINALIZADO";
+        String siguiente = "FINALIZADO";
         boolean iniciar = "ATENDIENDO".equals(siguiente);
         String mensaje = iniciar
                 ? "¿Comenzar la atención de " + seleccionada.getMascota().getNombre()
@@ -863,7 +865,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnEditar.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
                 && !jpDatos.isVisible());
         if (btnCambiarEstado != null)
-            btnCambiarEstado.setEnabled(usuarioClinico() && !esFinalizado && !jpDatos.isVisible());
+            btnCambiarEstado.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
+                    && !jpDatos.isVisible());
         // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
         btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible());
     }
