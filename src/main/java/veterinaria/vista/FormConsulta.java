@@ -1690,6 +1690,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error al registrar la visita: " + e.getMessage());
+                return;
             }
 
             cargarVisitasEnTabla();
