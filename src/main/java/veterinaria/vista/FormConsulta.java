@@ -56,12 +56,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private boolean origenHistoriaClinica = false;
 
     // Coincidencias exclusivamente en los campos de búsqueda clínicos.
-    private static final int[] COLUMNAS_BUSQUEDA = {2, 3, 4, 5, 9};
+    private static final int[] COLUMNAS_BUSQUEDA = {2, 3, 4, 9};
     private veterinaria.util.PaginacionTablas paginacionConsultas;
     private javax.swing.JButton btnCambiarEstado;
     private final javax.swing.JComboBox<String> prioridadConsulta =
             new javax.swing.JComboBox<>(new String[]{"CONTROL", "URGENCIA", "EMERGENCIA"});
     private javax.swing.JButton btnLlamarSiguiente;
+    private javax.swing.JButton btnVerInfo;
+    private javax.swing.JPanel herramientasConsultas;
 
     public FormConsulta() {
         initComponents();
@@ -519,6 +521,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         setMinimumSize(new java.awt.Dimension(0, 0));
 
         btnCambiarEstado = new javax.swing.JButton("Finalizar atención");
+        btnVerInfo = new javax.swing.JButton("Ver info");
+        btnVerInfo.addActionListener(e -> mostrarInformacionConsulta());
         btnLlamarSiguiente = new javax.swing.JButton("Llamar siguiente");
         btnLlamarSiguiente.setToolTipText("Asigna automáticamente el ticket de mayor prioridad disponible.");
         btnLlamarSiguiente.addActionListener(e -> llamarSiguientePaciente());
@@ -535,6 +539,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         titulo.add(jSeparator1, java.awt.BorderLayout.SOUTH);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
         javax.swing.JPanel herramientas = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        herramientasConsultas = herramientas;
         herramientas.setOpaque(false);
         javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0));
         filtros.setOpaque(false);
@@ -563,6 +568,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
         accionesRecepcion.setOpaque(false);
         accionesRecepcion.add(btnNuevo);
+        accionesRecepcion.add(btnVerInfo);
         accionesRecepcion.add(btnEliminar);
         accionesRecepcion.add(btnImprimirVisita);
         javax.swing.JPanel accionesClinicas = new javax.swing.JPanel(
@@ -900,6 +906,38 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnImprimirListaVisitas.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
     }
 
+    private void mostrarInformacionConsulta() {
+        Visita v = obtenerVisitaSeleccionadaDesdeTabla();
+        if (v == null) return;
+        String fecha = v.getFecha() == null ? "-" : v.getFecha().toString();
+        String hora = v.getHora() == null ? "-" : v.getHora().toString();
+        String responsable = v.getCliente() == null || v.getCliente().getPersona() == null
+                ? "-" : v.getCliente().getPersona().getNombre() + " "
+                        + v.getCliente().getPersona().getApellido();
+        String texto = "Ticket N.º " + v.getIdVisita()
+                + "\nPaciente: " + (v.getMascota() == null ? "-" : v.getMascota().getNombre())
+                + "\nResponsable: " + responsable
+                + "\nFecha y hora: " + fecha + " " + hora
+                + "\nEstado: " + v.getEstado()
+                + "\nPrioridad: " + (v.getPrioridadAtencion() == null ? "CONTROL" : v.getPrioridadAtencion())
+                + "\nMotivo: " + (v.getMotivoVisita() == null ? "-" : v.getMotivoVisita())
+                + "\nVeterinario: " + (v.getUsuarioAtiende() == null || v.getUsuarioAtiende().isBlank()
+                        ? "Pendiente de asignación" : v.getUsuarioAtiende())
+                + "\nDiagnóstico: " + (v.getPatologia() == null || v.getPatologia().isBlank()
+                        ? "Pendiente" : v.getPatologia())
+                + "\nEvolución y tratamiento: " + (v.getTratamiento() == null || v.getTratamiento().isBlank()
+                        ? "Pendiente" : v.getTratamiento());
+        javax.swing.JTextArea area = new javax.swing.JTextArea(texto, 13, 46);
+        area.setEditable(false);
+        area.setLineWrap(true);
+        area.setWrapStyleWord(true);
+        area.setBackground(javax.swing.UIManager.getColor("Panel.background"));
+        javax.swing.JScrollPane contenido = new javax.swing.JScrollPane(area);
+        contenido.setPreferredSize(new java.awt.Dimension(520, 310));
+        JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                contenido, "Información de la consulta · Solo lectura", JOptionPane.PLAIN_MESSAGE);
+    }
+
     private boolean usuarioClinico() {
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
         String rol = sesion == null || sesion.getRol() == null ? "" : sesion.getRol().getNombreRol();
@@ -907,7 +945,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void mostrarSoloFormulario() {
-        jpHeader.setVisible(false);
+        jpHeader.setVisible(true);
+        if (herramientasConsultas != null) herramientasConsultas.setVisible(false);
         jpListaVisitas.setVisible(false);
         jpDatos.setVisible(true);
     }
@@ -1984,6 +2023,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             limpiarCamposFormulario();
             jpDatos.setVisible(false);
             jpHeader.setVisible(true);
+            if (herramientasConsultas != null) herramientasConsultas.setVisible(true);
             btnNuevo.setEnabled(Application.getSesionUsuario() != null
                 && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
             btnEditar.setEnabled(false);
@@ -1998,6 +2038,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         limpiarCamposFormulario();
         jpDatos.setVisible(false);
         jpHeader.setVisible(true);
+        if (herramientasConsultas != null) herramientasConsultas.setVisible(true);
         btnNuevo.setEnabled(Application.getSesionUsuario() != null
                 && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
         btnEditar.setEnabled(false);
