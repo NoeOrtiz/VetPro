@@ -79,6 +79,9 @@ public class VisitaDAO {
             veterinaria.entidad.Usuario u = em.find(veterinaria.entidad.Usuario.class, idUsuario);
             if (u == null || !u.isActivo() || u.getRol() == null)
                 throw new SecurityException("El profesional debe tener una sesión activa.");
+            // Serializar asignaciones del mismo veterinario, incluso entre varias ventanas.
+            em.createNativeQuery("SELECT idUsuario FROM usuario WHERE idUsuario=? FOR UPDATE")
+                    .setParameter(1, idUsuario).getSingleResult();
             String rol = u.getRol().getNombreRol();
             if (!"Veterinario".equalsIgnoreCase(rol) && !"Administrador".equalsIgnoreCase(rol))
                 throw new SecurityException("Solo el veterinario puede llamar al siguiente paciente.");
