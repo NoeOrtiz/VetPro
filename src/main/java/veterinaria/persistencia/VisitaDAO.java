@@ -146,6 +146,8 @@ public class VisitaDAO {
                 throw new IllegalStateException("Una consulta cerrada no puede modificarse.");
             if (!estado.equals(visita.getEstado()))
                 throw new IllegalStateException("Para cambiar el estado use Cambiar estado.");
+            if (!"ATENDIENDO".equals(estado))
+                throw new IllegalStateException("Primero debe comenzar la atención veterinaria.");
             veterinaria.util.SesionUsuario sesion =
                     veterinaria.vista.application.Application.getSesionUsuario();
             String rol = sesion == null || sesion.getRol() == null ? "" : sesion.getRol().getNombreRol();
