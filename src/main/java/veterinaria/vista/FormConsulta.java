@@ -585,16 +585,80 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jpHeader.revalidate();
         jpHeader.repaint();
 
-        javax.swing.JPanel cabeceraClinica = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
-        cabeceraClinica.setOpaque(false);
-        cabeceraClinica.add(lbDatos, java.awt.BorderLayout.WEST);
-        javax.swing.JPanel grupoPrioridad = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
-        grupoPrioridad.setOpaque(false);
-        grupoPrioridad.add(new javax.swing.JLabel("Prioridad de atención:"));
-        prioridadConsulta.setPreferredSize(new java.awt.Dimension(145, 28));
-        grupoPrioridad.add(prioridadConsulta);
-        cabeceraClinica.add(grupoPrioridad, java.awt.BorderLayout.EAST);
-        ((javax.swing.GroupLayout) jpDatos.getLayout()).replace(lbDatos, cabeceraClinica);
+        configurarFormularioAmplio();
+
+    }
+
+    private javax.swing.JPanel campoConsulta(javax.swing.JLabel etiqueta,
+            java.awt.Component control) {
+        javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 7));
+        campo.setOpaque(false);
+        campo.add(etiqueta, java.awt.BorderLayout.NORTH);
+        campo.add(control, java.awt.BorderLayout.CENTER);
+        campo.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 0));
+        return campo;
+    }
+
+    /** Distribución funcional, sin alterar colores ni componentes FlatLaf existentes. */
+    private void configurarFormularioAmplio() {
+        jpDatos.removeAll();
+        jpDatos.setLayout(new java.awt.BorderLayout(0, 22));
+        jpDatos.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 28, 22, 28));
+
+        javax.swing.JPanel cabecera = new javax.swing.JPanel(new java.awt.BorderLayout());
+        cabecera.setOpaque(false);
+        cabecera.add(lbDatos, java.awt.BorderLayout.WEST);
+        javax.swing.JPanel prioridad = new javax.swing.JPanel(new java.awt.FlowLayout(
+                java.awt.FlowLayout.RIGHT, 10, 0));
+        prioridad.setOpaque(false);
+        prioridad.add(new javax.swing.JLabel("Prioridad de atención:"));
+        prioridadConsulta.setPreferredSize(new java.awt.Dimension(170, 32));
+        prioridad.add(prioridadConsulta);
+        cabecera.add(prioridad, java.awt.BorderLayout.EAST);
+        jpDatos.add(cabecera, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel centro = new javax.swing.JPanel();
+        centro.setLayout(new javax.swing.BoxLayout(centro, javax.swing.BoxLayout.Y_AXIS));
+        centro.setOpaque(false);
+
+        javax.swing.JPanel filaUno = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
+        filaUno.setOpaque(false);
+        filaUno.add(campoConsulta(lbPaciente, jcbPaciente));
+        filaUno.add(campoConsulta(lbDueño, txtDueño));
+        filaUno.add(campoConsulta(lbMotivo, jcbMotivo));
+        filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
+        filaUno.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        centro.add(filaUno);
+        centro.add(javax.swing.Box.createVerticalStrut(20));
+
+        javax.swing.JPanel filaDos = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
+        filaDos.setOpaque(false);
+        filaDos.add(campoConsulta(lbVeterinarioAsignado, jcbVeterinario));
+        filaDos.add(campoConsulta(lbEstado, jcbEstado));
+        filaDos.add(campoConsulta(lbPatologia, jcbPatologia));
+        filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
+        filaDos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        centro.add(filaDos);
+        centro.add(javax.swing.Box.createVerticalStrut(20));
+
+        javax.swing.JPanel evolucion = campoConsulta(lbTratamiento, jScrollPane1);
+        evolucion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(450, 125));
+        evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 155));
+        centro.add(evolucion);
+        jpDatos.add(centro, java.awt.BorderLayout.CENTER);
+
+        javax.swing.JPanel botones = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
+        botones.setOpaque(false);
+        btnGuardar.setPreferredSize(new java.awt.Dimension(185, 36));
+        btnCancelar.setPreferredSize(new java.awt.Dimension(115, 36));
+        btnLimpiar.setPreferredSize(new java.awt.Dimension(105, 36));
+        botones.add(btnGuardar);
+        botones.add(btnCancelar);
+        botones.add(btnLimpiar);
+        jpDatos.add(botones, java.awt.BorderLayout.SOUTH);
+        jpDatos.revalidate();
     }
 
     private boolean coincideEstadoModelo(int fila) {
@@ -1844,7 +1908,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         limpiarCamposFormulario();
         configurarModoNuevo();
         lbDatos.setText("Registro de llegada · Ticket de consulta");
-        btnGuardar.setText("Registrar ticket");
+        btnGuardar.setText("Registrar Atención");
         prioridadConsulta.setSelectedItem("CONTROL");
         mostrarSoloFormulario();
         jpListaVisitas.setVisible(false);
