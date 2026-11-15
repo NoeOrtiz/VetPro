@@ -808,6 +808,12 @@ public class FormMascota extends javax.swing.JPanel {
         Mascota seleccionada = obtenerMascotaSeleccionadaDesdeTabla();
         if (seleccionada == null) return;
         boolean activar = !seleccionada.isActivo();
+        if (!activar && (!esAdministradorMascota() || !sesion.puede("FormMascota.ELIMINAR"))) {
+            JOptionPane.showMessageDialog(this,
+                    "Solo el administrador autorizado puede desactivar mascotas.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         if (activar && !esAdministradorMascota()) {
             solicitarReactivacionMascota(seleccionada);
             return;
@@ -1090,7 +1096,8 @@ public class FormMascota extends javax.swing.JPanel {
                         ? (fallecimiento ? "Rectificar baja" : "Reactivar")
                         : (fallecimiento ? "Solicitar rectificación" : "Solicitar reactivación")));
             btnEliminar.setPreferredSize(new java.awt.Dimension(activo ? 78 : 152, 28));
-            btnEliminar.setVisible(!activo || (sesion != null && sesion.puede("FormMascota.ELIMINAR")));
+            btnEliminar.setVisible(!activo || (esAdministradorMascota()
+                    && sesion != null && sesion.puede("FormMascota.ELIMINAR")));
         }
         btnNuevo.setEnabled(!haySeleccion && !panelDatos.isVisible());
     }
