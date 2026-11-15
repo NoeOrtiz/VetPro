@@ -590,6 +590,44 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 .equalsIgnoreCase(normalizarEstadoBD(valor));
     }
 
+    private void llamarSiguientePaciente() {
+        veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
+        if (!usuarioClinico() || sesion == null || sesion.getUsuario() == null) {
+            JOptionPane.showMessageDialog(this,
+                    "La atención debe ser iniciada por un veterinario disponible.",
+                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        try {
+            Visita siguiente = visitaControlador.tomarSiguiente(sesion.getUsuario().getIdUsuario());
+            if (siguiente == null) {
+                JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                        "No hay pacientes pendientes de atención.",
+                        "Cola de espera", JOptionPane.INFORMATION_MESSAGE);
+                cargarVisitasEnTabla();
+                return;
+            }
+            cargarVisitasEnTabla();
+            abrirFichaClinica(siguiente);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                    "No se pudo llamar al siguiente paciente.\n" + ex.getMessage(),
+                    "Cola de espera", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void abrirFichaClinica(Visita seleccionada) {
+        if (seleccionada == null || !editarVisita(seleccionada)) return;
+        configurarModoEdicionRestringida();
+        lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
+        btnGuardar.setText("Guardar atención");
+        mostrarSoloFormulario();
+        btnGuardar.setEnabled(true);
+        btnNuevo.setEnabled(false);
+        btnEditar.setEnabled(false);
+        btnEliminar.setEnabled(false);
+    }
+
     private void avanzarEstadoSeleccionado() {
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
         if (sesion == null || !sesion.puede("FormConsulta.EDITAR") || !usuarioClinico()) {
@@ -601,6 +639,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         Visita seleccionada = obtenerVisitaSeleccionadaDesdeTabla();
         if (seleccionada == null) return;
         String actual = normalizarEstadoBD(seleccionada.getEstado());
+        if ("EN_ESPERA".equals(actual)) {
+            llamarSiguientePaciente();
+            return;
+        }
         if ("FINALIZADO".equals(actual) || "CANCELADO".equals(actual)) {
             JOptionPane.showMessageDialog(this, "Esta consulta ya está cerrada.",
                     "Cambio de estado no permitido", JOptionPane.WARNING_MESSAGE);
@@ -618,24 +660,13 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (respuesta != JOptionPane.YES_OPTION) return;
         try {
-            Visita actualizada = visitaControlador.avanzarEstado(seleccionada.getIdVisita(), actual, siguiente);
+            visitaControlador.avanzarEstado(seleccionada.getIdVisita(), actual, siguiente);
             cargarVisitasEnTabla();
-            if (iniciar) {
-                if (editarVisita(actualizada)) {
-                    configurarModoEdicionRestringida();
-                    lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
-                    btnGuardar.setText("Guardar atención");
-                    mostrarSoloFormulario();
-                    btnGuardar.setEnabled(true);
-                    btnNuevo.setEnabled(false);
-                    btnEditar.setEnabled(false);
-                    btnEliminar.setEnabled(false);
-                }
-            } else {
-                JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
-                        "Consulta finalizada correctamente. Se conservará en la historia clínica.",
-                        "Atención finalizada", JOptionPane.INFORMATION_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                    "Consulta finalizada correctamente. Se conservará en la historia clínica.",
+                    "Atención finalizada", JOptionPane.INFORMATION_MESSAGE);
+            // El profesional que terminó queda disponible: asignación automática.
+            llamarSiguientePaciente();
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
                     "No se pudo actualizar el estado.\n" + ex.getMessage(),
