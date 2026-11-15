@@ -29,6 +29,19 @@ public class VisitaControlador {
         }
     }
 
+    public Visita avanzarEstado(Integer idVisita, String actual, String nuevo) {
+        Visita resultado = visitaDAO.avanzarEstado(idVisita, actual, nuevo);
+        if ("FINALIZADO".equals(nuevo)) {
+            try {
+                historiaEventoControlador.registrarDesdeVisita(resultado);
+            } catch (Exception ex) {
+                AppLog.ignored(VisitaControlador.class,
+                        "No se pudo sincronizar la historia clínica", ex);
+            }
+        }
+        return resultado;
+    }
+
     public Visita buscarVisitaPorId(Integer idVisita) {
         return visitaDAO.buscarPorId(idVisita);
     }
