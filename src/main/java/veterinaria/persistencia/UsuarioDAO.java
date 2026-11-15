@@ -56,7 +56,7 @@ public class UsuarioDAO {
                     "SELECT DISTINCT u FROM Usuario u "
                     + " JOIN FETCH u.rol r "
                     + " LEFT JOIN FETCH u.persona p "
-                    + " WHERE lower(trim(r.nombreRol)) IN :roles "
+                    + " WHERE lower(trim(r.nombreRol)) IN :roles AND u.activo = true "
                     + " ORDER BY p.apellido, p.nombre",
                     Usuario.class)
                     .setParameter("roles", Arrays.asList("veterinario", "veterinarios"))
