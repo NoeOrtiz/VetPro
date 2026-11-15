@@ -57,6 +57,17 @@ public class SolicitudReactivacionService {
                 + "WHERE s.estado='PENDIENTE' ORDER BY (s.prioridad='URGENTE') DESC,s.fechaSolicitud ASC")
                 .getResultList());
     }
+    public Integer solicitudUrgentePendiente(Integer mascotaId) {
+        if (mascotaId == null) return null;
+        return tx.runInTx(em -> {
+            java.util.List<?> ids = em.createNativeQuery(
+                "SELECT idSolicitud FROM mascota_solicitud_reactivacion "
+              + "WHERE idMascota=? AND estado='PENDIENTE' AND prioridad='URGENTE' "
+              + "ORDER BY fechaSolicitud DESC LIMIT 1")
+                .setParameter(1,mascotaId).getResultList();
+            return ids.isEmpty() ? null : ((Number)ids.get(0)).intValue();
+        });
+    }
     public boolean existeUrgentePendiente(Integer mascotaId) {
         return tx.runInTx(em -> ((Number) em.createNativeQuery(
                 "SELECT COUNT(*) FROM mascota_solicitud_reactivacion "
