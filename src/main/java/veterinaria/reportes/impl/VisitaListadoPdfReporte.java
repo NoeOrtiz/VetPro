@@ -46,13 +46,7 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
             x[i] = cursor;
             cursor += ancho[i];
         }
-        pdf.ensureSpace(40);
-        for (int i = 0; i < titulos.length; i++) {
-            pdf.text(PDType1Font.HELVETICA_BOLD, 8, x[i], pdf.getY(), titulos[i]);
-        }
-        pdf.down(13f);
-        pdf.line();
-        pdf.down(6f);
+        encabezadoColumnas(pdf, titulos, x);
 
         for (Object entrada : fuente) {
             if (!(entrada instanceof String[])) continue;
@@ -62,13 +56,21 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
             int maxLineas = 1;
             for (int i = 0; i < ancho.length; i++) {
                 String valor = i < original.length && original[i] != null ? original[i].trim() : "";
+                if (i == 7) valor = fechaLegible(valor);
                 List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 8, valor,
                         Math.max(8f, ancho[i] - 7f));
                 celdas.add(lineas);
                 maxLineas = Math.max(maxLineas, lineas.size());
             }
             float alto = maxLineas * 12f + 12f;
-            pdf.ensureSpace(alto + 5f);
+            int paginaAnterior = pdf.getCurrentPage();
+            // Reservar espacio para repetir el título y las columnas si esta fila salta de página.
+            if (pdf.getY() - alto - 5f < pdf.getMargin()) {
+                pdf.nuevaPagina();
+            }
+            if (pdf.getCurrentPage() != paginaAnterior) {
+                encabezadoContinuacion(pdf, filtro, fuente.size(), titulos, x);
+            }
             float arriba = pdf.getY();
             for (int col = 0; col < ancho.length; col++) {
                 List<String> lineas = celdas.get(col);
@@ -81,4 +83,40 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
             pdf.down(3f);
         }
     }
+    private void encabezadoColumnas(PdfDocument pdf, String[] titulos, float[] x) throws Exception {
+        pdf.ensureSpace(40f);
+        for (int i = 0; i < titulos.length; i++) {
+            pdf.text(PDType1Font.HELVETICA_BOLD, 8, x[i], pdf.getY(), titulos[i]);
+        }
+        pdf.down(13f);
+        pdf.line();
+        pdf.down(6f);
+    }
+
+    private void encabezadoContinuacion(PdfDocument pdf, String filtro,
+            int total, String[] titulos, float[] x) throws Exception {
+        String titulo = titulo() + " (continuación)";
+        float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT, 12, titulo);
+        pdf.text(PdfStyle.H2_FONT, 12, (pdf.getPageW() - anchoTitulo) / 2f,
+                pdf.getY(), titulo);
+        pdf.down(19f);
+        pdf.text(PdfStyle.TXT_FONT, 9, pdf.getMargin(), pdf.getY(),
+                "Consultas incluidas: " + (filtro == null ? "Todas" : filtro)
+                        + "    |    Total: " + total);
+        pdf.down(22f);
+        encabezadoColumnas(pdf, titulos, x);
+    }
+
+    private String fechaLegible(String fecha) {
+        if (fecha == null || fecha.isBlank()) return "-";
+        String limpio = fecha.replace(" a las ", " ");
+        try {
+            java.time.LocalDateTime valor = java.time.LocalDateTime.parse(
+                    limpio.trim().replace(' ', 'T'));
+            return valor.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy HH:mm"));
+        } catch (java.time.format.DateTimeParseException ex) {
+            return limpio;
+        }
+    }
+
 }
