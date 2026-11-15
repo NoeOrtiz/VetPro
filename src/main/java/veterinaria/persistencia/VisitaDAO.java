@@ -27,6 +27,13 @@ public class VisitaDAO {
                     LockModeType.PESSIMISTIC_READ);
             if (paciente == null) throw new IllegalStateException("No se encontró el paciente.");
             if (!paciente.isActivo()) {
+                veterinaria.util.SesionUsuario sesion =
+                        veterinaria.vista.application.Application.getSesionUsuario();
+                String nombreRol = sesion == null || sesion.getRol() == null ? ""
+                        : sesion.getRol().getNombreRol();
+                if (!"Veterinario".equalsIgnoreCase(nombreRol)
+                        && !"Administrador".equalsIgnoreCase(nombreRol))
+                    throw new SecurityException("La consulta urgente provisional requiere un veterinario o administrador.");
                 if (!visita.isAtencionProvisional() || visita.getIdSolicitudReactivacion() == null)
                     throw new IllegalStateException("El paciente está inactivo. Requiere atención provisional autorizada.");
                 Number n = (Number) em.createNativeQuery(
