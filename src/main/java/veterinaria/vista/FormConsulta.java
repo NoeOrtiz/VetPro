@@ -767,8 +767,17 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
                     "Consulta finalizada correctamente. Se conservará en la historia clínica.",
                     "Atención finalizada", JOptionPane.INFORMATION_MESSAGE);
-            // El profesional que terminó queda disponible: asignación automática.
-            llamarSiguientePaciente();
+            // Solo el veterinario que estaba atendiendo puede tomar automáticamente
+            // el siguiente ticket. Un administrador que cierra consultas de terceros
+            // no debe asignarse accidentalmente el siguiente paciente.
+            if (sesion != null && sesion.getRol() != null
+                    && "Veterinario".equalsIgnoreCase(sesion.getRol().getNombreRol())
+                    && sesion.getNombreApellido() != null
+                    && seleccionada.getUsuarioAtiende() != null
+                    && sesion.getNombreApellido().trim().equalsIgnoreCase(
+                            seleccionada.getUsuarioAtiende().trim())) {
+                llamarSiguientePaciente();
+            }
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
                     "No se pudo actualizar el estado.\n" + ex.getMessage(),
@@ -1466,10 +1475,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             return false;
         }
         // La asignación de veterinario es automática al llamar al paciente.
-        if (jdcFecha.getDate() == null) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar la fecha.");
-            return false;
-        }
         if (jcbEstado.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(this, "Debe seleccionar un estado.");
             return false;
@@ -1486,16 +1491,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         String tratamiento = txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "";
         if (!esNueva && usuarioClinico() && tratamiento.isEmpty()) {
             JOptionPane.showMessageDialog(this, "El veterinario debe registrar el tratamiento o la evolución.");
-            return false;
-        }
-        try {
-            Date hora = (Date) spinnerHora.getValue();
-            if (hora == null) {
-                JOptionPane.showMessageDialog(this, "Debe seleccionar una hora para la visita.");
-                return false;
-            }
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Debe seleccionar una hora válida para la visita.");
             return false;
         }
         return true;
@@ -2145,12 +2140,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             if (userGestion == null || userGestion.trim().isEmpty()) {
                 userGestion = "Sistema";
             }
-            visita.setUsuarioGestion(userGestion);
-            visita.setMascota(mascotaSeleccionada);
-            visita.setCliente(mascotaSeleccionada.getCliente());
-            visita.setMotivoVisita((String) jcbMotivo.getSelectedItem());
             boolean registroInicial = visita.getIdVisita() == null;
             if (registroInicial) {
+                // La recepción guarda el titular, motivo y usuario de origen una única vez.
+                // Editar tratamiento nunca puede reescribir el dueño histórico.
+                visita.setUsuarioGestion(userGestion);
+                visita.setMascota(mascotaSeleccionada);
+                visita.setCliente(mascotaSeleccionada.getCliente());
+                visita.setMotivoVisita((String) jcbMotivo.getSelectedItem());
                 visita.setPatologia("");
                 visita.setTratamiento("");
             } else {
