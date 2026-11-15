@@ -76,6 +76,13 @@ public class VisitaDAO {
         EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
+            veterinaria.util.SesionUsuario sesionActual =
+                    veterinaria.vista.application.Application.getSesionUsuario();
+            if (idUsuario == null || sesionActual == null
+                    || sesionActual.getUsuario() == null
+                    || !idUsuario.equals(sesionActual.getUsuario().getIdUsuario())
+                    || !sesionActual.puede("FormConsulta.EDITAR"))
+                throw new SecurityException("No tiene autorización para llamar pacientes.");
             veterinaria.entidad.Usuario u = em.find(veterinaria.entidad.Usuario.class, idUsuario);
             if (u == null || !u.isActivo() || u.getRol() == null)
                 throw new SecurityException("El profesional debe tener una sesión activa.");
@@ -292,12 +299,17 @@ public class VisitaDAO {
         boolean ok = false;
         try {
             em.getTransaction().begin();
-            Visita managed = em.find(Visita.class, visita.getIdVisita());
+            Visita managed = em.find(Visita.class, visita.getIdVisita(),
+                    LockModeType.PESSIMISTIC_WRITE);
             if (managed == null) {
                 em.getTransaction().rollback();
                 return false;
             }
 
+            veterinaria.util.SesionUsuario sesionActual =
+                    veterinaria.vista.application.Application.getSesionUsuario();
+            if (sesionActual == null || !sesionActual.puede("FormConsulta.CANCELAR"))
+                throw new SecurityException("No tiene permiso para cancelar consultas.");
             String estado = (managed.getEstado() != null) ? managed.getEstado().trim().toUpperCase() : "";
             if ("FINALIZADO".equals(estado) || "CANCELADO".equals(estado)) {
                 em.getTransaction().rollback();
