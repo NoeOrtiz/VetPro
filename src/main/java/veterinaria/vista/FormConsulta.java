@@ -94,18 +94,18 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         // Tooltips por columna (descripción)
         ManejoTablas mt = new ManejoTablas();
-        mt.aplicarTooltipsPorColumna(tableVisitas, Map.of(
-                0, "Seleccionar una visita para editar o eliminar",
-                1, "ID de la visita",
-                2, "Paciente (Mascota)",
-                3, "Cliente / Dueño",
-                4, "Motivo de la consulta",
-                5, "Patología / Diagnóstico",
-                6, "Tratamiento indicado",
-                7, "Fecha de la visita",
-                8, "Estado (pendiente / finalizada / etc.)",
-                9, "Veterinario que atendió",
-                10, "Prioridad de atención"
+        mt.aplicarTooltipsPorColumna(tableVisitas, Map.ofEntries(
+                Map.entry(0, "Seleccionar una visita para editar o eliminar"),
+                Map.entry(1, "ID de la visita"),
+                Map.entry(2, "Paciente (Mascota)"),
+                Map.entry(3, "Cliente / Dueño"),
+                Map.entry(4, "Motivo de la consulta"),
+                Map.entry(5, "Patología / Diagnóstico"),
+                Map.entry(6, "Tratamiento indicado"),
+                Map.entry(7, "Fecha de la visita"),
+                Map.entry(8, "Estado (pendiente / finalizada / etc.)"),
+                Map.entry(9, "Veterinario que atendió"),
+                Map.entry(10, "Prioridad de atención")
         ));
 
         // Tooltips con texto completo en columnas de texto largo
