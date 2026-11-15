@@ -18,11 +18,41 @@ public class VisitaDAO {
 
     public void crear(Visita visita) {
         EntityManager em = getEntityManager();
-        em.getTransaction().begin();
-        em.persist(visita);
-        em.getTransaction().commit();
-        auditoriaService.registrar("CREATE", "Visita", (visita != null ? Long.valueOf(visita.getIdVisita()) : null), "VisitaDAO", "Alta de visita", AuditoriaService.RESULT_OK, null, null, null);
-        em.close();
+        try {
+            em.getTransaction().begin();
+            if (visita == null || visita.getMascota() == null || visita.getMascota().getIdMascota() == null)
+                throw new IllegalArgumentException("Debe seleccionar un paciente.");
+            veterinaria.entidad.Mascota paciente = em.find(
+                    veterinaria.entidad.Mascota.class, visita.getMascota().getIdMascota(),
+                    LockModeType.PESSIMISTIC_READ);
+            if (paciente == null) throw new IllegalStateException("No se encontró el paciente.");
+            if (!paciente.isActivo()) {
+                if (!visita.isAtencionProvisional() || visita.getIdSolicitudReactivacion() == null)
+                    throw new IllegalStateException("El paciente está inactivo. Requiere atención provisional autorizada.");
+                Number n = (Number) em.createNativeQuery(
+                    "SELECT COUNT(*) FROM mascota_solicitud_reactivacion "
+                  + "WHERE idSolicitud=? AND idMascota=? AND prioridad='URGENTE' AND estado='PENDIENTE'")
+                    .setParameter(1, visita.getIdSolicitudReactivacion())
+                    .setParameter(2, paciente.getIdMascota()).getSingleResult();
+                if (n.longValue() != 1)
+                    throw new IllegalStateException("La solicitud urgente ya no está pendiente.");
+            } else if (visita.isAtencionProvisional()) {
+                throw new IllegalStateException("La atención provisional solo corresponde a pacientes inactivos.");
+            }
+            em.persist(visita);
+            em.getTransaction().commit();
+            auditoriaService.registrar(visita.isAtencionProvisional() ? "CONSULTA_PROVISIONAL" : "CREATE",
+                    "Visita", (visita.getIdVisita() == null ? null : Long.valueOf(visita.getIdVisita())),
+                    "VisitaDAO", visita.isAtencionProvisional()
+                        ? "Atención urgente provisional; solicitud #"+visita.getIdSolicitudReactivacion()
+                        : "Alta de visita",
+                    AuditoriaService.RESULT_OK, null, null, null);
+        } catch (RuntimeException ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw ex;
+        } finally {
+            em.close();
+        }
     }
 
     public Visita buscarPorId(Integer idVisita) {
