@@ -58,6 +58,12 @@ public class MascotaService {
                 throw new IllegalArgumentException("No se encontró la mascota seleccionada.");
             }
 
+            // El propietario solo puede cambiarse mediante TransferenciaMascotaService.
+            Integer propietarioActual = previa.getCliente() == null ? null : previa.getCliente().getIdCliente();
+            Integer propietarioEnviado = mascota.getCliente() == null ? null : mascota.getCliente().getIdCliente();
+            if (!java.util.Objects.equals(propietarioActual, propietarioEnviado)) {
+                throw new IllegalStateException("Para cambiar el propietario utilice Cambiar dueño en Gestión de Pacientes.");
+            }
             antes[0] = JsonUtil.safeToJson(previa);
             Mascota managed = em.merge(mascota);
             em.flush();
