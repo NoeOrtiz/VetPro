@@ -754,6 +754,15 @@ public class FormMascota extends javax.swing.JPanel {
         Mascota seleccionada = obtenerMascotaSeleccionadaDesdeTabla();
         if (seleccionada == null) return;
         boolean activar = !seleccionada.isActivo();
+        if (activar && seleccionada.getCliente() != null && !seleccionada.getCliente().isActivo()) {
+            JOptionPane.showMessageDialog(this,
+                    "No se puede reactivar a " + seleccionada.getNombre() +
+                    " porque su dueño está inactivo.\n" +
+                    "Primero debe reactivar al cliente desde Gestión de Clientes.\n" +
+                    "Luego podrá reactivar al paciente si fuera necesario.",
+                    "Reactivación no permitida", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         String accion = activar ? "reactivar" : "desactivar";
         int opcion = JOptionPane.showConfirmDialog(this,
                 "¿Confirma que desea " + accion + " a " + seleccionada.getNombre()
