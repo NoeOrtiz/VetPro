@@ -43,6 +43,18 @@ public class Visita implements Serializable{
      @Column (name ="estado")
     private String estado;
 
+    @Column(name = "atencion_provisional", nullable = false)
+    private boolean atencionProvisional = false;
+
+    @Column(name = "idSolicitudReactivacion")
+    private Integer idSolicitudReactivacion;
+
+    public boolean isAtencionProvisional() { return atencionProvisional; }
+    public void setAtencionProvisional(boolean valor) { this.atencionProvisional = valor; }
+    public Integer getIdSolicitudReactivacion() { return idSolicitudReactivacion; }
+    public void setIdSolicitudReactivacion(Integer id) { this.idSolicitudReactivacion = id; }
+
+
     public Visita() {
     }
 
