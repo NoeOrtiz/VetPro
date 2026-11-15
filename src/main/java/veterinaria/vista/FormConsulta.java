@@ -1742,7 +1742,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         configurarModoNuevo();
         lbDatos.setText("Registro de llegada · Ticket de consulta");
         btnGuardar.setText("Registrar ticket");
-        prepararAsignacionPorCola();
+        prioridadConsulta.setSelectedItem("CONTROL");
         mostrarSoloFormulario();
         jpListaVisitas.setVisible(false);
         jpDatos.setVisible(true);
@@ -1847,9 +1847,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
-        if (visita != null && visita.getIdVisita() == null && !usuarioClinico()) {
-            // El veterinario se asigna cuando toma el siguiente paciente de la cola.
-        }
         if (!validarFormulario()) {
             return;
         }
