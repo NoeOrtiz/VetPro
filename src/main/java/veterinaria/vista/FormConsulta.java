@@ -515,6 +515,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             tableVisitas.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         tableVisitas.getColumnModel().getColumn(0).setMinWidth(80);
         tableVisitas.getColumnModel().getColumn(1).setHeaderValue("N.º");
+        // Los datos clínicos y la fecha se consultan desde Ver info.
+        // Conservar los índices originales para no alterar búsqueda ni selección.
+        for (int indice : new int[]{5, 6, 7}) {
+            javax.swing.table.TableColumn columna = tableVisitas.getColumnModel().getColumn(indice);
+            columna.setMinWidth(0);
+            columna.setPreferredWidth(0);
+            columna.setMaxWidth(0);
+        }
         scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         scroll1.setMinimumSize(new java.awt.Dimension(0, 0));
         jpListaVisitas.setMinimumSize(new java.awt.Dimension(0, 0));
@@ -523,6 +531,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnCambiarEstado = new javax.swing.JButton("Finalizar atención");
         btnVerInfo = new javax.swing.JButton("Ver info");
         btnVerInfo.addActionListener(e -> mostrarInformacionConsulta());
+        btnVerInfo.setEnabled(false);
         btnLlamarSiguiente = new javax.swing.JButton("Llamar siguiente");
         btnLlamarSiguiente.setToolTipText("Asigna automáticamente el ticket de mayor prioridad disponible.");
         btnLlamarSiguiente.addActionListener(e -> llamarSiguientePaciente());
@@ -913,6 +922,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (tableVisitas.getRowCount() == 0) {
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
+            if (btnVerInfo != null) btnVerInfo.setEnabled(false);
             if (btnCambiarEstado != null) btnCambiarEstado.setEnabled(false);
             return;
         }
@@ -923,6 +933,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (row < 0 || row >= tableVisitas.getRowCount()) {
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
+            if (btnVerInfo != null) btnVerInfo.setEnabled(false);
             if (btnCambiarEstado != null) btnCambiarEstado.setEnabled(false);
             return;
         }
@@ -943,6 +954,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
 
         // Reglas de negocio
+        if (btnVerInfo != null) btnVerInfo.setEnabled(!jpDatos.isVisible());
         String estadoSeleccionado = normalizarEstadoBD(String.valueOf(tableVisitas.getValueAt(row, 8)));
         btnEditar.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
                 && !jpDatos.isVisible());
@@ -1184,24 +1196,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         // 🚀 MANDAMOS AL EJECUTOR: Limpio, sin "new" y en segundo plano
         veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.VISITA_LISTADO, req);
-    }
-
-    private javax.swing.RowFilter<Object, Object> buildFiltroEstado() {
-
-        // Columna "Estado" en la tabla: 8 (0 Seleccionar | 1 Nº | 2 Paciente | 3 Cliente | 4 Motivo | 5 Patología | 6 Tratamiento | 7 Fecha | 8 Estado | 9 Veterinario)
-        final int ESTADO_COL = 8;
-
-        Constantes.EstadoVisita estado
-                = (Constantes.EstadoVisita) jcbEstadoFiltro.getSelectedItem();
-
-        if (estado == null) {
-            return null; // "Todos"
-        }
-
-        // Matchea exacto el name() del enum (ATENDIENDO / FINALIZADO)
-        String pattern = "^" + java.util.regex.Pattern.quote(estado.name()) + "$";
-
-        return javax.swing.RowFilter.regexFilter(pattern, ESTADO_COL);
     }
 
     private String normalizarEstadoBD(String estadoBD) {
