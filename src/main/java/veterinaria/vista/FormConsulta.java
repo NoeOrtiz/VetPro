@@ -1684,7 +1684,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 }
                 if (esNueva) {
                     visitaControlador.crearVisita(visita);
-                    JOptionPane.showMessageDialog(this, "Visita registrada con éxito.");
+                    JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                            visita.isAtencionProvisional()
+                                ? "Consulta provisoria guardada correctamente.\n"
+                                  + "La mascota permanece inactiva y la solicitud de reactivación "
+                                  + "sigue pendiente de revisión.\n"
+                                  + "La atención queda registrada en su historia clínica."
+                                : "Consulta registrada correctamente.",
+                            "Consulta guardada", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     visitaControlador.actualizarVisita(visita);
                     JOptionPane.showMessageDialog(this, "Visita actualizada con éxito.");
