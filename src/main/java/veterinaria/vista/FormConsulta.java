@@ -1168,42 +1168,34 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private boolean eliminarVisitaSeleccionada() {
-        int filaSeleccionada = obtenerFilaSeleccionadaPorCheck(); // Preferir checkbox
-
-        if (filaSeleccionada != -1) {
-            Integer idVisita = (Integer) tableVisitas.getValueAt(filaSeleccionada, 1); // ID en la columna 1
-            Visita visita = visitaControlador.buscarVisitaPorId(idVisita);
-
-            if (visita != null) {
-                // Confirmar eliminación
-                int respuesta = JOptionPane.showConfirmDialog(
-                        this,
-                        "¿Desea cancelar esta consulta?\nEl registro permanecerá en el historial.",
-                        "Confirmar cancelación",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE
-                );
-
-                if (respuesta == JOptionPane.YES_OPTION) {
-                    // Eliminar visita solo si su estado es "Finalizado"
-                    if (visitaControlador.eliminarVisita(visita)) {
-                        JOptionPane.showMessageDialog(this, "Consulta cancelada. El registro se conserva.", "Información", JOptionPane.INFORMATION_MESSAGE);
-                        return true;
-                    } else {
-                        JOptionPane.showMessageDialog(this, "No se puede cancelar una consulta finalizada o ya cancelada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-                    }
-                } else {
-                    // Deseleccionar la fila si se elige NO
-                    tableVisitas.setValueAt(false, filaSeleccionada, 0);
-                    tableVisitas.clearSelection();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "La visita seleccionada no se encontró.", "Advertencia", JOptionPane.WARNING_MESSAGE);
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Por favor, seleccione una visita para eliminar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+        Visita seleccionada = obtenerVisitaSeleccionadaDesdeTabla();
+        if (seleccionada == null) return false;
+        String estado = normalizarEstadoBD(seleccionada.getEstado());
+        if ("FINALIZADO".equals(estado) || "CANCELADO".equals(estado)) {
+            JOptionPane.showMessageDialog(this,
+                    "Esta consulta ya está cerrada y no puede cancelarse.",
+                    "Cancelación no permitida", JOptionPane.WARNING_MESSAGE);
+            return false;
         }
-        return false;
+        int confirmacion = JOptionPane.showConfirmDialog(
+                javax.swing.SwingUtilities.getWindowAncestor(this),
+                "¿Cancelar la consulta N.º " + seleccionada.getIdVisita()
+                   + " de " + seleccionada.getMascota().getNombre() + "?\n"
+                   + "El registro se conservará como CANCELADO.",
+                "Confirmar cancelación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirmacion != JOptionPane.YES_OPTION) return false;
+        if (!visitaControlador.cancelarVisita(seleccionada)) {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo cancelar. Compruebe que la consulta siga abierta.",
+                    "Cancelación no realizada", JOptionPane.WARNING_MESSAGE);
+            return false;
+        }
+        JOptionPane.showMessageDialog(
+                javax.swing.SwingUtilities.getWindowAncestor(this),
+                "La consulta N.º " + seleccionada.getIdVisita()
+                   + " se canceló. Su registro permanecerá disponible.",
+                "Consulta cancelada", JOptionPane.INFORMATION_MESSAGE);
+        return true;
     }
 
     private boolean validarFormulario() {
