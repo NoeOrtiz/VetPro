@@ -1243,12 +1243,47 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void imprimirListaVisitas() {
+        javax.swing.JComboBox<String> filtro = new javax.swing.JComboBox<>(
+                new String[]{"En curso", "Finalizadas", "Todas"});
+        filtro.setSelectedItem(jcbEstadoFiltro.getSelectedItem());
+        javax.swing.JPanel opciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 8));
+        opciones.add(new javax.swing.JLabel("Consultas a incluir:"));
+        opciones.add(filtro);
+        int decision = JOptionPane.showConfirmDialog(
+                javax.swing.SwingUtilities.getWindowAncestor(this), opciones,
+                "Configurar informe de consultas", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+        if (decision != JOptionPane.OK_OPTION) return;
+        String filtroElegido = String.valueOf(filtro.getSelectedItem());
+        javax.swing.table.TableModel modelo = tableVisitas.getModel();
+        java.util.List<String[]> filas = new java.util.ArrayList<>();
+        for (int i = 0; i < modelo.getRowCount(); i++) {
+            String estado = normalizarEstadoBD(String.valueOf(modelo.getValueAt(i, 8)));
+            boolean incluir = "Todas".equals(filtroElegido)
+                    || ("Finalizadas".equals(filtroElegido) && "FINALIZADO".equals(estado))
+                    || ("En curso".equals(filtroElegido)
+                        && ("EN_ESPERA".equals(estado) || "ATENDIENDO".equals(estado)));
+            if (!incluir) continue;
+            String[] fila = new String[8];
+            for (int j = 0; j < fila.length; j++) {
+                int[] columnas = {1, 2, 3, 4, 8, 9, 10, 7};
+                Object valor = modelo.getValueAt(i, columnas[j]);
+                fila[j] = valor == null ? "" : String.valueOf(valor);
+            }
+            filas.add(fila);
+        }
+        if (filas.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No hay consultas para el filtro seleccionado.",
+                    "Informe de consultas", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
         ReporteRequest req = new ReporteRequest()
-                .put("tabla", tableVisitas)
+                .put("filas", filas)
+                .put("filtro", filtroElegido)
                 .put("emisor", Application.getNombreApellidoUsuarioLogeado());
-
-        // 🚀 MANDAMOS AL EJECUTOR: Limpio, sin "new" y en segundo plano
-        veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.VISITA_LISTADO, req);
+        veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this,
+                ReporteTipo.VISITA_LISTADO, req);
     }
 
     private String normalizarEstadoBD(String estadoBD) {
