@@ -1868,6 +1868,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
+        if (visita != null && visita.getIdVisita() == null && !usuarioClinico()) {
+            // Recalcular la cola al guardar, porque otras recepciones pueden asignar pacientes.
+            prepararAsignacionPorCola();
+        }
         if (!validarFormulario()) {
             return;
         }
