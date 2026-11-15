@@ -594,9 +594,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private boolean coincideEstadoModelo(int fila) {
         if (jcbEstadoFiltro == null || jcbEstadoFiltro.getSelectedItem() == null)
             return true;
-        String valor = String.valueOf(tableVisitas.getModel().getValueAt(fila, 8));
-        return jcbEstadoFiltro.getSelectedItem().toString()
-                .equalsIgnoreCase(normalizarEstadoBD(valor));
+        String estado = normalizarEstadoBD(
+                String.valueOf(tableVisitas.getModel().getValueAt(fila, 8)));
+        String filtro = jcbEstadoFiltro.getSelectedItem().toString();
+        if ("Todas".equals(filtro)) return true;
+        if ("Finalizadas".equals(filtro)) return "FINALIZADO".equals(estado);
+        return "EN_ESPERA".equals(estado) || "ATENDIENDO".equals(estado);
     }
 
     private void llamarSiguientePaciente() {
@@ -694,12 +697,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbEstado.setModel(modelEstado);
 
         // Combo de filtro de estado
-        DefaultComboBoxModel<Constantes.EstadoVisita> modelFiltro = new DefaultComboBoxModel<>();
-        modelFiltro.addElement(null); // "Todos"
-        modelFiltro.addElement(Constantes.EstadoVisita.EN_ESPERA);
-        modelFiltro.addElement(Constantes.EstadoVisita.ATENDIENDO);
-        modelFiltro.addElement(Constantes.EstadoVisita.FINALIZADO);
+        DefaultComboBoxModel<String> modelFiltro = new DefaultComboBoxModel<>(
+                new String[]{"En curso", "Finalizadas", "Todas"});
         jcbEstadoFiltro.setModel(modelFiltro);
+        jcbEstadoFiltro.setSelectedItem("En curso");
 
         // Renderer: null => "Todos" en filtro, "Seleccionar..." en edición
         jcbEstado.setRenderer(new javax.swing.DefaultListCellRenderer() {
@@ -725,11 +726,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     boolean isSelected, boolean cellHasFocus) {
 
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value == null) {
-                    setText("Todos");
-                } else {
-                    setText(((Constantes.EstadoVisita) value).name());
-                }
+                setText(value == null ? "En curso" : value.toString());
                 return this;
             }
         });
@@ -748,15 +745,23 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             model.setRowCount(0);
 
             List<Visita> visitas = visitaControlador.obtenerTodasLasVisitas();
-            System.out.println("Cantidad de visitas BD: " + visitas.size());
-
-            for (Visita v : visitas) {
-                System.out.println(
-                        "BD -> ID: " + v.getIdVisita()
-                        + " Estado: " + v.getEstado()
-                        + " Mascota: " + v.getMascota().getNombre()
-                );
-            }
+            visitas.sort(java.util.Comparator
+                    .comparingInt((Visita v) -> {
+                        String estado = normalizarEstadoBD(v.getEstado());
+                        return "EN_ESPERA".equals(estado) ? 0
+                                : "ATENDIENDO".equals(estado) ? 1 : 2;
+                    })
+                    .thenComparingInt(v -> {
+                        if (!"EN_ESPERA".equals(normalizarEstadoBD(v.getEstado()))) return 3;
+                        String prioridad = v.getPrioridadAtencion();
+                        return "EMERGENCIA".equals(prioridad) ? 0
+                                : "URGENCIA".equals(prioridad) ? 1 : 2;
+                    })
+                    .thenComparing(Visita::getFecha,
+                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                    .thenComparing(Visita::getHora,
+                            java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder()))
+                    .thenComparing(Visita::getIdVisita));
 
             for (Visita visita : visitas) {
 
