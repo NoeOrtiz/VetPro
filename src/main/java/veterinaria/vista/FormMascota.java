@@ -711,6 +711,7 @@ public class FormMascota extends javax.swing.JPanel {
 
     private void btnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNuevoActionPerformed
         Application.actualizarEstadoUsuario("CreandoMascota");
+        jcbDueño.setEnabled(true);
         mascota = new Mascota();
         btnNuevo.setEnabled(false);
         btnEditar.setEnabled(false);
