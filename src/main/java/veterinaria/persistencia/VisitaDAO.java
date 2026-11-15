@@ -132,8 +132,8 @@ public class VisitaDAO {
                 throw new IllegalStateException("Una consulta cerrada no puede modificarse.");
             if (!estado.equals(visita.getEstado()))
                 throw new IllegalStateException("Para cambiar el estado use Cambiar estado.");
-            // En Editar solo se modifica el tratamiento; los demás datos clínicos se conservan.
-            actual.setTratamiento(visita.getTratamiento());
+            // Conservar la actualización existente, validando antes estado y cierre.
+            em.merge(visita);
             em.flush();
             em.getTransaction().commit();
             auditoriaService.registrar("UPDATE", "Visita", Long.valueOf(visita.getIdVisita()),
