@@ -188,6 +188,11 @@ public class ClienteService {
                     .setParameter("idCliente", idCliente)
                     .getResultList();
             for (veterinaria.entidad.Mascota mascota : mascotas) {
+                // Una baja por fallecimiento nunca debe revertirse en cascada.
+                if (mascota.getMotivoBaja() != null
+                        && "Fallecimiento".equalsIgnoreCase(mascota.getMotivoBaja().trim())) {
+                    continue;
+                }
                 mascota.setActivo(true);
                 mascota.setBajaPorCliente(false);
                 mascota.setMotivoBaja(null);
