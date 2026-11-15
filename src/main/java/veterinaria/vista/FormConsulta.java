@@ -55,10 +55,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
      */
     private boolean origenHistoriaClinica = false;
 
-    private static final List<Integer> COLUMNAS_BUSQUEDA_TABLA = Arrays.asList(2, 3, 8, 9);
+    // Coincidencias exclusivamente en los campos de búsqueda clínicos.
+    private static final int[] COLUMNAS_BUSQUEDA = {2, 3, 4, 5, 9};
+    private veterinaria.util.PaginacionTablas paginacionConsultas;
+    private javax.swing.JButton btnCambiarEstado;
 
     public FormConsulta() {
         initComponents();
+        configurarPresentacionConsultas();
         PermisoUI.aplicar(this);
 
         // Estado inicial de acciones
@@ -83,8 +87,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         initListeners();
 
-        // Ajusta el ancho de las columnas basado en el texto de los encabezados
-        UtilidadesTabla.ajustarAnchoColumnas(tableVisitas);
+        // Los anchos se mantienen proporcionados: no se calculan por textos extensos.
 
         // Tooltips por columna (descripción)
         ManejoTablas mt = new ManejoTablas();
@@ -477,6 +480,130 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
     }
 
+    /** Reutiliza los controles reales y el tema FlatLaf sin tocar initComponents. */
+    private void configurarPresentacionConsultas() {
+        // Compartir el mismo patrón aprobado de paginación y búsqueda.
+        javax.swing.JPanel tablaPaginada = new javax.swing.JPanel(new java.awt.BorderLayout());
+        ((javax.swing.GroupLayout) jpListaVisitas.getLayout()).replace(scroll1, tablaPaginada);
+        tablaPaginada.add(scroll1, java.awt.BorderLayout.CENTER);
+        paginacionConsultas = new veterinaria.util.PaginacionTablas(
+                tableVisitas, txtBusqueda, 15, COLUMNAS_BUSQUEDA, COLUMNAS_BUSQUEDA);
+        paginacionConsultas.activarBusquedaPorPrefijo();
+        paginacionConsultas.establecerFiltroAdicional(this::coincideEstadoModelo);
+        tablaPaginada.add(paginacionConsultas.getControles(), java.awt.BorderLayout.SOUTH);
+        txtBusqueda.setLayout(new java.awt.BorderLayout());
+        txtBusqueda.add(paginacionConsultas.getBotonLimpiar(), java.awt.BorderLayout.EAST);
+        javax.swing.SwingUtilities.invokeLater(() -> paginacionConsultas.activarTamanoAdaptable());
+
+        tableVisitas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        if (tableVisitas instanceof veterinaria.vista.table.AutoTable)
+            ((veterinaria.vista.table.AutoTable) tableVisitas).setAjustarAnchoAutomaticamente(false);
+        tableVisitas.setRowHeight(27);
+        tableVisitas.getColumnModel().getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
+        int[] anchos = {85, 55, 100, 125, 130, 100, 225, 135, 112, 130};
+        for (int i = 0; i < anchos.length; i++)
+            tableVisitas.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+        tableVisitas.getColumnModel().getColumn(0).setMinWidth(80);
+        tableVisitas.getColumnModel().getColumn(1).setHeaderValue("N.º");
+        scroll1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll1.setMinimumSize(new java.awt.Dimension(0, 0));
+        jpListaVisitas.setMinimumSize(new java.awt.Dimension(0, 0));
+        setMinimumSize(new java.awt.Dimension(0, 0));
+
+        btnCambiarEstado = new javax.swing.JButton("Cambiar estado");
+        btnCambiarEstado.addActionListener(e -> avanzarEstadoSeleccionado());
+        btnCambiarEstado.setEnabled(false);
+
+        // Barra compacta: mismos componentes y estética de la pantalla original.
+        jpHeader.removeAll();
+        jpHeader.setLayout(new java.awt.BorderLayout(0, 10));
+        javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 6));
+        titulo.setOpaque(false);
+        titulo.add(lbVisitas, java.awt.BorderLayout.NORTH);
+        titulo.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel herramientas = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        herramientas.setOpaque(false);
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0));
+        filtros.setOpaque(false);
+        javax.swing.JPanel buscar = new javax.swing.JPanel(new java.awt.BorderLayout(6, 4));
+        buscar.setOpaque(false);
+        buscar.add(lbUsuarioBusqueda, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel cajaBuscar = new javax.swing.JPanel(new java.awt.BorderLayout(6, 0));
+        cajaBuscar.setOpaque(false);
+        cajaBuscar.add(lbBuscar, java.awt.BorderLayout.WEST);
+        txtBusqueda.setPreferredSize(new java.awt.Dimension(230, 28));
+        cajaBuscar.add(txtBusqueda, java.awt.BorderLayout.CENTER);
+        buscar.add(cajaBuscar, java.awt.BorderLayout.CENTER);
+        filtros.add(buscar);
+        javax.swing.JPanel estado = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
+        estado.setOpaque(false);
+        estado.add(lbEstadoFiltro, java.awt.BorderLayout.NORTH);
+        jcbEstadoFiltro.setPreferredSize(new java.awt.Dimension(140, 28));
+        estado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
+        filtros.add(estado);
+        herramientas.add(filtros, java.awt.BorderLayout.WEST);
+
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
+        acciones.setOpaque(false);
+        javax.swing.JPanel accionPrincipal = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        accionPrincipal.setOpaque(false);
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnNuevo, btnEditar, btnCambiarEstado, btnEliminar})
+            accionPrincipal.add(boton);
+        acciones.add(accionPrincipal, java.awt.BorderLayout.SOUTH);
+        javax.swing.JPanel impresion = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        impresion.setOpaque(false);
+        impresion.add(btnImprimirVisita);
+        acciones.add(impresion, java.awt.BorderLayout.NORTH);
+        herramientas.add(acciones, java.awt.BorderLayout.EAST);
+        jpHeader.add(herramientas, java.awt.BorderLayout.CENTER);
+        jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        jpHeader.revalidate();
+        jpHeader.repaint();
+    }
+
+    private boolean coincideEstadoModelo(int fila) {
+        if (jcbEstadoFiltro == null || jcbEstadoFiltro.getSelectedItem() == null)
+            return true;
+        String valor = String.valueOf(tableVisitas.getModel().getValueAt(fila, 8));
+        return jcbEstadoFiltro.getSelectedItem().toString()
+                .equalsIgnoreCase(normalizarEstadoBD(valor));
+    }
+
+    private void avanzarEstadoSeleccionado() {
+        Visita seleccionada = obtenerVisitaSeleccionadaDesdeTabla();
+        if (seleccionada == null) return;
+        String actual = normalizarEstadoBD(seleccionada.getEstado());
+        if ("FINALIZADO".equals(actual) || "CANCELADO".equals(actual)) {
+            JOptionPane.showMessageDialog(this, "Esta consulta ya está cerrada.",
+                    "Cambio de estado no permitido", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String siguiente = "EN_ESPERA".equals(actual) ? "ATENDIENDO" : "FINALIZADO";
+        String titulo = "FINALIZADO".equals(siguiente) ? "Finalizar consulta" : "Iniciar atención";
+        String mensaje = "FINALIZADO".equals(siguiente)
+                ? "¿Confirma que finalizó la atención de " + seleccionada.getMascota().getNombre()
+                    + "?\nLa consulta quedará cerrada y no podrá editarse."
+                : "¿Comenzar la atención de " + seleccionada.getMascota().getNombre() + "?";
+        int respuesta = JOptionPane.showConfirmDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                mensaje, titulo, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (respuesta != JOptionPane.YES_OPTION) return;
+        try {
+            visitaControlador.avanzarEstado(seleccionada.getIdVisita(), actual, siguiente);
+            cargarVisitasEnTabla();
+            JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                    "FINALIZADO".equals(siguiente) ? "Consulta finalizada correctamente."
+                            : "La consulta ahora está en atención.",
+                    "Estado actualizado", JOptionPane.INFORMATION_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                    "No se pudo actualizar el estado.\n" + ex.getMessage(),
+                    "Estado sin cambios", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
     private void configurarComboEstado() {
         // Combo de estado (edición)
         DefaultComboBoxModel<Constantes.EstadoVisita> modelEstado = new DefaultComboBoxModel<>();
@@ -528,7 +655,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         });
 
         // Aplicar filtro combinado cuando cambia el estado
-        jcbEstadoFiltro.addActionListener(e -> ManejoTablas.refrescarFiltroCombinado(tableVisitas, txtBusqueda, COLUMNAS_BUSQUEDA_TABLA, buildFiltroEstado()));
+        jcbEstadoFiltro.addActionListener(e -> { if (paginacionConsultas != null) paginacionConsultas.establecerFiltroAdicional(this::coincideEstadoModelo); });
     }
 
     private void cargarVisitasEnTabla() {
@@ -540,7 +667,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             DefaultTableModel model = (DefaultTableModel) tableVisitas.getModel();
             model.setRowCount(0);
 
-            List<Visita> visitas = visitaControlador.obtenerVisitasActivas();
+            List<Visita> visitas = visitaControlador.obtenerTodasLasVisitas();
             System.out.println("Cantidad de visitas BD: " + visitas.size());
 
             for (Visita v : visitas) {
@@ -599,12 +726,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new ManejoTablas().asegurarSeleccionUnica(tableVisitas);
             }
 
-            ManejoTablas.refrescarFiltroCombinado(
-                    tableVisitas,
-                    txtBusqueda,
-                    COLUMNAS_BUSQUEDA_TABLA,
-                    buildFiltroEstado()
-            );
+            if (paginacionConsultas != null) paginacionConsultas.actualizar();
 
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
@@ -627,8 +749,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         boolean haySeleccion = (obtenerFilaSeleccionadaPorCheck() != -1);
 
-        btnImprimirVisita.setVisible(haySeleccion);
-
+        btnImprimirVisita.setVisible(haySeleccion && !jpDatos.isVisible());
         actualizarAccionesPorSeleccion();
     }
 
@@ -638,6 +759,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (tableVisitas.getRowCount() == 0) {
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
+            if (btnCambiarEstado != null) btnCambiarEstado.setEnabled(false);
             return;
         }
 
@@ -647,6 +769,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (row < 0 || row >= tableVisitas.getRowCount()) {
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
+            if (btnCambiarEstado != null) btnCambiarEstado.setEnabled(false);
             return;
         }
 
@@ -666,10 +789,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
 
         // Reglas de negocio
-        btnEditar.setEnabled(!esFinalizado);
-
-        // Solo permitir eliminar visitas finalizadas (si mantenés esa regla)
-        btnEliminar.setEnabled(esFinalizado);
+        btnEditar.setEnabled(!esFinalizado && !jpDatos.isVisible());
+        if (btnCambiarEstado != null)
+            btnCambiarEstado.setEnabled(!esFinalizado && !jpDatos.isVisible());
+        // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
+        btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible());
     }
 
     private void configurarModoNuevo() {
@@ -1042,8 +1166,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void initListeners() {
-        // Filtro/resaltado centralizado (sin popups modales)
-        ManejoTablas.aplicarFiltroYResaltadoCombinado(tableVisitas, txtBusqueda, COLUMNAS_BUSQUEDA_TABLA, this::buildFiltroEstado);
+        // La búsqueda y el estado usan una sola paginación y un solo resaltado.
 
         // Actualiza botón imprimir cuando cambia selección o checkbox
         try {
@@ -1496,8 +1619,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 return canEdit [columnIndex];
             }
         });
-        tableVisitas.setMinimumSize(new java.awt.Dimension(848, 220));
-        tableVisitas.setPreferredSize(new java.awt.Dimension(848, 220));
+        tableVisitas.setMinimumSize(new java.awt.Dimension(0, 0));
         tableVisitas.getTableHeader().setReorderingAllowed(false);
         scroll1.setViewportView(tableVisitas);
 
@@ -1584,6 +1706,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
             configurarModoEdicionRestringida();
             jpDatos.setVisible(true);
+            jpListaVisitas.setVisible(false);
             btnGuardar.setEnabled(true);
             btnNuevo.setEnabled(false);
             btnEditar.setEnabled(false);
