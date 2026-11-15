@@ -24,7 +24,7 @@ public class VisitaDAO {
                 throw new IllegalArgumentException("Debe seleccionar un paciente.");
             veterinaria.entidad.Mascota paciente = em.find(
                     veterinaria.entidad.Mascota.class, visita.getMascota().getIdMascota(),
-                    LockModeType.PESSIMISTIC_READ);
+                    LockModeType.PESSIMISTIC_WRITE);
             if (paciente == null) throw new IllegalStateException("No se encontró el paciente.");
             if (!paciente.isActivo()) {
                 veterinaria.util.SesionUsuario sesion =
