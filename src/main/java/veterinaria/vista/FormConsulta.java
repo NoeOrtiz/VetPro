@@ -822,9 +822,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
 
         // Reglas de negocio
-        btnEditar.setEnabled(!esFinalizado && !jpDatos.isVisible());
+        String estadoSeleccionado = normalizarEstadoBD(String.valueOf(tableVisitas.getValueAt(row, 8)));
+        btnEditar.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
+                && !jpDatos.isVisible());
         if (btnCambiarEstado != null)
-            btnCambiarEstado.setEnabled(!esFinalizado && !jpDatos.isVisible());
+            btnCambiarEstado.setEnabled(usuarioClinico() && !esFinalizado && !jpDatos.isVisible());
         // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
         btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible());
     }
@@ -1779,7 +1781,15 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }//GEN-LAST:event_btnNuevoActionPerformed
 
     private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
+        if (!usuarioClinico()) {
+            JOptionPane.showMessageDialog(this, "El tratamiento lo completa el veterinario.");
+            return;
+        }
         if (editarVisitaSeleccionada()) {
+            if (!"ATENDIENDO".equals(normalizarEstadoBD(visita.getEstado()))) {
+                JOptionPane.showMessageDialog(this, "Primero debe comenzar la atención desde Cambiar estado.");
+                return;
+            }
             // Regla: si está FINALIZADO no se permite editar
             if (isVisitaFinalizada(visita)) {
                 JOptionPane.showMessageDialog(this,
@@ -1910,7 +1920,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                                   + "La mascota permanece inactiva y la solicitud de reactivación "
                                   + "sigue pendiente de revisión.\n"
                                   + "La consulta quedó vinculada al paciente y se incorporará a su historia clínica al finalizarla."
-                                : "Consulta registrada correctamente.",
+                                : "Consulta registrada correctamente.\n"
+                                    + "Número de ticket: " + visita.getIdVisita() + ".\n"
+                                    + "Paciente en espera de atención veterinaria.",
                             "Consulta guardada", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     visitaControlador.actualizarVisita(visita);
