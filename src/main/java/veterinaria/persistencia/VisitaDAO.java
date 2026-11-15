@@ -67,6 +67,65 @@ public class VisitaDAO {
         }
     }
 
+    /**
+     * Asigna atómicamente la próxima consulta al profesional que se libera.
+     * Emergencia > urgencia > control y, a igual prioridad, orden de llegada.
+     * Nunca reserva un paciente mientras el profesional sigue atendiendo otro.
+     */
+    public Visita tomarSiguiente(Integer idUsuario) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            veterinaria.entidad.Usuario u = em.find(veterinaria.entidad.Usuario.class, idUsuario);
+            if (u == null || !u.isActivo() || u.getRol() == null)
+                throw new SecurityException("El profesional debe tener una sesión activa.");
+            String rol = u.getRol().getNombreRol();
+            if (!"Veterinario".equalsIgnoreCase(rol) && !"Administrador".equalsIgnoreCase(rol))
+                throw new SecurityException("Solo el veterinario puede llamar al siguiente paciente.");
+            String profesional = u.getPersona() != null
+                    ? (String.valueOf(u.getPersona().getNombre()) + " "
+                    + String.valueOf(u.getPersona().getApellido())).trim()
+                    : u.getNombreUsuario();
+
+            Number ocupadas = (Number) em.createNativeQuery(
+                    "SELECT COUNT(*) FROM visita WHERE estado='ATENDIENDO' AND usuarioAtiende=?")
+                    .setParameter(1, profesional).getSingleResult();
+            if (ocupadas.longValue() > 0)
+                throw new IllegalStateException("Todavía tiene una consulta en atención. Finalícela antes de llamar a otro paciente.");
+
+            java.util.List<?> ids = em.createNativeQuery(
+                    "SELECT idVisita FROM visita WHERE estado='EN_ESPERA' "
+                    + "AND (usuarioAtiende IS NULL OR usuarioAtiende='') "
+                    + "ORDER BY CASE prioridad_atencion "
+                    + "WHEN 'EMERGENCIA' THEN 0 WHEN 'URGENCIA' THEN 1 ELSE 2 END, "
+                    + "fecha ASC, hora ASC, idVisita ASC LIMIT 1 FOR UPDATE")
+                    .getResultList();
+            if (ids.isEmpty()) {
+                em.getTransaction().commit();
+                return null;
+            }
+            Integer id = ((Number) ids.get(0)).intValue();
+            Visita siguiente = em.find(Visita.class, id);
+            if (siguiente == null || !"EN_ESPERA".equals(siguiente.getEstado())
+                    || (siguiente.getUsuarioAtiende() != null
+                    && !siguiente.getUsuarioAtiende().isBlank()))
+                throw new IllegalStateException("La cola cambió. Vuelva a intentar.");
+            siguiente.setUsuarioAtiende(profesional);
+            siguiente.setEstado("ATENDIENDO");
+            em.flush();
+            em.getTransaction().commit();
+            auditoriaService.registrar("LLAMAR_PACIENTE", "Visita", Long.valueOf(id),
+                    "VisitaDAO", "Turno asignado automáticamente a " + profesional,
+                    AuditoriaService.RESULT_OK, null, null, null);
+            return siguiente;
+        } catch (RuntimeException ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw ex;
+        } finally {
+            em.close();
+        }
+    }
+
     /** Cambio de estado atómico, sin editar datos clínicos ni crear otra visita. */
     public Visita avanzarEstado(Integer idVisita, String esperado, String nuevoEstado) {
         EntityManager em = getEntityManager();
