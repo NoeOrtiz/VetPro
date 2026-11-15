@@ -52,8 +52,9 @@ public class SolicitudReactivacionService {
     public List<Object[]> listarPendientes() {
         return tx.runInTx(em -> em.createNativeQuery(
                 "SELECT s.idSolicitud,m.nombre,s.tipo,s.prioridad,s.justificacion,"
-                + "s.fechaSolicitud,s.idMascota,s.motivoBajaOriginal "
+                + "s.fechaSolicitud,s.idMascota,s.motivoBajaOriginal,u.nombreUsuario "
                 + "FROM mascota_solicitud_reactivacion s JOIN mascota m ON m.idMascota=s.idMascota "
+                + "JOIN usuario u ON u.idUsuario=s.idUsuarioSolicitante "
                 + "WHERE s.estado='PENDIENTE' ORDER BY (s.prioridad='URGENTE') DESC,s.fechaSolicitud ASC")
                 .getResultList());
     }
