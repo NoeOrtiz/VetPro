@@ -85,6 +85,10 @@ public class VisitaDAO {
             String rol = sesion == null || sesion.getRol() == null ? "" : sesion.getRol().getNombreRol();
             if (!"Veterinario".equalsIgnoreCase(rol) && !"Administrador".equalsIgnoreCase(rol))
                 throw new SecurityException("Solo el veterinario puede iniciar o finalizar una atención.");
+            if ("Veterinario".equalsIgnoreCase(rol) &&
+                    (sesion.getNombreApellido() == null || managed.getUsuarioAtiende() == null ||
+                     !sesion.getNombreApellido().trim().equalsIgnoreCase(managed.getUsuarioAtiende().trim())))
+                throw new SecurityException("Esta consulta fue asignada a otro veterinario. Consulte al administrador.");
             if ("FINALIZADO".equals(nuevoEstado)) {
                 if (managed.getPatologia() == null || managed.getPatologia().isBlank()
                         || managed.getTratamiento() == null || managed.getTratamiento().isBlank())
@@ -154,6 +158,10 @@ public class VisitaDAO {
             String rol = sesion == null || sesion.getRol() == null ? "" : sesion.getRol().getNombreRol();
             if (!"Veterinario".equalsIgnoreCase(rol) && !"Administrador".equalsIgnoreCase(rol))
                 throw new SecurityException("Solo el veterinario puede registrar información clínica.");
+            if ("Veterinario".equalsIgnoreCase(rol) &&
+                    (sesion.getNombreApellido() == null || actual.getUsuarioAtiende() == null ||
+                     !sesion.getNombreApellido().trim().equalsIgnoreCase(actual.getUsuarioAtiende().trim())))
+                throw new SecurityException("La consulta está asignada a otro veterinario. Consulte al administrador.");
             // Actualizar exclusivamente los campos clínicos autorizados; mantener la identidad y asignación.
             actual.setPatologia(visita.getPatologia());
             actual.setTratamiento(visita.getTratamiento());
