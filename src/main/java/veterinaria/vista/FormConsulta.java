@@ -104,7 +104,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 6, "Tratamiento indicado",
                 7, "Fecha de la visita",
                 8, "Estado (pendiente / finalizada / etc.)",
-                9, "Veterinario que atendió"
+                9, "Veterinario que atendió",
+                10, "Prioridad de atención"
         ));
 
         // Tooltips con texto completo en columnas de texto largo
@@ -506,7 +507,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         tableVisitas.setRowHeight(27);
         tableVisitas.getColumnModel().getColumn(0).setCellRenderer(
                 new veterinaria.vista.table.TableGradientCheckBoxRenderer());
-        int[] anchos = {85, 55, 100, 125, 130, 100, 225, 135, 112, 130};
+        int[] anchos = {82, 52, 95, 110, 115, 95, 185, 115, 95, 110, 94};
         for (int i = 0; i < anchos.length; i++)
             tableVisitas.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         tableVisitas.getColumnModel().getColumn(0).setMinWidth(80);
@@ -782,7 +783,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     visita.getTratamiento(),
                     fechaHora,
                     visita.getEstado(),
-                    visita.getUsuarioAtiende()
+                    visita.getUsuarioAtiende() == null || visita.getUsuarioAtiende().isBlank()
+                            ? "Sin asignar" : visita.getUsuarioAtiende(),
+                    visita.getPrioridadAtencion() == null ? "CONTROL" : visita.getPrioridadAtencion()
                 };
 
                 model.addRow(fila);
@@ -887,6 +890,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbMotivo.setEnabled(true);
             jcbPatologia.setEnabled(false); // Diagnóstico exclusivo de atención clínica.
             jcbVeterinario.setEnabled(false); // Asignación dinámica al iniciar la atención.
+            jcbVeterinario.setToolTipText("Se asignará automáticamente cuando un veterinario esté disponible.");
             jcbEstado.setEnabled(false); // Siempre inicia EN ESPERA; se cambia desde la lista.
             jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
             prioridadConsulta.setEnabled(true);
@@ -960,7 +964,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         String patologia = safeText(jcbPatologia.getSelectedItem());
         String tratamiento = txtTratamiento.getText() != null ? txtTratamiento.getText() : "";
         String estado = safeText(jcbEstado.getSelectedItem());
-        String veterinario = safeText(jcbVeterinario.getSelectedItem());
+        String veterinario = esNueva ? "Pendiente de asignación" : safeText(jcbVeterinario.getSelectedItem());
 
         String resumen = esNueva
                 ? "¿Registrar el ingreso del paciente y generar su ticket?\n\n"
@@ -1687,14 +1691,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
             },
             new String [] {
-                "Seleccionar", "Nº de Visita", "Paciente", "Cliente", "Motivo", "Patología", "Tratamiento", "Fecha", "Estado", "Veterinario"
+                "Seleccionar", "Nº de Visita", "Paciente", "Cliente", "Motivo", "Patología", "Tratamiento", "Fecha", "Estado", "Veterinario", "Prioridad"
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Boolean.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
+                java.lang.Boolean.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
             };
             boolean[] canEdit = new boolean [] {
-                true, false, false, false, false, false, false, false, false, false
+                true, false, false, false, false, false, false, false, false, false, false
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -1911,7 +1915,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             Constantes.EstadoVisita estadoSel = (Constantes.EstadoVisita) jcbEstado.getSelectedItem();
             visita.setEstado(estadoSel != null ? estadoSel.name() : Constantes.EstadoVisita.EN_ESPERA.name());
             if (registroInicial) {
-                visita.setUsuarioAtiende(null);
+                visita.setUsuarioAtiende("");
                 visita.setPrioridadAtencion(String.valueOf(prioridadConsulta.getSelectedItem()));
             }
 
