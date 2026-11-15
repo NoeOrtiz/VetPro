@@ -46,6 +46,10 @@ public class VisitaDAO {
             } else if (visita.isAtencionProvisional()) {
                 throw new IllegalStateException("La atención provisional solo corresponde a pacientes inactivos.");
             }
+            if (!"EN_ESPERA".equals(visita.getEstado()))
+                throw new IllegalStateException("La consulta debe registrarse inicialmente EN ESPERA.");
+            if (visita.getTratamiento() != null && !visita.getTratamiento().isBlank())
+                throw new IllegalStateException("El tratamiento se registra durante la atención veterinaria.");
             em.persist(visita);
             em.getTransaction().commit();
             auditoriaService.registrar(visita.isAtencionProvisional() ? "CONSULTA_PROVISIONAL" : "CREATE",
@@ -75,6 +79,16 @@ public class VisitaDAO {
             if (!(("EN_ESPERA".equals(actual) && "ATENDIENDO".equals(nuevoEstado))
                     || ("ATENDIENDO".equals(actual) && "FINALIZADO".equals(nuevoEstado))))
                 throw new IllegalStateException("Solo se puede avanzar al siguiente estado de atención.");
+            veterinaria.util.SesionUsuario sesion =
+                    veterinaria.vista.application.Application.getSesionUsuario();
+            String rol = sesion == null || sesion.getRol() == null ? "" : sesion.getRol().getNombreRol();
+            if (!"Veterinario".equalsIgnoreCase(rol) && !"Administrador".equalsIgnoreCase(rol))
+                throw new SecurityException("Solo el veterinario puede iniciar o finalizar una atención.");
+            if ("FINALIZADO".equals(nuevoEstado)) {
+                if (managed.getPatologia() == null || managed.getPatologia().isBlank()
+                        || managed.getTratamiento() == null || managed.getTratamiento().isBlank())
+                    throw new IllegalStateException("Antes de finalizar, el veterinario debe registrar diagnóstico y tratamiento.");
+            }
             managed.setEstado(nuevoEstado);
             em.flush();
             em.getTransaction().commit();
@@ -132,8 +146,14 @@ public class VisitaDAO {
                 throw new IllegalStateException("Una consulta cerrada no puede modificarse.");
             if (!estado.equals(visita.getEstado()))
                 throw new IllegalStateException("Para cambiar el estado use Cambiar estado.");
-            // Conservar la actualización existente, validando antes estado y cierre.
-            em.merge(visita);
+            veterinaria.util.SesionUsuario sesion =
+                    veterinaria.vista.application.Application.getSesionUsuario();
+            String rol = sesion == null || sesion.getRol() == null ? "" : sesion.getRol().getNombreRol();
+            if (!"Veterinario".equalsIgnoreCase(rol) && !"Administrador".equalsIgnoreCase(rol))
+                throw new SecurityException("Solo el veterinario puede registrar información clínica.");
+            // Actualizar exclusivamente los campos clínicos autorizados; mantener la identidad y asignación.
+            actual.setPatologia(visita.getPatologia());
+            actual.setTratamiento(visita.getTratamiento());
             em.flush();
             em.getTransaction().commit();
             auditoriaService.registrar("UPDATE", "Visita", Long.valueOf(visita.getIdVisita()),
