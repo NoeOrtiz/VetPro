@@ -193,10 +193,12 @@ public class NotificationBell extends JPanel {
             if (indice < 0) return;
             Object[] item = pendientes.get(indice);
             javax.swing.JTextArea descripcion = new javax.swing.JTextArea(
-                    "Paciente: " + item[1] + "\nTipo: " + item[2]
+                    "Paciente: " + item[1] + "\nSolicitante: " + item[8]
+                    + "\nFecha de solicitud: " + item[5]
+                    + "\nTipo: " + item[2]
                     + "\nPrioridad: " + item[3]
                     + "\nMotivo de baja original: " + item[7]
-                    + "\nJustificación: " + item[4], 7, 38);
+                    + "\nJustificación: " + item[4], 8, 38);
             descripcion.setEditable(false);
             descripcion.setLineWrap(true);
             descripcion.setWrapStyleWord(true);
