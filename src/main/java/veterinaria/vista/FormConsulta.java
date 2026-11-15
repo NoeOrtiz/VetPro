@@ -1289,7 +1289,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private String normalizarEstadoBD(String estadoBD) {
 
         if (estadoBD == null || estadoBD.trim().isEmpty()) {
-            return Constantes.EstadoVisita.ATENDIENDO.name();
+            return "SIN_ESTADO";
         }
 
         estadoBD = estadoBD.trim().toUpperCase();
@@ -1529,7 +1529,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         // Si clickea el checkbox, permitimos el toggle natural
         if (viewCol == 0) {
-            actualizarBotonImprimir();
+            // El editor del checkbox termina después del evento de mouse.
+            javax.swing.SwingUtilities.invokeLater(this::actualizarBotonImprimir);
             return;
         }
 
@@ -1545,7 +1546,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
         }
 
-        actualizarBotonImprimir();
+        javax.swing.SwingUtilities.invokeLater(this::actualizarBotonImprimir);
     }
 
     @SuppressWarnings("unchecked")
