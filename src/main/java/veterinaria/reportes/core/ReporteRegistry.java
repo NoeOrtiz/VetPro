@@ -50,6 +50,7 @@ public class ReporteRegistry {
         // Buscá el constructor de tu ReporteRegistry y agregá esta línea:
         registrar(ReporteSelectorUtil.Formato.XLS, new CajaMovimientosListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new ClienteListadoXlsReporte());
+        registrar(ReporteSelectorUtil.Formato.XLS, new VisitaListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new MascotaListadoXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new MascotaRegistroXlsReporte());
         registrar(ReporteSelectorUtil.Formato.XLS, new UsuarioListadoXlsReporte());
