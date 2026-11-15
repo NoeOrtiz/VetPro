@@ -174,15 +174,22 @@ public class FormCliente extends javax.swing.JPanel {
         actualizarAccionesCliente();
     }
 
+    /** Respeta roles y permisos aun cuando se selecciona una fila. */
+    private boolean puedeCambiarEstadoCliente() {
+        return sesion != null && sesion.getRol() != null
+                && "Administrador".equalsIgnoreCase(sesion.getRol().getNombreRol())
+                && sesion.puede("FormCliente.ELIMINAR");
+    }
+
     private void actualizarAccionesCliente() {
         boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(tableClientes);
         btnEditar.setVisible(seleccion);
-        btnEliminar.setVisible(seleccion);
+        btnEliminar.setVisible(seleccion && puedeCambiarEstadoCliente());
         btnImprimir.setVisible(seleccion);
         btnCancelarSeleccion.setVisible(seleccion);
         btnVerInfo.setVisible(seleccion);
         btnEditar.setEnabled(seleccion);
-        btnEliminar.setEnabled(seleccion);
+        btnEliminar.setEnabled(seleccion && puedeCambiarEstadoCliente());
         actualizarTextoAccionCliente();
         btnNuevo.setEnabled(!seleccion);
     }
@@ -768,7 +775,7 @@ public class FormCliente extends javax.swing.JPanel {
 
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         String perm = "FormCliente.ELIMINAR";
-        if (sesion == null || !sesion.puede(perm)) {
+        if (!puedeCambiarEstadoCliente()) {
             JOptionPane.showMessageDialog(null, "No tiene permisos suficientes para desactivar clientes.", "Acceso restringido", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -1239,8 +1246,8 @@ public class FormCliente extends javax.swing.JPanel {
             btnEditar.setEnabled(haySeleccion);
         }
         if (btnEliminar != null) {
-            btnEliminar.setVisible(haySeleccion);
-            btnEliminar.setEnabled(haySeleccion);
+            btnEliminar.setVisible(haySeleccion && puedeCambiarEstadoCliente());
+            btnEliminar.setEnabled(haySeleccion && puedeCambiarEstadoCliente());
         }
         if (btnImprimir != null) {
             btnImprimir.setVisible(haySeleccion);
