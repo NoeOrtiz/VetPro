@@ -136,6 +136,10 @@ public class MascotaService {
             Mascota managed = em.find(Mascota.class, mascota.getIdMascota());
             if (managed == null) throw new IllegalArgumentException("No se encontró la mascota.");
             antes[0] = JsonUtil.safeToJson(managed);
+            if (managed.getMotivoBaja() != null
+                    && "Fallecimiento".equalsIgnoreCase(managed.getMotivoBaja().trim())) {
+                throw new IllegalStateException("No se puede reactivar una mascota registrada como fallecida.");
+            }
             if (!managed.getCliente().isActivo()) {
                 throw new IllegalStateException("No se puede reactivar una mascota cuyo cliente está inactivo.");
             }
