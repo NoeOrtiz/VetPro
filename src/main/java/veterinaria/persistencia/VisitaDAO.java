@@ -121,12 +121,30 @@ public class VisitaDAO {
 
     public void actualizar(Visita visita) {
         EntityManager em = getEntityManager();
-        em.getTransaction().begin();
-        em.merge(visita);
-        em.getTransaction().commit();
-
-        auditoriaService.registrar("UPDATE", "Visita", (visita != null ? Long.valueOf(visita.getIdVisita()) : null), "VisitaDAO", "Actualización de visita", AuditoriaService.RESULT_OK, null, null, null);
-        em.close();
+        try {
+            em.getTransaction().begin();
+            if (visita == null || visita.getIdVisita() == null)
+                throw new IllegalArgumentException("Seleccione una consulta.");
+            Visita actual = em.find(Visita.class, visita.getIdVisita(), LockModeType.PESSIMISTIC_WRITE);
+            if (actual == null) throw new IllegalStateException("No se encontró la consulta.");
+            String estado = actual.getEstado() == null ? "" : actual.getEstado().trim().toUpperCase();
+            if ("FINALIZADO".equals(estado) || "CANCELADO".equals(estado))
+                throw new IllegalStateException("Una consulta cerrada no puede modificarse.");
+            if (!estado.equals(visita.getEstado()))
+                throw new IllegalStateException("Para cambiar el estado use Cambiar estado.");
+            // En Editar solo se modifica el tratamiento; los demás datos clínicos se conservan.
+            actual.setTratamiento(visita.getTratamiento());
+            em.flush();
+            em.getTransaction().commit();
+            auditoriaService.registrar("UPDATE", "Visita", Long.valueOf(visita.getIdVisita()),
+                    "VisitaDAO", "Modificación de tratamiento", AuditoriaService.RESULT_OK,
+                    null, null, null);
+        } catch (RuntimeException ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw ex;
+        } finally {
+            em.close();
+        }
     }
 
     /** @deprecated Las visitas clínicas son históricas y nunca se eliminan físicamente. */
