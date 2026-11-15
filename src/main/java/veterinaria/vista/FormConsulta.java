@@ -956,15 +956,19 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         String estado = safeText(jcbEstado.getSelectedItem());
         String veterinario = safeText(jcbVeterinario.getSelectedItem());
 
-        String resumen = "Vas a " + accion + " la siguiente visita:\n\n"
-                + "Mascota: " + mascotaTxt + "\n"
-                + "Cliente: " + clienteTxt + "\n"
-                + "Fecha: " + fechaTxt + "  Hora: " + horaTxt + "\n"
-                + "Motivo: " + motivo + "\n"
-                + "Diagnóstico/Patología: " + patologia + "\n"
-                + "Tratamiento: " + tratamiento + "\n"
-                + "Estado: " + estado + "\n"
-                + "Veterinario: " + veterinario + "\n";
+        String resumen = esNueva
+                ? "¿Registrar el ingreso del paciente y generar su ticket?\n\n"
+                    + "Paciente: " + mascotaTxt + "\n"
+                    + "Cliente: " + clienteTxt + "\n"
+                    + "Fecha: " + fechaTxt + "  Hora: " + horaTxt + "\n"
+                    + "Motivo de consulta: " + motivo + "\n"
+                    + "Veterinario asignado: " + veterinario + "\n\n"
+                    + "El diagnóstico y el tratamiento se completan durante la atención."
+                : "¿Guardar los datos registrados por el veterinario?\n\n"
+                    + "Paciente: " + mascotaTxt + "\n"
+                    + "Diagnóstico: " + patologia + "\n"
+                    + "Evolución y tratamiento: " + tratamiento + "\n"
+                    + "Estado: " + estado + "\n";
 
         Object[] options = {"Sí", "No"};
         int r = JOptionPane.showOptionDialog(
