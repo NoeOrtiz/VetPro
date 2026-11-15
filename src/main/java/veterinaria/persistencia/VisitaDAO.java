@@ -48,8 +48,9 @@ public class VisitaDAO {
             }
             if (!"EN_ESPERA".equals(visita.getEstado()))
                 throw new IllegalStateException("La consulta debe registrarse inicialmente EN ESPERA.");
-            if (visita.getTratamiento() != null && !visita.getTratamiento().isBlank())
-                throw new IllegalStateException("El tratamiento se registra durante la atención veterinaria.");
+            if ((visita.getTratamiento() != null && !visita.getTratamiento().isBlank())
+                    || (visita.getPatologia() != null && !visita.getPatologia().isBlank()))
+                throw new IllegalStateException("El diagnóstico y tratamiento se registran durante la atención veterinaria.");
             em.persist(visita);
             em.getTransaction().commit();
             auditoriaService.registrar(visita.isAtencionProvisional() ? "CONSULTA_PROVISIONAL" : "CREATE",
