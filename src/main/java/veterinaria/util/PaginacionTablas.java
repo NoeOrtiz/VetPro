@@ -43,6 +43,7 @@ public final class PaginacionTablas {
     private int pagina;
     private boolean actualizando;
     private boolean limpiandoBusqueda;
+    private java.util.function.IntPredicate filtroAdicional = fila -> true;
 
     public PaginacionTablas(JTable tabla, JTextField busqueda, int tamano, int... columnasModelo) {
         this(tabla, busqueda, tamano, columnasModelo, columnasModelo);
@@ -189,6 +190,14 @@ public final class PaginacionTablas {
         }
     }
 
+    /** Aplica el filtro adicional sobre índices del modelo sin perder la paginación. */
+    public void establecerFiltroAdicional(java.util.function.IntPredicate filtro) {
+        filtroAdicional = filtro == null ? fila -> true : filtro;
+        pagina = 0;
+        limpiarSeleccion();
+        actualizar();
+    }
+
     public JPanel getControles() { return controles; }
     public JButton getBotonLimpiar() { return limpiar; }
     public void actualizar() {
@@ -208,7 +217,7 @@ public final class PaginacionTablas {
             String consulta = busqueda.getText().trim().toLowerCase(Locale.ROOT);
             List<Integer> coincidencias = new ArrayList<>();
             for (int fila = 0; fila < modelo.getRowCount(); fila++) {
-                if (consulta.isEmpty() || coincide(modelo, fila, consulta)) coincidencias.add(fila);
+                if (filtroAdicional.test(fila) && (consulta.isEmpty() || coincide(modelo, fila, consulta))) coincidencias.add(fila);
             }
             int total = coincidencias.size();
             int capacidad = filasPorPagina();
@@ -293,7 +302,7 @@ public final class PaginacionTablas {
         TableModel modelo = tabla.getModel();
         String consulta = busqueda.getText().trim().toLowerCase(Locale.ROOT);
         for (int fila = 0; fila < modelo.getRowCount(); fila++) {
-            if (consulta.isEmpty() || coincide(modelo, fila, consulta)) total++;
+            if (filtroAdicional.test(fila) && (consulta.isEmpty() || coincide(modelo, fila, consulta))) total++;
         }
         int ultimaPagina = Math.max(0, (total - 1) / capacidad);
         int nuevaPagina = Math.max(0, Math.min(destino, ultimaPagina));
