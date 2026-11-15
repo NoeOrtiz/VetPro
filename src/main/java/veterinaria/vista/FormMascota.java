@@ -744,25 +744,62 @@ public class FormMascota extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_btnEditarActionPerformed
 
+    private boolean esAdministradorMascota() {
+        return sesion != null && sesion.getRol() != null
+                && "Administrador".equalsIgnoreCase(sesion.getRol().getNombreRol());
+    }
+
+    private void solicitarReactivacionMascota(Mascota seleccionada) {
+        String causa = "Fallecimiento".equalsIgnoreCase(
+                seleccionada.getMotivoBaja() == null ? "" : seleccionada.getMotivoBaja().trim())
+                ? "rectificación de fallecimiento" : "reactivación";
+        javax.swing.JTextArea texto = new javax.swing.JTextArea(4, 30);
+        texto.setLineWrap(true);
+        texto.setWrapStyleWord(true);
+        javax.swing.JComboBox<String> prioridad = new javax.swing.JComboBox<>(new String[]{"Normal", "Urgente"});
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(0, 1, 0, 5));
+        panel.add(new javax.swing.JLabel("Solicitar " + causa + " de " + seleccionada.getNombre()));
+        panel.add(new javax.swing.JLabel("Prioridad"));
+        panel.add(prioridad);
+        panel.add(new javax.swing.JLabel("Justificación obligatoria"));
+        panel.add(new javax.swing.JScrollPane(texto));
+        int opcion = JOptionPane.showConfirmDialog(this, panel,
+                "Solicitud de " + causa, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (opcion != JOptionPane.OK_OPTION) return;
+        try {
+            int id = new veterinaria.servicio.SolicitudReactivacionService().solicitar(
+                    seleccionada.getIdMascota(), sesion.getUsuario().getIdUsuario(),
+                    "Urgente".equals(prioridad.getSelectedItem()) ? "URGENTE" : "NORMAL",
+                    texto.getText());
+            JOptionPane.showMessageDialog(this,
+                    "Solicitud Nº " + id + " registrada.\n"
+                    + "El objetivo de resolución es de hasta 24 horas; no es una espera obligatoria.\n"
+                    + "Las urgencias deben informarse al responsable de la clínica.",
+                    "Solicitud pendiente", JOptionPane.INFORMATION_MESSAGE);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo registrar la solicitud:\n" + ex.getMessage(),
+                    "Solicitud no registrada", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
     private void btnEliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEliminarActionPerformed
         int fila = operarTablas.comprobarElementoSeleccionado(tableMascotas);
         if (fila < 0) return;
-        if (sesion == null || !sesion.puede("FormMascota.ELIMINAR")) {
-            JOptionPane.showMessageDialog(this, "No tiene permisos para cambiar el estado de mascotas.",
-                    "Acceso restringido", JOptionPane.WARNING_MESSAGE);
+        if (sesion == null || sesion.getUsuario() == null) {
+            JOptionPane.showMessageDialog(this, "Inicie sesión para continuar.",
+                    "Sesión requerida", JOptionPane.WARNING_MESSAGE);
             return;
         }
         Mascota seleccionada = obtenerMascotaSeleccionadaDesdeTabla();
         if (seleccionada == null) return;
         boolean activar = !seleccionada.isActivo();
+        if (activar && !esAdministradorMascota()) {
+            solicitarReactivacionMascota(seleccionada);
+            return;
+        }
         if (activar && seleccionada.getMotivoBaja() != null
                 && "Fallecimiento".equalsIgnoreCase(seleccionada.getMotivoBaja().trim())) {
-            JOptionPane.showMessageDialog(this,
-                    "No se puede reactivar: la mascota " + seleccionada.getNombre() +
-                    " figura como fallecida.\n" +
-                    "El registro y su historia clínica se conservarán.\n" +
-                    "Si se registró el fallecimiento por error, solicite su corrección al administrador.",
-                    "Reactivación no permitida", JOptionPane.WARNING_MESSAGE);
+            solicitarReactivacionMascota(seleccionada);
             return;
         }
         if (activar && seleccionada.getCliente() != null && !seleccionada.getCliente().isActivo()) {
@@ -1026,7 +1063,10 @@ public class FormMascota extends javax.swing.JPanel {
         }
         if (haySeleccion) {
             int fila = operarTablas.comprobarElementoSeleccionado(tableMascotas);
-            btnEliminar.setText("Activo".equals(String.valueOf(tableMascotas.getValueAt(fila, 12))) ? "Desactivar" : "Reactivar");
+            boolean activo = "Activo".equals(String.valueOf(tableMascotas.getValueAt(fila, 12)));
+            btnEliminar.setText(activo ? "Desactivar" :
+                    (esAdministradorMascota() ? "Reactivar" : "Solicitar reactivación"));
+            btnEliminar.setVisible(!activo || (sesion != null && sesion.puede("FormMascota.ELIMINAR")));
         }
         btnNuevo.setEnabled(!haySeleccion && !panelDatos.isVisible());
     }
