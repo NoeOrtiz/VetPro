@@ -1097,8 +1097,64 @@ public class FormMascota extends javax.swing.JPanel {
         datos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         ficha.add(datos);
         ficha.setPreferredSize(new java.awt.Dimension(600, 340));
-        JOptionPane.showMessageDialog(this, ficha, "Información del Paciente · Solo lectura",
-                JOptionPane.PLAIN_MESSAGE);
+        Object[] opciones = {"Cerrar", "Historial de propietarios"};
+        int opcion = JOptionPane.showOptionDialog(this, ficha,
+                "Información del Paciente · Solo lectura",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null,
+                opciones, opciones[0]);
+        if (opcion == 1) mostrarHistorialPropietarios(m);
+    }
+
+    private void mostrarHistorialPropietarios(Mascota m) {
+        try {
+            java.util.List<Object[]> registros =
+                    new veterinaria.servicio.TransferenciaMascotaService().listarHistorial(m.getIdMascota());
+            if (registros.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "No hay transferencias de propietario registradas para " + m.getNombre() + ".",
+                        "Historial de propietarios", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(
+                    new Object[]{"Fecha", "Propietario anterior", "Propietario nuevo", "Motivo"}, 0) {
+                @Override public boolean isCellEditable(int fila, int columna) { return false; }
+            };
+            java.time.format.DateTimeFormatter formato =
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            for (Object[] registro : registros) {
+                String fecha = String.valueOf(registro[0]);
+                if (registro[0] instanceof java.sql.Timestamp) {
+                    fecha = ((java.sql.Timestamp) registro[0]).toLocalDateTime().format(formato);
+                }
+                modelo.addRow(new Object[]{
+                    fecha,
+                    nombreClienteHistorial(registro[1]),
+                    nombreClienteHistorial(registro[2]),
+                    registro[3] == null ? "-" : registro[3].toString()
+                });
+            }
+            javax.swing.JTable tabla = new javax.swing.JTable(modelo);
+            tabla.setRowHeight(Math.max(26, tabla.getRowHeight()));
+            javax.swing.JScrollPane vista = new javax.swing.JScrollPane(tabla);
+            vista.setPreferredSize(new java.awt.Dimension(760, 260));
+            JOptionPane.showMessageDialog(this, vista,
+                    "Historial de propietarios · " + m.getNombre(), JOptionPane.PLAIN_MESSAGE);
+        } catch (RuntimeException ex) {
+            Logger.getLogger(FormMascota.class.getName()).log(Level.SEVERE,
+                    "No se pudo consultar el historial de propietarios", ex);
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo consultar el historial de propietarios.\n"
+                    + "Verifique que se haya ejecutado la migración SQL en veterinaria_prueba.",
+                    "Historial no disponible", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private String nombreClienteHistorial(Object id) {
+        if (!(id instanceof Number)) return "-";
+        Cliente c = operandoCliente.buscarPorId(((Number) id).intValue());
+        if (c == null || c.getPersona() == null) return "Cliente " + id;
+        return (String.valueOf(c.getPersona().getApellido()) + " "
+                + String.valueOf(c.getPersona().getNombre())).trim();
     }
 
     private void mostrarTransferenciaMascota() {
