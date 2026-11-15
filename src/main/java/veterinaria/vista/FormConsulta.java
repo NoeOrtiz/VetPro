@@ -693,7 +693,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     private void llamarSiguientePaciente() {
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
-        if (!usuarioClinico() || sesion == null || sesion.getUsuario() == null) {
+        if (!usuarioClinico() || sesion == null || sesion.getUsuario() == null
+                || !sesion.puede("FormConsulta.EDITAR")) {
             JOptionPane.showMessageDialog(this,
                     "La atención debe ser iniciada por un veterinario disponible.",
                     "Acceso restringido", JOptionPane.WARNING_MESSAGE);
@@ -1399,12 +1400,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         String nombreApellido = "";
 
         try {
-            if (mascotaSeleccionada != null
-                    && mascotaSeleccionada.getCliente() != null
-                    && mascotaSeleccionada.getCliente().getPersona() != null) {
+            if (visita.getCliente() != null
+                    && visita.getCliente().getPersona() != null) {
 
-                String n = mascotaSeleccionada.getCliente().getPersona().getNombre();
-                String a = mascotaSeleccionada.getCliente().getPersona().getApellido();
+                String n = visita.getCliente().getPersona().getNombre();
+                String a = visita.getCliente().getPersona().getApellido();
 
                 nombreApellido = ((n != null ? n : "") + " " + (a != null ? a : "")).trim();
             }
