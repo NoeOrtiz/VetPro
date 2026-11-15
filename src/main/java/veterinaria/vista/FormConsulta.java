@@ -729,13 +729,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
                 String cliente = "Sin cliente";
 
-                if (visita.getMascota() != null
-                        && visita.getMascota().getCliente() != null
-                        && visita.getMascota().getCliente().getPersona() != null) {
-
-                    cliente = visita.getMascota().getCliente().getPersona().getNombre()
-                            + " "
-                            + visita.getMascota().getCliente().getPersona().getApellido();
+                // Mostrar el responsable guardado en la visita: no el dueño actual de la mascota.
+                if (visita.getCliente() != null && visita.getCliente().getPersona() != null) {
+                    cliente = visita.getCliente().getPersona().getNombre()
+                            + " " + visita.getCliente().getPersona().getApellido();
                 }
 
                 Object[] fila = {
