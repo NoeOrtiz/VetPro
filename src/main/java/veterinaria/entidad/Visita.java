@@ -43,6 +43,17 @@ public class Visita implements Serializable{
      @Column (name ="estado")
     private String estado;
 
+    @Column(name = "prioridad_atencion", nullable = false, length = 12)
+    private String prioridadAtencion = "CONTROL";
+
+    public String getPrioridadAtencion() { return prioridadAtencion; }
+    public void setPrioridadAtencion(String prioridad) {
+        if (!"EMERGENCIA".equals(prioridad) && !"URGENCIA".equals(prioridad)
+                && !"CONTROL".equals(prioridad))
+            throw new IllegalArgumentException("Seleccione Emergencia, Urgencia o Control.");
+        this.prioridadAtencion = prioridad;
+    }
+
     @Column(name = "atencion_provisional", nullable = false)
     private boolean atencionProvisional = false;
 
