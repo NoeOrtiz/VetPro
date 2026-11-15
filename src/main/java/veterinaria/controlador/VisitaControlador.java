@@ -42,6 +42,10 @@ public class VisitaControlador {
         return resultado;
     }
 
+    public Visita tomarSiguiente(Integer idUsuario) {
+        return visitaDAO.tomarSiguiente(idUsuario);
+    }
+
     public Visita buscarVisitaPorId(Integer idVisita) {
         return visitaDAO.buscarPorId(idVisita);
     }
