@@ -106,6 +106,13 @@ public class SesionUsuario {
             return aliases;
         }
         aliases.add(key);
+        // El módulo se llama FormConsulta, pero los permisos históricos son FormVisita.
+        // Respetar la autorización existente sin duplicar funcionalidades en la BD.
+        if ("FormConsulta".equalsIgnoreCase(key) || key.regionMatches(true, 0, "FormConsulta.", 0, 13)) {
+            aliases.add("FormVisita" + key.substring("FormConsulta".length()));
+        } else if ("FormVisita".equalsIgnoreCase(key) || key.regionMatches(true, 0, "FormVisita.", 0, 11)) {
+            aliases.add("FormConsulta" + key.substring("FormVisita".length()));
+        }
         if ("ClassConfig".equalsIgnoreCase(key)) {
             aliases.add("FormConfiguracion");
         } else if ("FormConfiguracion".equalsIgnoreCase(key)) {
