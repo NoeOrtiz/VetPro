@@ -40,19 +40,29 @@ public class FormLogin extends javax.swing.JPanel {
                 Usuario usuarioLogueado = operarUsuario.buscarPorUsuario(usuarioStr);
 
                 if (usuarioLogueado != null && usuarioLogueado.isPrimerLogin()) {
-                    // 1. Informamos al usuario que debe cambiar su contraseña por seguridad
                     JOptionPane.showMessageDialog(this,
-                            "Es su primer inicio de sesión. Debe cambiar su contraseña para continuar.",
-                            "Cambio Obligatorio",
+                            "Debe establecer una contraseña personal para continuar.\n"
+                            + "Esto es obligatorio en el primer ingreso y después de un restablecimiento administrativo.",
+                            "Cambio obligatorio de contraseña",
                             JOptionPane.INFORMATION_MESSAGE);
 
-                    // 2. Abrimos el diálogo de recuperación / cambio obligatorio
                     java.awt.Window parent = SwingUtilities.getWindowAncestor(this);
-                    RecuperarContrasenaDialog dialog = new RecuperarContrasenaDialog(parent, usuarioStr);
+                    CambiarContrasenaDialog dialog = new CambiarContrasenaDialog(parent, usuarioLogueado);
                     dialog.setLocationRelativeTo(this);
                     dialog.setVisible(true);
 
-                    return; // Frenamos el acceso directo hasta que complete el flujo
+                    // Aunque el diálogo se cierre sin guardar, no puede ingresar al sistema
+                    // con una contraseña temporal. Si guarda, debe autenticarse otra vez.
+                    veterinaria.util.SesionUsuario.getInstancia().cerrarSesion();
+                    clearFields();
+                    txtUser.requestFocusInWindow();
+                    if (dialog.isContraseñaCambiada()) {
+                        JOptionPane.showMessageDialog(this,
+                                "Contraseña personal actualizada. Ingrese nuevamente con su nueva contraseña.",
+                                "Contraseña actualizada",
+                                JOptionPane.INFORMATION_MESSAGE);
+                    }
+                    return;
                 }
 
                 // Si no es su primer login, ingresa normalmente al sistema
