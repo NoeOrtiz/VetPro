@@ -31,7 +31,8 @@ public class Visita implements Serializable{
     @Column (name ="patologia")
     private String patologia;
     
-    @Column (name ="tratamiento")
+    // Evolución clínica extensa: no limitar a los 255 caracteres por defecto de VARCHAR.
+    @Column(name = "tratamiento", columnDefinition = "TEXT")
     private String tratamiento;
     
     @Column (name ="fecha")
