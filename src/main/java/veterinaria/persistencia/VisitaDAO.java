@@ -146,7 +146,10 @@ public class VisitaDAO {
             if (!actual.equals(esperado))
                 throw new IllegalStateException("El estado de la consulta cambió. Actualice la lista.");
             if (!(("EN_ESPERA".equals(actual) && "ATENDIENDO".equals(nuevoEstado))
-                    || ("ATENDIENDO".equals(actual) && "FINALIZADO".equals(nuevoEstado))))
+                    || ("ATENDIENDO".equals(actual) && ("FINALIZADO".equals(nuevoEstado)
+                            || "OBSERVACION".equals(nuevoEstado)))
+                    || ("OBSERVACION".equals(actual) && ("ATENDIENDO".equals(nuevoEstado)
+                            || "FINALIZADO".equals(nuevoEstado)))))
                 throw new IllegalStateException("Solo se puede avanzar al siguiente estado de atención.");
             veterinaria.util.SesionUsuario sesion =
                     veterinaria.vista.application.Application.getSesionUsuario();
@@ -157,6 +160,14 @@ public class VisitaDAO {
                     (sesion.getNombreApellido() == null || managed.getUsuarioAtiende() == null ||
                      !sesion.getNombreApellido().trim().equalsIgnoreCase(managed.getUsuarioAtiende().trim())))
                 throw new SecurityException("Esta consulta fue asignada a otro veterinario. Consulte al administrador.");
+            if ("OBSERVACION".equals(actual) && "ATENDIENDO".equals(nuevoEstado)) {
+                String profesional = managed.getUsuarioAtiende();
+                Number ocupadas = (Number) em.createNativeQuery(
+                        "SELECT COUNT(*) FROM visita WHERE estado='ATENDIENDO' AND usuarioAtiende=?")
+                        .setParameter(1, profesional).getSingleResult();
+                if (ocupadas.longValue() > 0)
+                    throw new IllegalStateException("Finalice o deje en observación la consulta actual antes de retomar esta.");
+            }
             if ("FINALIZADO".equals(nuevoEstado)) {
                 if (managed.getPatologia() == null || managed.getPatologia().isBlank()
                         || managed.getTratamiento() == null || managed.getTratamiento().isBlank())
@@ -199,6 +210,11 @@ public class VisitaDAO {
     }
 
     public void actualizar(Visita visita) {
+        actualizar(visita, false);
+    }
+
+    /** Guarda evolución y, opcionalmente, pasa a observación en una sola transacción. */
+    public void actualizar(Visita visita, boolean dejarEnObservacion) {
         EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
@@ -225,10 +241,12 @@ public class VisitaDAO {
             // Actualizar exclusivamente los campos clínicos autorizados; mantener la identidad y asignación.
             actual.setPatologia(visita.getPatologia());
             actual.setTratamiento(visita.getTratamiento());
+            if (dejarEnObservacion) actual.setEstado("OBSERVACION");
             em.flush();
             em.getTransaction().commit();
             auditoriaService.registrar("UPDATE", "Visita", Long.valueOf(visita.getIdVisita()),
-                    "VisitaDAO", "Modificación de tratamiento", AuditoriaService.RESULT_OK,
+                    "VisitaDAO", dejarEnObservacion ? "Guardado clínico: en observación"
+                            : "Modificación de tratamiento", AuditoriaService.RESULT_OK,
                     null, null, null);
         } catch (RuntimeException ex) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
@@ -347,7 +365,7 @@ public class VisitaDAO {
 
             return em.createQuery(
                     "SELECT v FROM Visita v "
-                    + "WHERE v.estado IN ('EN_ESPERA', 'ATENDIENDO') "
+                    + "WHERE v.estado IN ('EN_ESPERA', 'ATENDIENDO', 'OBSERVACION') "
                     + "ORDER BY v.fecha ASC, v.hora ASC",
                     Visita.class)
                     .getResultList();
