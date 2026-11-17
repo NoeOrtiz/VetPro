@@ -1797,10 +1797,38 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             JOptionPane.showMessageDialog(this, "Debe seleccionar un motivo de visita.");
             return false;
         }
-        boolean esNueva = visita == null || visita.getIdVisita() == null;
-        if (!esNueva && usuarioClinico() && jcbPatologia.getSelectedIndex() <= 0) {
-            JOptionPane.showMessageDialog(this, "El veterinario debe completar el diagnóstico.");
+        String motivoReal = valorCampoPersonalizado(jcbMotivo, txtOtroMotivo);
+        if (motivoReal.isBlank() || motivoReal.length() > MAX_TEXTO_CATALOGO) {
+            JOptionPane.showMessageDialog(this,
+                    "Especifique el motivo de consulta (hasta " + MAX_TEXTO_CATALOGO + " caracteres).",
+                    "Motivo obligatorio", JOptionPane.WARNING_MESSAGE);
             return false;
+        }
+        try {
+            if (obtenerPesoActual() == null) {
+                JOptionPane.showMessageDialog(this,
+                        "Debe registrar el peso actual del paciente en kg.",
+                        "Peso obligatorio", JOptionPane.WARNING_MESSAGE);
+                txtPesoConsulta.requestFocusInWindow();
+                return false;
+            }
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "Peso inválido", JOptionPane.WARNING_MESSAGE);
+            txtPesoConsulta.requestFocusInWindow();
+            return false;
+        }
+        boolean esNueva = visita == null || visita.getIdVisita() == null;
+        if (!esNueva && usuarioClinico()) {
+            String diagnostico = valorCampoPersonalizado(jcbPatologia, txtOtraPatologia);
+            if (jcbPatologia.getSelectedIndex() <= 0 || diagnostico.isBlank()
+                    || diagnostico.length() > MAX_TEXTO_CATALOGO) {
+                JOptionPane.showMessageDialog(this,
+                        "Seleccione o especifique el diagnóstico (hasta "
+                        + MAX_TEXTO_CATALOGO + " caracteres).",
+                        "Diagnóstico obligatorio", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
         }
         String tratamiento = txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "";
         if (!esNueva && usuarioClinico() && tratamiento.isEmpty()) {
