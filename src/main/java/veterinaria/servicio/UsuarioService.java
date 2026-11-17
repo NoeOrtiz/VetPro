@@ -84,14 +84,23 @@ public class UsuarioService {
             Rol rolManaged = attachRol(em, nuevoRol);
             usuario.setPersona(personaManaged);
             usuario.setRol(rolManaged);
-            if (usuario.getContrasena() != null && !usuario.getContrasena().trim().isEmpty()) {
+            // Una nueva clave definida por el administrador es temporal: el usuario
+            // deberá elegir una clave personal en su próximo inicio de sesión.
+            // Si no se cambia la clave, conservar tanto el hash como la marca
+            // persistida (un DTO con primerLogin=false no debe resetearla).
+            Usuario existente = em.find(Usuario.class, usuario.getIdUsuario());
+            if (existente == null)
+                throw new IllegalArgumentException("El usuario a modificar no existe.");
+            boolean cambiaClave = usuario.getContrasena() != null
+                    && !usuario.getContrasena().trim().isEmpty();
+            if (cambiaClave) {
+                if (!validaciones.validarComplejidadContrasena(usuario.getContrasena()))
+                    throw new IllegalArgumentException("La contraseña no cumple con los requisitos de seguridad.");
                 usuario.setContrasena(PasswordSecurityUtil.normalizeForPersist(usuario.getContrasena()));
+                usuario.setPrimerLogin(true);
             } else {
-                // Edición administrativa sin cambio de clave: conservar el hash existente.
-                Usuario existente = em.find(Usuario.class, usuario.getIdUsuario());
-                if (existente != null) {
-                    usuario.setContrasena(existente.getContrasena());
-                }
+                usuario.setContrasena(existente.getContrasena());
+                usuario.setPrimerLogin(existente.isPrimerLogin());
             }
             Usuario usuarioManaged = em.merge(usuario);
 
