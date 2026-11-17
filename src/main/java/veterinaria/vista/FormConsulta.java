@@ -70,6 +70,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private javax.swing.JButton btnRetomarAtencion;
     private final javax.swing.JLabel resumenCola = new javax.swing.JLabel("En espera: 0  |  Atendiendo: 0");
     private javax.swing.JButton btnActualizarConsultas;
+    private javax.swing.JLabel contadorTratamiento;
+    private static final int MAX_CARACTERES_EVOLUCION = 10000;
     private javax.swing.Timer actualizacionCola;
     private boolean comprobandoCambios;
     private String ultimaFirmaConsultas = "";
@@ -546,7 +548,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnVerInfo = new javax.swing.JButton("Ver info");
         btnVerInfo.addActionListener(e -> mostrarInformacionConsulta());
         btnVerInfo.setEnabled(false);
-        btnQuitarSeleccion = new javax.swing.JButton("Limpiar selección");
+        btnQuitarSeleccion = new javax.swing.JButton("×");
+        btnQuitarSeleccion.setPreferredSize(new java.awt.Dimension(32, 28));
         btnQuitarSeleccion.setToolTipText("Desmarca la consulta sin modificar su estado.");
         btnQuitarSeleccion.setEnabled(false);
         btnQuitarSeleccion.addActionListener(e -> {
@@ -592,9 +595,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         estado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
         filtros.add(estado);
         resumenCola.setToolTipText("Pacientes en espera de atención y actualmente atendidos");
-        btnActualizarConsultas = new javax.swing.JButton("Actualizar");
+        btnActualizarConsultas = new javax.swing.JButton("↻");
+        btnActualizarConsultas.setPreferredSize(new java.awt.Dimension(32, 28));
         btnActualizarConsultas.setToolTipText("Actualizar la lista de consultas desde la base de datos");
         btnActualizarConsultas.addActionListener(e -> comprobarActualizaciones(true));
+        filtros.add(btnActualizarConsultas);
         herramientas.add(filtros, java.awt.BorderLayout.WEST);
 
         // Dos filas por función: evita controles encimados en ventanas reducidas.
@@ -604,7 +609,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
         accionesRecepcion.setOpaque(false);
         accionesRecepcion.add(btnNuevo);
-        accionesRecepcion.add(btnActualizarConsultas);
         accionesRecepcion.add(btnVerInfo);
         accionesRecepcion.add(btnQuitarSeleccion);
         accionesRecepcion.add(btnEliminar);
@@ -615,7 +619,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         accionesClinicas.add(btnLlamarSiguiente);
         accionesClinicas.add(btnRetomarAtencion);
         accionesClinicas.add(btnEditar);
-        accionesClinicas.add(btnCambiarEstado);
+        // Finalización disponible desde la ficha clínica; no duplicar la acción en la barra.
         acciones.add(accionesRecepcion);
         acciones.add(accionesClinicas);
         herramientas.add(acciones, java.awt.BorderLayout.EAST);
@@ -680,10 +684,15 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         centro.add(filaDos);
         centro.add(javax.swing.Box.createVerticalStrut(20));
 
-        javax.swing.JPanel evolucion = campoConsulta(lbTratamiento, jScrollPane1);
+        configurarLimiteEvolucion();
+        javax.swing.JPanel textoEvolucion = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
+        textoEvolucion.setOpaque(false);
+        textoEvolucion.add(jScrollPane1, java.awt.BorderLayout.CENTER);
+        textoEvolucion.add(contadorTratamiento, java.awt.BorderLayout.SOUTH);
+        javax.swing.JPanel evolucion = campoConsulta(lbTratamiento, textoEvolucion);
         evolucion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         jScrollPane1.setPreferredSize(new java.awt.Dimension(450, 125));
-        evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 155));
+        evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 180));
         centro.add(evolucion);
         jpDatos.add(centro, java.awt.BorderLayout.CENTER);
 
@@ -708,6 +717,47 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         botones.add(btnLimpiar);
         jpDatos.add(botones, java.awt.BorderLayout.SOUTH);
         jpDatos.revalidate();
+    }
+
+    private void configurarLimiteEvolucion() {
+        contadorTratamiento = new javax.swing.JLabel();
+        contadorTratamiento.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        contadorTratamiento.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
+        txtTratamiento.setLineWrap(true);
+        txtTratamiento.setWrapStyleWord(true);
+        javax.swing.text.AbstractDocument doc =
+                (javax.swing.text.AbstractDocument) txtTratamiento.getDocument();
+        doc.setDocumentFilter(new javax.swing.text.DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String texto,
+                    javax.swing.text.AttributeSet attrs) throws javax.swing.text.BadLocationException {
+                if (texto == null) return;
+                if (fb.getDocument().getLength() + texto.length() <= MAX_CARACTERES_EVOLUCION)
+                    super.insertString(fb, offset, texto, attrs);
+                else java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String texto,
+                    javax.swing.text.AttributeSet attrs) throws javax.swing.text.BadLocationException {
+                String nuevo = texto == null ? "" : texto;
+                if (fb.getDocument().getLength() - length + nuevo.length() <= MAX_CARACTERES_EVOLUCION)
+                    super.replace(fb, offset, length, nuevo, attrs);
+                else java.awt.Toolkit.getDefaultToolkit().beep();
+            }
+        });
+        doc.addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarContadorEvolucion(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizarContadorEvolucion(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizarContadorEvolucion(); }
+        });
+        actualizarContadorEvolucion();
+    }
+
+    private void actualizarContadorEvolucion() {
+        int cantidad = txtTratamiento.getDocument().getLength();
+        contadorTratamiento.setText(cantidad + " / " + MAX_CARACTERES_EVOLUCION + " caracteres");
+        contadorTratamiento.setToolTipText("Máximo de caracteres de evolución clínica.");
     }
 
     private boolean coincideEstadoModelo(int fila) {
