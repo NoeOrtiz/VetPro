@@ -44,6 +44,23 @@ public class Visita implements Serializable{
      @Column (name ="estado")
     private String estado;
 
+    /** Medición tomada al ingresar a esta consulta (histórica, independiente de Mascota.peso). */
+    @Column(name = "peso_consulta", precision = 8, scale = 3)
+    private java.math.BigDecimal pesoConsulta;
+
+    @Column(name = "especie_consulta", length = 100)
+    private String especieConsulta;
+
+    @Column(name = "raza_consulta", length = 100)
+    private String razaConsulta;
+
+    public java.math.BigDecimal getPesoConsulta() { return pesoConsulta; }
+    public void setPesoConsulta(java.math.BigDecimal peso) { pesoConsulta = peso; }
+    public String getEspecieConsulta() { return especieConsulta; }
+    public void setEspecieConsulta(String especie) { especieConsulta = especie; }
+    public String getRazaConsulta() { return razaConsulta; }
+    public void setRazaConsulta(String raza) { razaConsulta = raza; }
+
     @Column(name = "prioridad_atencion", nullable = false, length = 12)
     private String prioridadAtencion = "CONTROL";
 
