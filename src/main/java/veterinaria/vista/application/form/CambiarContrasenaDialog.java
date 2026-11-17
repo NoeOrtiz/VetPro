@@ -15,6 +15,9 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
     private final AutenticacionService autenticacionService = new AutenticacionService();
     private final Validaciones validaciones = new Validaciones();
     private boolean contraseñaCambiada = false;
+    private final javax.swing.JTextField txtCodigo = new javax.swing.JTextField();
+    private final javax.swing.JButton btnEnviarCodigo = new javax.swing.JButton("Enviar código");
+    private boolean codigoSolicitado = false;
 
     public CambiarContrasenaDialog(java.awt.Window parent, Usuario usuario) {
         super(parent, ModalityType.APPLICATION_MODAL);
@@ -24,29 +27,93 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
     }
 
     private void init() {
-        setTitle("Actualización obligatoria de contraseña");
-        setLayout(new MigLayout("wrap 1, al center center, fillx", "[250]"));
+        setTitle("Cambio obligatorio de contraseña");
+        getContentPane().removeAll();
+        setLayout(new MigLayout("fillx, wrap 1, insets 24, gapy 9", "[grow,fill]"));
         setLocationRelativeTo(getOwner());
         setResizable(false);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        // Estilos visuales con FlatLaf para los campos de contraseña
+        javax.swing.JLabel info = new javax.swing.JLabel(
+                "<html>Para continuar, verifique el correo asociado a su cuenta "
+                + "y establezca una contraseña personal.</html>");
+        add(info, "w 340!");
+        add(new javax.swing.JLabel("Código de verificación (6 dígitos):"));
+        txtCodigo.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Código recibido por correo");
+        add(txtCodigo, "h 30!");
+        btnEnviarCodigo.addActionListener(e -> enviarCodigo());
+        add(btnEnviarCodigo, "align right");
+        add(new javax.swing.JLabel("Nueva contraseña:"));
         txtNuevaPass.putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true; showCapsLock:true");
         txtConfirmarPass.putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true; showCapsLock:true");
-        txtNuevaPass.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Nueva contraseña");
-        txtConfirmarPass.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Confirmar contraseña");
-
-        // Evento Enter para guardar directo
+        add(txtNuevaPass, "h 30!");
+        add(new javax.swing.JLabel("Confirmar contraseña:"));
+        add(txtConfirmarPass, "h 30!");
+        btnGuardar.setText("Verificar y actualizar");
+        add(btnGuardar, "h 32!");
+        javax.swing.JLabel advertencia = new javax.swing.JLabel(
+                "<html><small>El código vence a los 10 minutos. "
+                + "Sin verificarlo no podrá ingresar al sistema.</small></html>");
+        add(advertencia);
         txtConfirmarPass.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    guardarNuevaContrasena();
-                }
+            @Override public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) guardarNuevaContrasena();
             }
         });
+        pack();
+        setLocationRelativeTo(getOwner());
+    }
+
+    private void enviarCodigo() {
+        if (usuario == null || usuario.getIdUsuario() == null
+                || usuario.getEmail() == null || usuario.getEmail().isBlank()) {
+            JOptionPane.showMessageDialog(this,
+                    "Este usuario no tiene un correo registrado. Contacte al administrador.",
+                    "Verificación no disponible", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        btnEnviarCodigo.setEnabled(false);
+        btnEnviarCodigo.setText("Enviando...");
+        new javax.swing.SwingWorker<Boolean, Void>() {
+            @Override protected Boolean doInBackground() throws Exception {
+                String codigo = autenticacionService.generarCodigoCambioObligatorio(
+                        usuario.getIdUsuario());
+                if (codigo == null) return false;
+                veterinaria.util.EmailUtil.enviarCodigo(usuario.getEmail(), codigo);
+                return true;
+            }
+            @Override protected void done() {
+                btnEnviarCodigo.setEnabled(true);
+                btnEnviarCodigo.setText("Reenviar código");
+                try {
+                    codigoSolicitado = get();
+                    if (codigoSolicitado) {
+                        JOptionPane.showMessageDialog(CambiarContrasenaDialog.this,
+                                "Se envió un código a su correo registrado. "
+                                + "Tiene una validez de 10 minutos.",
+                                "Código enviado", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(CambiarContrasenaDialog.this,
+                                "No fue posible generar el código. Verifique su cuenta.",
+                                "Verificación", JOptionPane.WARNING_MESSAGE);
+                    }
+                } catch (Exception ex) {
+                    codigoSolicitado = false;
+                    JOptionPane.showMessageDialog(CambiarContrasenaDialog.this,
+                            "No fue posible enviar el código: " + ex.getMessage(),
+                            "Error de correo", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }.execute();
     }
 
     private void guardarNuevaContrasena() {
+        if (!codigoSolicitado || !txtCodigo.getText().trim().matches("\\d{6}")) {
+            JOptionPane.showMessageDialog(this,
+                    "Primero solicite e ingrese el código de 6 dígitos enviado a su correo.",
+                    "Código obligatorio", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         String nuevaPass = new String(txtNuevaPass.getPassword()).trim();
         String confirmarPass = new String(txtConfirmarPass.getPassword()).trim();
 
@@ -77,14 +144,15 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
             return;
         }
 
-        boolean exito = autenticacionService.actualizarContrasenaObligatoria(usuario.getIdUsuario(), nuevaPass);
+        boolean exito = autenticacionService.confirmarCambioObligatorio(
+                usuario.getIdUsuario(), txtCodigo.getText().trim(), nuevaPass);
 
         if (exito) {
             JOptionPane.showMessageDialog(this, "Contraseña actualizada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
             contraseñaCambiada = true;
             dispose();
         } else {
-            JOptionPane.showMessageDialog(this, "No se pudo actualizar la contraseña en el sistema.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "El código es incorrecto, expiró o ya fue utilizado. Compruebe el código e inténtelo nuevamente.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
