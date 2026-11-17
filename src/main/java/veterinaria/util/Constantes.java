@@ -53,6 +53,7 @@ public class Constantes {
     public enum EstadoVisita {
         EN_ESPERA,
         ATENDIENDO,
+        OBSERVACION,
         FINALIZADO,
         CANCELADO
     }
