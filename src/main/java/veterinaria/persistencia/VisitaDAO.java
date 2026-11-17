@@ -51,6 +51,11 @@ public class VisitaDAO {
             if ((visita.getTratamiento() != null && !visita.getTratamiento().isBlank())
                     || (visita.getPatologia() != null && !visita.getPatologia().isBlank()))
                 throw new IllegalStateException("El diagnóstico y tratamiento se registran durante la atención veterinaria.");
+            if (visita.getPesoConsulta() != null
+                    && visita.getPesoConsulta().signum() <= 0)
+                throw new IllegalArgumentException("El peso debe ser mayor que cero.");
+            visita.setEspecieConsulta(paciente.getEspecie());
+            visita.setRazaConsulta(paciente.getRaza());
             em.persist(visita);
             em.getTransaction().commit();
             auditoriaService.registrar(visita.isAtencionProvisional() ? "CONSULTA_PROVISIONAL" : "CREATE",
@@ -241,6 +246,12 @@ public class VisitaDAO {
             // Actualizar exclusivamente los campos clínicos autorizados; mantener la identidad y asignación.
             actual.setPatologia(visita.getPatologia());
             actual.setTratamiento(visita.getTratamiento());
+            // La medición de recepción queda histórica; solo el profesional puede corregirla.
+            if (visita.getPesoConsulta() != null) {
+                if (visita.getPesoConsulta().signum() <= 0)
+                    throw new IllegalArgumentException("El peso de consulta debe ser mayor que cero.");
+                actual.setPesoConsulta(visita.getPesoConsulta());
+            }
             if (dejarEnObservacion) actual.setEstado("OBSERVACION");
             em.flush();
             em.getTransaction().commit();
