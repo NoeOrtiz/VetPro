@@ -694,6 +694,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaUno.setOpaque(false);
         filaUno.add(campoConsulta(lbPaciente, jcbPaciente));
         filaUno.add(campoConsulta(lbDueño, txtDueño));
+        txtOtroMotivo.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Especifique el motivo");
         txtOtroMotivo.setToolTipText("Especifique el motivo cuando selecciona Otro/s.");
         javax.swing.JPanel motivoConOtro = comboConOpcionOtro(jcbMotivo, txtOtroMotivo);
         filaUno.add(campoConsulta(lbMotivo, motivoConOtro));
@@ -706,6 +708,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaDos.setOpaque(false);
         filaDos.add(campoConsulta(lbVeterinarioAsignado, jcbVeterinario));
         filaDos.add(campoConsulta(lbEstado, jcbEstado));
+        txtOtraPatologia.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Especifique el diagnóstico");
         txtOtraPatologia.setToolTipText("Especifique el diagnóstico cuando selecciona Otro/s.");
         filaDos.add(campoConsulta(lbPatologia, comboConOpcionOtro(jcbPatologia, txtOtraPatologia)));
         filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
