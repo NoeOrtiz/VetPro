@@ -76,6 +76,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private final javax.swing.JTextField txtPesoConsulta = new javax.swing.JTextField();
     private final javax.swing.JTextField txtOtroMotivo = new javax.swing.JTextField();
     private final javax.swing.JTextField txtOtraPatologia = new javax.swing.JTextField();
+    private javax.swing.JPanel panelEvolucionConsulta;
     private static final String OPCION_OTROS = "Otro/s";
     private static final int MAX_TEXTO_CATALOGO = 200;
     private static final int MAX_CARACTERES_EVOLUCION = 10000;
@@ -694,7 +695,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         txtOtroMotivo.setToolTipText("Especifique el motivo cuando selecciona Otro/s.");
         javax.swing.JPanel motivoConOtro = comboConOpcionOtro(jcbMotivo, txtOtroMotivo);
         filaUno.add(campoConsulta(lbMotivo, motivoConOtro));
-        filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
+        filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
         filaUno.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaUno);
         centro.add(javax.swing.Box.createVerticalStrut(20));
@@ -705,7 +706,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaDos.add(campoConsulta(lbEstado, jcbEstado));
         txtOtraPatologia.setToolTipText("Especifique el diagnóstico cuando selecciona Otro/s.");
         filaDos.add(campoConsulta(lbPatologia, comboConOpcionOtro(jcbPatologia, txtOtraPatologia)));
-        filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
+        filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
         filaDos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaDos);
         centro.add(javax.swing.Box.createVerticalStrut(14));
@@ -732,6 +733,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         textoEvolucion.add(jScrollPane1, java.awt.BorderLayout.CENTER);
         textoEvolucion.add(contadorTratamiento, java.awt.BorderLayout.SOUTH);
         javax.swing.JPanel evolucion = campoConsulta(lbTratamiento, textoEvolucion);
+        panelEvolucionConsulta = evolucion;
         evolucion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         jScrollPane1.setPreferredSize(new java.awt.Dimension(450, 125));
         evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 180));
@@ -1418,6 +1420,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
             prioridadConsulta.setEnabled(true);
             txtTratamiento.setEditable(false);
+            txtTratamiento.setEnabled(false);
+            txtTratamiento.setFocusable(false);
+            if (panelEvolucionConsulta != null) panelEvolucionConsulta.setVisible(false);
+            txtPesoConsulta.setEditable(true);
+            actualizarCamposOtros();
             btnLimpiar.setVisible(true);
             txtTratamiento.setText("");
             lbTratamiento.setText("Tratamiento (completa el veterinario)");
@@ -1440,6 +1447,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbEstado.setEnabled(false); // El estado se cambia solo desde Cambiar estado.
             prioridadConsulta.setEnabled(false);
             txtTratamiento.setEditable(usuarioClinico());
+            txtTratamiento.setEnabled(usuarioClinico());
+            txtTratamiento.setFocusable(usuarioClinico());
+            txtPesoConsulta.setEditable(usuarioClinico());
+            if (panelEvolucionConsulta != null) panelEvolucionConsulta.setVisible(true);
+            actualizarCamposOtros();
             // Evitar borrar accidentalmente una evolución larga: las acciones clínicas guardan o cancelan.
             btnLimpiar.setVisible(false);
             lbTratamiento.setText("Evolución y tratamiento:");
@@ -1719,8 +1731,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         configurarSpinnerHora(visita.getHora());
 
-        jcbMotivo.setSelectedItem(visita.getMotivoVisita());
-        jcbPatologia.setSelectedItem(visita.getPatologia());
+        restaurarCampoPersonalizado(jcbMotivo, txtOtroMotivo, visita.getMotivoVisita());
+        restaurarCampoPersonalizado(jcbPatologia, txtOtraPatologia, visita.getPatologia());
+        txtPesoConsulta.setText(visita.getPesoConsulta() == null ? ""
+                : visita.getPesoConsulta().toPlainString().replace('.', ','));
+        txtEspecieConsulta.setText(visita.getEspecieConsulta() != null
+                ? visita.getEspecieConsulta() : textoSeguro(mascotaSeleccionada == null ? null : mascotaSeleccionada.getEspecie()));
+        txtRazaConsulta.setText(visita.getRazaConsulta() != null
+                ? visita.getRazaConsulta() : textoSeguro(mascotaSeleccionada == null ? null : mascotaSeleccionada.getRaza()));
         txtTratamiento.setText(visita.getTratamiento());
 
         jcbEstado.setSelectedItem(
@@ -2455,11 +2473,13 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 visita.setUsuarioGestion(userGestion);
                 visita.setMascota(mascotaSeleccionada);
                 visita.setCliente(mascotaSeleccionada.getCliente());
-                visita.setMotivoVisita((String) jcbMotivo.getSelectedItem());
+                visita.setMotivoVisita(valorCampoPersonalizado(jcbMotivo, txtOtroMotivo));
+                visita.setPesoConsulta(obtenerPesoActual());
                 visita.setPatologia("");
                 visita.setTratamiento("");
             } else {
-                visita.setPatologia((String) jcbPatologia.getSelectedItem());
+                visita.setPatologia(valorCampoPersonalizado(jcbPatologia, txtOtraPatologia));
+                visita.setPesoConsulta(obtenerPesoActual());
                 visita.setTratamiento(txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "");
             }
             // La recepción registra fecha y hora reales del sistema al guardar el ticket.
