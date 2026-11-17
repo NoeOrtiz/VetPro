@@ -66,6 +66,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private javax.swing.JButton btnQuitarSeleccion;
     private javax.swing.JPanel herramientasConsultas;
     private javax.swing.JButton btnFinalizarDesdeFicha;
+    private final javax.swing.JLabel resumenCola = new javax.swing.JLabel("En espera: 0  |  Atendiendo: 0");
+    private javax.swing.JButton btnActualizarConsultas;
+    private javax.swing.Timer actualizacionCola;
+    private boolean comprobandoCambios;
+    private String ultimaFirmaConsultas = "";
 
     public FormConsulta() {
         initComponents();
@@ -92,6 +97,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         cargarCombosBoxs();
         cargarComboVeterinarios();
         cargarVisitasEnTabla();
+        iniciarActualizacionCola();
 
         initListeners();
 
@@ -578,6 +584,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbEstadoFiltro.setPreferredSize(new java.awt.Dimension(140, 28));
         estado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
         filtros.add(estado);
+        resumenCola.setToolTipText("Pacientes en espera de atención y actualmente atendidos");
+        filtros.add(resumenCola);
+        btnActualizarConsultas = new javax.swing.JButton("Actualizar");
+        btnActualizarConsultas.setToolTipText("Actualizar la lista de consultas desde la base de datos");
+        btnActualizarConsultas.addActionListener(e -> comprobarActualizaciones(true));
         herramientas.add(filtros, java.awt.BorderLayout.WEST);
 
         // Dos filas por función: evita controles encimados en ventanas reducidas.
@@ -587,6 +598,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
         accionesRecepcion.setOpaque(false);
         accionesRecepcion.add(btnNuevo);
+        accionesRecepcion.add(btnActualizarConsultas);
         accionesRecepcion.add(btnVerInfo);
         accionesRecepcion.add(btnQuitarSeleccion);
         accionesRecepcion.add(btnEliminar);
@@ -849,6 +861,81 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbEstadoFiltro.addActionListener(e -> { if (paginacionConsultas != null) paginacionConsultas.establecerFiltroAdicional(this::coincideEstadoModelo); });
     }
 
+    private String firmaConsultas(java.util.List<Visita> visitas) {
+        StringBuilder firma = new StringBuilder();
+        for (Visita v : visitas) {
+            firma.append(v.getIdVisita()).append('|')
+                    .append(v.getEstado()).append('|')
+                    .append(v.getUsuarioAtiende()).append('|')
+                    .append(v.getPrioridadAtencion()).append('|')
+                    .append(v.getPatologia()).append('|')
+                    .append(v.getTratamiento()).append(';');
+        }
+        return firma.toString();
+    }
+
+    private void actualizarResumenCola(java.util.List<Visita> visitas) {
+        long espera = visitas.stream().filter(v ->
+                "EN_ESPERA".equals(normalizarEstadoBD(v.getEstado()))).count();
+        long atendiendo = visitas.stream().filter(v ->
+                "ATENDIENDO".equals(normalizarEstadoBD(v.getEstado()))).count();
+        resumenCola.setText("En espera: " + espera + "  |  Atendiendo: " + atendiendo);
+    }
+
+    private void iniciarActualizacionCola() {
+        // Consultar en segundo plano evita bloquear la interfaz mientras MySQL responde.
+        actualizacionCola = new javax.swing.Timer(8000, e -> comprobarActualizaciones(false));
+        actualizacionCola.setInitialDelay(8000);
+        actualizacionCola.start();
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        if (actualizacionCola != null) actualizacionCola.start();
+    }
+
+    @Override
+    public void removeNotify() {
+        if (actualizacionCola != null) actualizacionCola.stop();
+        super.removeNotify();
+    }
+
+    private void comprobarActualizaciones(boolean manual) {
+        if (comprobandoCambios) return;
+        comprobandoCambios = true;
+        if (btnActualizarConsultas != null) btnActualizarConsultas.setEnabled(false);
+        new javax.swing.SwingWorker<java.util.List<Visita>, Void>() {
+            @Override
+            protected java.util.List<Visita> doInBackground() {
+                return visitaControlador.obtenerTodasLasVisitas();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    java.util.List<Visita> nuevas = get();
+                    actualizarResumenCola(nuevas);
+                    String firma = firmaConsultas(nuevas);
+                    if (!firma.equals(ultimaFirmaConsultas)) {
+                        // No interrumpir una edición ni desmarcar una fila seleccionada.
+                        if (jpListaVisitas.isVisible()
+                                && !veterinaria.util.GestorTablas.haySeleccion(tableVisitas)) {
+                            cargarVisitasEnTabla();
+                        }
+                    }
+                } catch (Exception ex) {
+                    if (manual) javax.swing.JOptionPane.showMessageDialog(FormConsulta.this,
+                            "No se pudieron actualizar las consultas: " + ex.getMessage(),
+                            "Actualizar", javax.swing.JOptionPane.WARNING_MESSAGE);
+                } finally {
+                    comprobandoCambios = false;
+                    if (btnActualizarConsultas != null) btnActualizarConsultas.setEnabled(true);
+                }
+            }
+        }.execute();
+    }
+
     private void cargarVisitasEnTabla() {
 
         cargandoTabla = true;
@@ -859,6 +946,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             model.setRowCount(0);
 
             List<Visita> visitas = visitaControlador.obtenerTodasLasVisitas();
+            ultimaFirmaConsultas = firmaConsultas(visitas);
+            actualizarResumenCola(visitas);
             visitas.sort(java.util.Comparator
                     .comparingInt((Visita v) -> {
                         String estado = normalizarEstadoBD(v.getEstado());
