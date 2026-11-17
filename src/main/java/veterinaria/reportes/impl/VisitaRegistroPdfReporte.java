@@ -50,6 +50,12 @@ public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
         pdf.down(24f);
         seccion(pdf, "DATOS DE LA ATENCIÓN");
         campo(pdf, "Paciente", mascota == null ? "-" : texto(mascota.getNombre()));
+        campo(pdf, "Especie", texto(v.getEspecieConsulta() == null
+                ? (mascota == null ? null : mascota.getEspecie()) : v.getEspecieConsulta()));
+        campo(pdf, "Raza", texto(v.getRazaConsulta() == null
+                ? (mascota == null ? null : mascota.getRaza()) : v.getRazaConsulta()));
+        campo(pdf, "Peso medido en consulta", v.getPesoConsulta() == null
+                ? "No registrado" : v.getPesoConsulta().toPlainString().replace('.', ',') + " kg");
         campo(pdf, "Responsable", responsable);
         campo(pdf, "Fecha y hora", fecha + "  " + hora);
         campo(pdf, "Estado", texto(v.getEstado()));
