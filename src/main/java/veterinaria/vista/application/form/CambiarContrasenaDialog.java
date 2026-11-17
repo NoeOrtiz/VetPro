@@ -68,7 +68,15 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
             return;
         }
 
-        // Llamamos al servicio para actualizar la contraseña, bajar el primer login y actualizar la fecha
+        // La nueva clave debe ser distinta de la clave temporal entregada
+        // por el administrador, de lo contrario el cambio no cumple su objetivo.
+        if (veterinaria.util.PasswordSecurityUtil.matches(nuevaPass, usuario.getContrasena())) {
+            JOptionPane.showMessageDialog(this,
+                    "La nueva contraseña debe ser diferente de la contraseña temporal.",
+                    "Cambio obligatorio", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
         boolean exito = autenticacionService.actualizarContrasenaObligatoria(usuario.getIdUsuario(), nuevaPass);
 
         if (exito) {
