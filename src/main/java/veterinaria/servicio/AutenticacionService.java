@@ -187,6 +187,14 @@ public class AutenticacionService {
         }
     }
 
+    public String generarCodigoCambioObligatorio(int idUsuario) {
+        return recuperacionClaveTokenDAO.generarCodigoCambioObligatorio(idUsuario);
+    }
+
+    public boolean confirmarCambioObligatorio(int idUsuario, String codigo, String nuevaContrasena) {
+        return recuperacionClaveTokenDAO.confirmarCambioObligatorio(idUsuario, codigo, nuevaContrasena);
+    }
+
     public boolean actualizarContrasenaObligatoria(int idUsuario, String nuevaContrasena) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
