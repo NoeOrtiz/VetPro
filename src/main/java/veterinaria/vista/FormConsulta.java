@@ -1122,100 +1122,63 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         actualizarBotonImprimir();
     }
 
-    // -------------------- Impresión PDF --------------------
+    // -------------------- Acciones contextuales de la lista --------------------
     private void actualizarBotonImprimir() {
-
-        if (cargandoTabla) {
-            return;
-        }
-
-        boolean haySeleccion = (obtenerFilaSeleccionadaPorCheck() != -1);
-        actualizarNuevoSegunSeleccion(haySeleccion);
-        if (btnQuitarSeleccion != null) btnQuitarSeleccion.setEnabled(haySeleccion && !jpDatos.isVisible());
-
-        btnImprimirVisita.setVisible(haySeleccion && !jpDatos.isVisible());
+        if (cargandoTabla) return;
         actualizarAccionesPorSeleccion();
     }
 
-    /** Nuevo solo corresponde cuando no hay una consulta seleccionada. */
     private void actualizarNuevoSegunSeleccion(boolean seleccion) {
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
-        btnNuevo.setEnabled(!seleccion && !jpDatos.isVisible()
-                && sesion != null && sesion.puede("FormConsulta.NUEVO"));
+        boolean autorizado = sesion != null && sesion.puede("FormConsulta.NUEVO");
+        btnNuevo.setVisible(autorizado && !seleccion && !jpDatos.isVisible());
+        btnNuevo.setEnabled(autorizado && !seleccion && !jpDatos.isVisible());
     }
 
+    /** Solo se muestran operaciones válidas para el registro y rol actuales. */
     private void actualizarAccionesPorSeleccion() {
+        int fila = obtenerFilaSeleccionadaPorCheck();
+        boolean seleccion = fila >= 0 && fila < tableVisitas.getRowCount();
+        String estado = seleccion
+                ? normalizarEstadoBD(String.valueOf(tableVisitas.getValueAt(fila, 8))) : "";
+        boolean clinico = usuarioClinico() && !jpDatos.isVisible();
+        veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
+        boolean puedeCancelar = sesion != null && sesion.puede("FormConsulta.CANCELAR");
+        boolean puedeImprimir = sesion != null && sesion.puede("FormConsulta.IMPRIMIR");
+        boolean cerrada = "FINALIZADO".equals(estado) || "CANCELADO".equals(estado);
 
-        // Si la tabla está vacía, deshabilitar acciones
-        if (tableVisitas.getRowCount() == 0) {
-            if (btnRetomarAtencion != null) btnRetomarAtencion.setEnabled(false);
-            btnEditar.setEnabled(false);
-            btnEliminar.setEnabled(false);
-            if (btnVerInfo != null) btnVerInfo.setEnabled(false);
-            if (btnCambiarEstado != null) btnCambiarEstado.setEnabled(false);
-            return;
+        actualizarNuevoSegunSeleccion(seleccion);
+        btnVerInfo.setVisible(seleccion && !jpDatos.isVisible());
+        btnVerInfo.setEnabled(seleccion && !jpDatos.isVisible());
+        btnQuitarSeleccion.setVisible(seleccion && !jpDatos.isVisible());
+        btnQuitarSeleccion.setEnabled(seleccion && !jpDatos.isVisible());
+        btnImprimirVisita.setVisible(seleccion && puedeImprimir && !jpDatos.isVisible());
+        btnImprimirVisita.setEnabled(seleccion && puedeImprimir && !jpDatos.isVisible());
+
+        btnEliminar.setVisible(seleccion && puedeCancelar && !cerrada && !jpDatos.isVisible());
+        btnEliminar.setEnabled(seleccion && puedeCancelar && !cerrada && !jpDatos.isVisible());
+        btnEditar.setVisible(seleccion && clinico && "ATENDIENDO".equals(estado));
+        btnEditar.setEnabled(seleccion && clinico && "ATENDIENDO".equals(estado));
+        btnRetomarAtencion.setVisible(seleccion && clinico && "OBSERVACION".equals(estado));
+        btnRetomarAtencion.setEnabled(seleccion && clinico && "OBSERVACION".equals(estado));
+
+        // La finalización está integrada a Guardar y finalizar dentro de la ficha.
+        btnCambiarEstado.setVisible(false);
+        btnCambiarEstado.setEnabled(false);
+        if (herramientasConsultas != null) {
+            herramientasConsultas.revalidate();
+            herramientasConsultas.repaint();
         }
-
-        int row = obtenerFilaSeleccionadaPorCheck();
-
-        // Validar que la fila exista
-        if (row < 0 || row >= tableVisitas.getRowCount()) {
-            if (btnRetomarAtencion != null) btnRetomarAtencion.setEnabled(false);
-            btnEditar.setEnabled(false);
-            btnEliminar.setEnabled(false);
-            if (btnVerInfo != null) btnVerInfo.setEnabled(false);
-            if (btnCambiarEstado != null) btnCambiarEstado.setEnabled(false);
-            return;
-        }
-
-        boolean esFinalizado = false;
-
-        try {
-            Object estadoObj = tableVisitas.getValueAt(row, 8); // Columna Estado
-            String estado = estadoObj != null ? estadoObj.toString() : "";
-
-            esFinalizado = "FINALIZADO".equalsIgnoreCase(normalizarEstadoBD(estado))
-                    || "CANCELADO".equalsIgnoreCase(normalizarEstadoBD(estado));
-
-        } catch (Exception ex) {
-            veterinaria.util.AppLog.warn(FormConsulta.class,
-                    "Excepción no fatal en UI", ex);
-            return;
-        }
-
-        // Reglas de negocio
-        if (btnVerInfo != null) btnVerInfo.setEnabled(!jpDatos.isVisible());
-        String estadoSeleccionado = normalizarEstadoBD(String.valueOf(tableVisitas.getValueAt(row, 8)));
-        btnEditar.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
-                && !jpDatos.isVisible());
-        if (btnCambiarEstado != null)
-            btnCambiarEstado.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
-                    && !jpDatos.isVisible());
-        // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
-        if (btnRetomarAtencion != null) btnRetomarAtencion.setEnabled(
-                usuarioClinico() && "OBSERVACION".equals(estadoSeleccionado)
-                && !jpDatos.isVisible());
-        btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible()
-                && Application.getSesionUsuario() != null
-                && Application.getSesionUsuario().puede("FormConsulta.CANCELAR"));
     }
 
     private void configurarAccionesPorRol() {
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
         if (sesion == null) return;
-        boolean clinico = usuarioClinico();
-        // Los permisos históricos del módulo siguen siendo FormVisita.*.
-        actualizarNuevoSegunSeleccion(obtenerFilaSeleccionadaPorCheck() != -1);
-        btnLlamarSiguiente.setVisible(clinico);
-        btnRetomarAtencion.setVisible(clinico);
-        btnCambiarEstado.setVisible(clinico);
-        btnEditar.setVisible(clinico);
-        btnEliminar.setVisible(sesion.puede("FormConsulta.CANCELAR"));
-        btnQuitarSeleccion.setVisible(true);
+        btnLlamarSiguiente.setVisible(usuarioClinico() && sesion.puede("FormConsulta.EDITAR"));
         btnEliminar.setText("Cancelar consulta");
         btnEliminar.setToolTipText("Cancelar la consulta seleccionada sin borrar su registro.");
-        btnImprimirVisita.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
         btnImprimirListaVisitas.setEnabled(sesion.puede("FormConsulta.IMPRIMIR"));
+        actualizarAccionesPorSeleccion();
     }
 
     private void mostrarInformacionConsulta() {
