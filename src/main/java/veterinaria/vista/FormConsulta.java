@@ -330,6 +330,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void enPacienteSeleccionado() {
+        if (visita == null || visita.getIdVisita() == null)
+            txtPesoConsulta.setText("");
         String pacienteSelec = (String) jcbPaciente.getSelectedItem();
 
         if (pacienteSelec == null || "Seleccionar Mascota".equals(pacienteSelec)) {
@@ -1332,6 +1334,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             {"Ticket", "N.º " + v.getIdVisita()},
             {"Estado", textoInfo(v.getEstado())},
             {"Paciente", v.getMascota() == null ? "-" : textoInfo(v.getMascota().getNombre())},
+            {"Especie", textoInfo(v.getEspecieConsulta() != null
+                    ? v.getEspecieConsulta()
+                    : (v.getMascota() == null ? null : v.getMascota().getEspecie()))},
+            {"Raza", textoInfo(v.getRazaConsulta() != null
+                    ? v.getRazaConsulta()
+                    : (v.getMascota() == null ? null : v.getMascota().getRaza()))},
+            {"Peso de esta consulta", v.getPesoConsulta() == null ? "No registrado"
+                    : v.getPesoConsulta().toPlainString().replace('.', ',') + " kg"},
             {"Prioridad", textoInfo(v.getPrioridadAtencion())},
             {"Responsable", textoInfo(responsable)},
             {"Fecha y hora", fecha + "  " + hora},
