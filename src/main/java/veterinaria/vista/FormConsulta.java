@@ -1294,6 +1294,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
             prioridadConsulta.setEnabled(true);
             txtTratamiento.setEditable(false);
+            btnLimpiar.setVisible(true);
             txtTratamiento.setText("");
             lbTratamiento.setText("Tratamiento (completa el veterinario)");
         } catch (Exception ex) {
@@ -1315,6 +1316,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jcbEstado.setEnabled(false); // El estado se cambia solo desde Cambiar estado.
             prioridadConsulta.setEnabled(false);
             txtTratamiento.setEditable(usuarioClinico());
+            // Evitar borrar accidentalmente una evolución larga: las acciones clínicas guardan o cancelan.
+            btnLimpiar.setVisible(false);
             lbTratamiento.setText("Evolución y tratamiento:");
         } catch (Exception ex) {
             veterinaria.util.AppLog.warn(FormConsulta.class, "Excepción no fatal en UI", ex);
