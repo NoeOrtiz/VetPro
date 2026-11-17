@@ -99,6 +99,86 @@ public class RecuperacionClaveTokenDAO {
         }
     }
 
+    /**
+     * Código de un solo uso para cambio obligatorio después de una clave
+     * temporal administrativa. No modifica la contraseña hasta verificarlo.
+     */
+    public String generarCodigoCambioObligatorio(int idUsuario) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            ensureSchema(em);
+            Usuario usuario = em.find(Usuario.class, idUsuario);
+            if (usuario == null || !usuario.isActivo() || !usuario.isPrimerLogin()
+                    || usuario.getEmail() == null || usuario.getEmail().isBlank()) {
+                return null;
+            }
+            String codigo = PasswordSecurityUtil.generateRecoveryCode(6);
+            String hash = PasswordSecurityUtil.hashPassword(codigo);
+            em.getTransaction().begin();
+            em.createNativeQuery("UPDATE usuario_recuperacion_clave SET usado = 1 "
+                    + "WHERE idUsuario = ? AND usado = 0")
+                    .setParameter(1, idUsuario).executeUpdate();
+            em.createNativeQuery("INSERT INTO usuario_recuperacion_clave "
+                    + "(idUsuario, codigo_hash, email_destino, fecha_solicitud, fecha_expiracion, usado) "
+                    + "VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 10 MINUTE), 0)")
+                    .setParameter(1, idUsuario)
+                    .setParameter(2, hash)
+                    .setParameter(3, usuario.getEmail())
+                    .executeUpdate();
+            em.getTransaction().commit();
+            return codigo;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            veterinaria.util.AppLog.warn(RecuperacionClaveTokenDAO.class,
+                    "No se pudo generar el código de cambio obligatorio", e);
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+    /** Verifica código, lo consume y cambia la contraseña en una transacción. */
+    public boolean confirmarCambioObligatorio(int idUsuario, String codigo, String nuevaClave) {
+        if (codigo == null || !codigo.matches("\\d{6}") || nuevaClave == null) return false;
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            ensureSchema(em);
+            em.getTransaction().begin();
+            Usuario usuario = em.find(Usuario.class, idUsuario,
+                    javax.persistence.LockModeType.PESSIMISTIC_WRITE);
+            if (usuario == null || !usuario.isActivo() || !usuario.isPrimerLogin()) {
+                em.getTransaction().rollback();
+                return false;
+            }
+            List<Object[]> codigos = em.createNativeQuery(
+                    "SELECT id, codigo_hash FROM usuario_recuperacion_clave "
+                    + "WHERE idUsuario = ? AND usado = 0 AND fecha_expiracion >= NOW() "
+                    + "ORDER BY id DESC LIMIT 1 FOR UPDATE")
+                    .setParameter(1, idUsuario).getResultList();
+            if (codigos.isEmpty() || !PasswordSecurityUtil.matches(
+                    codigo, String.valueOf(codigos.get(0)[1]))
+                    || PasswordSecurityUtil.matches(nuevaClave, usuario.getContrasena())) {
+                em.getTransaction().rollback();
+                return false;
+            }
+            usuario.setContrasena(PasswordSecurityUtil.normalizeForPersist(nuevaClave));
+            usuario.setPrimerLogin(false);
+            em.createNativeQuery("UPDATE usuario_recuperacion_clave SET usado = 1 WHERE id = ?")
+                    .setParameter(1, ((Number) codigos.get(0)[0]).longValue())
+                    .executeUpdate();
+            em.flush();
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            veterinaria.util.AppLog.warn(RecuperacionClaveTokenDAO.class,
+                    "No se pudo completar el cambio obligatorio", e);
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+
     private Usuario buscarUsuarioValido(EntityManager em, String nombreUsuario, String email, String dni) {
         try {
             return em.createQuery(
