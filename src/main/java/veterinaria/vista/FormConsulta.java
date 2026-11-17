@@ -561,6 +561,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 6));
         titulo.setOpaque(false);
         titulo.add(lbVisitas, java.awt.BorderLayout.NORTH);
+        titulo.add(resumenCola, java.awt.BorderLayout.EAST);
         titulo.add(jSeparator1, java.awt.BorderLayout.SOUTH);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
         javax.swing.JPanel herramientas = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
@@ -585,7 +586,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         estado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
         filtros.add(estado);
         resumenCola.setToolTipText("Pacientes en espera de atención y actualmente atendidos");
-        filtros.add(resumenCola);
         btnActualizarConsultas = new javax.swing.JButton("Actualizar");
         btnActualizarConsultas.setToolTipText("Actualizar la lista de consultas desde la base de datos");
         btnActualizarConsultas.addActionListener(e -> comprobarActualizaciones(true));
@@ -920,7 +920,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     if (!firma.equals(ultimaFirmaConsultas)) {
                         // No interrumpir una edición ni desmarcar una fila seleccionada.
                         if (jpListaVisitas.isVisible()
-                                && !veterinaria.util.GestorTablas.haySeleccion(tableVisitas)) {
+                                && (manual || !veterinaria.util.GestorTablas.haySeleccion(tableVisitas))) {
+                            if (manual && paginacionConsultas != null)
+                                paginacionConsultas.limpiarSeleccion();
                             cargarVisitasEnTabla();
                         }
                     }
