@@ -65,6 +65,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private javax.swing.JButton btnVerInfo;
     private javax.swing.JButton btnQuitarSeleccion;
     private javax.swing.JPanel herramientasConsultas;
+    private javax.swing.JButton btnFinalizarDesdeFicha;
 
     public FormConsulta() {
         initComponents();
@@ -671,9 +672,14 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
         botones.setOpaque(false);
         btnGuardar.setPreferredSize(new java.awt.Dimension(153, 30));
+        btnFinalizarDesdeFicha = new javax.swing.JButton("Guardar y finalizar");
+        btnFinalizarDesdeFicha.setPreferredSize(new java.awt.Dimension(155, 30));
+        btnFinalizarDesdeFicha.setToolTipText("Guarda diagnóstico y evolución, y cierra definitivamente la consulta.");
+        btnFinalizarDesdeFicha.addActionListener(e -> guardarAtencion(true));
         btnCancelar.setPreferredSize(new java.awt.Dimension(88, 30));
         btnLimpiar.setPreferredSize(new java.awt.Dimension(83, 30));
         botones.add(btnGuardar);
+        botones.add(btnFinalizarDesdeFicha);
         botones.add(btnCancelar);
         botones.add(btnLimpiar);
         jpDatos.add(botones, java.awt.BorderLayout.SOUTH);
@@ -722,7 +728,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (seleccionada == null || !editarVisita(seleccionada)) return;
         configurarModoEdicionRestringida();
         lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
-        btnGuardar.setText("Guardar atención");
+        btnGuardar.setText("Guardar avance");
+        btnFinalizarDesdeFicha.setVisible(true);
         mostrarSoloFormulario();
         btnGuardar.setEnabled(true);
         btnNuevo.setEnabled(false);
@@ -2021,7 +2028,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         limpiarCamposFormulario();
         configurarModoNuevo();
         lbDatos.setText("Registro de llegada · Ticket de consulta");
-        btnGuardar.setText("Registrar Atención");
+        btnGuardar.setText("Registrar atención");
+        btnFinalizarDesdeFicha.setVisible(false);
         prioridadConsulta.setSelectedItem("CONTROL");
         mostrarSoloFormulario();
         jpListaVisitas.setVisible(false);
@@ -2053,7 +2061,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
             configurarModoEdicionRestringida();
             lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
-            btnGuardar.setText("Guardar atención");
+            btnGuardar.setText("Guardar avance");
+        btnFinalizarDesdeFicha.setVisible(true);
             mostrarSoloFormulario();
             jpDatos.setVisible(true);
             jpListaVisitas.setVisible(false);
@@ -2133,6 +2142,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
+        guardarAtencion(false);
+    }//GEN-LAST:event_btnGuardarActionPerformed
+
+    private void guardarAtencion(boolean finalizar) {
         if (!validarFormulario()) {
             return;
         }
@@ -2178,7 +2191,19 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
             try {
                 boolean esNueva = (visita.getIdVisita() == null);
-                if (!confirmarGuardarVisita(esNueva)) {
+                if (finalizar && esNueva) {
+                    JOptionPane.showMessageDialog(this,
+                            "Primero debe registrarse el ingreso del paciente.");
+                    return;
+                }
+                if (finalizar) {
+                    String mensaje = "¿Guardar los datos clínicos y FINALIZAR la consulta de "
+                            + mascotaSeleccionada.getNombre() + "?\n"
+                            + "Una vez finalizada no podrá editarse.";
+                    if (JOptionPane.showConfirmDialog(this, mensaje,
+                            "Confirmar finalización", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) return;
+                } else if (!confirmarGuardarVisita(esNueva)) {
                     return;
                 }
                 if (esNueva) {
@@ -2195,7 +2220,18 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                             "Consulta guardada", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     visitaControlador.actualizarVisita(visita);
-                    JOptionPane.showMessageDialog(this, "Visita actualizada con éxito.");
+                    if (finalizar) {
+                        visitaControlador.avanzarEstado(visita.getIdVisita(),
+                                "ATENDIENDO", "FINALIZADO");
+                        JOptionPane.showMessageDialog(this,
+                                "Atención finalizada. La consulta quedó cerrada y se incorporará a la historia clínica.",
+                                "Consulta finalizada", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                                "Avance clínico guardado. La consulta continúa ATENDIENDO.\n"
+                                + "Puede retomarla más tarde o utilizar Guardar y finalizar.",
+                                "Avance guardado", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error al registrar la visita: " + e.getMessage());
@@ -2215,7 +2251,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         } else {
             JOptionPane.showMessageDialog(this, "Por favor, selecciona una mascota.");
         }
-    }//GEN-LAST:event_btnGuardarActionPerformed
+    }
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
         limpiarCamposFormulario();
