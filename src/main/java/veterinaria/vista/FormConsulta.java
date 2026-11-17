@@ -2394,7 +2394,17 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     }
                 }
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error al registrar la visita: " + e.getMessage());
+                veterinaria.util.AppLog.error(FormConsulta.class,
+                        "No se pudo guardar la consulta clínica", e);
+                Throwable causa = e;
+                while (causa.getCause() != null && causa.getCause() != causa) {
+                    causa = causa.getCause();
+                }
+                String detalle = causa.getMessage() == null || causa.getMessage().isBlank()
+                        ? e.getMessage() : causa.getMessage();
+                JOptionPane.showMessageDialog(this,
+                        "No se pudo guardar la consulta.\\nDetalle: " + detalle,
+                        "Error de guardado", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
