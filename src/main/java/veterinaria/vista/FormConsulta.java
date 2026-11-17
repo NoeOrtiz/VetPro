@@ -66,6 +66,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private javax.swing.JButton btnQuitarSeleccion;
     private javax.swing.JPanel herramientasConsultas;
     private javax.swing.JButton btnFinalizarDesdeFicha;
+    private javax.swing.JButton btnGuardarEnObservacion;
+    private javax.swing.JButton btnRetomarAtencion;
     private final javax.swing.JLabel resumenCola = new javax.swing.JLabel("En espera: 0  |  Atendiendo: 0");
     private javax.swing.JButton btnActualizarConsultas;
     private javax.swing.Timer actualizacionCola;
@@ -537,6 +539,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         setMinimumSize(new java.awt.Dimension(0, 0));
 
         btnCambiarEstado = new javax.swing.JButton("Finalizar atención");
+        btnRetomarAtencion = new javax.swing.JButton("Retomar");
+        btnRetomarAtencion.setToolTipText("Volver a atender una consulta que estaba en observación.");
+        btnRetomarAtencion.setEnabled(false);
+        btnRetomarAtencion.addActionListener(e -> retomarAtencionSeleccionada());
         btnVerInfo = new javax.swing.JButton("Ver info");
         btnVerInfo.addActionListener(e -> mostrarInformacionConsulta());
         btnVerInfo.setEnabled(false);
@@ -548,7 +554,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             tableVisitas.clearSelection();
             actualizarBotonImprimir();
         });
-        btnLlamarSiguiente = new javax.swing.JButton("Llamar siguiente");
+        btnLlamarSiguiente = new javax.swing.JButton("Llamar");
         btnLlamarSiguiente.setToolTipText("Asigna automáticamente el ticket de mayor prioridad disponible.");
         btnLlamarSiguiente.addActionListener(e -> llamarSiguientePaciente());
         btnLlamarSiguiente.setEnabled(usuarioClinico());
@@ -607,6 +613,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
         accionesClinicas.setOpaque(false);
         accionesClinicas.add(btnLlamarSiguiente);
+        accionesClinicas.add(btnRetomarAtencion);
         accionesClinicas.add(btnEditar);
         accionesClinicas.add(btnCambiarEstado);
         acciones.add(accionesRecepcion);
@@ -684,6 +691,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
         botones.setOpaque(false);
         btnGuardar.setPreferredSize(new java.awt.Dimension(153, 30));
+        btnGuardarEnObservacion = new javax.swing.JButton("Dejar en observación");
+        btnGuardarEnObservacion.setToolTipText("Guarda el avance, mantiene abierta la consulta y permite atender otro paciente.");
+        btnGuardarEnObservacion.setPreferredSize(new java.awt.Dimension(155, 30));
+        btnGuardarEnObservacion.addActionListener(e -> guardarAtencion(false, true));
         btnFinalizarDesdeFicha = new javax.swing.JButton("Guardar y finalizar");
         btnFinalizarDesdeFicha.setPreferredSize(new java.awt.Dimension(155, 30));
         btnFinalizarDesdeFicha.setToolTipText("Guarda diagnóstico y evolución, y cierra definitivamente la consulta.");
@@ -691,6 +702,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnCancelar.setPreferredSize(new java.awt.Dimension(88, 30));
         btnLimpiar.setPreferredSize(new java.awt.Dimension(83, 30));
         botones.add(btnGuardar);
+        botones.add(btnGuardarEnObservacion);
         botones.add(btnFinalizarDesdeFicha);
         botones.add(btnCancelar);
         botones.add(btnLimpiar);
@@ -706,7 +718,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         String filtro = jcbEstadoFiltro.getSelectedItem().toString();
         if ("Todas".equals(filtro)) return true;
         if ("Finalizadas".equals(filtro)) return "FINALIZADO".equals(estado);
-        return "EN_ESPERA".equals(estado) || "ATENDIENDO".equals(estado);
+        return "EN_ESPERA".equals(estado) || "ATENDIENDO".equals(estado)
+                || "OBSERVACION".equals(estado);
     }
 
     private void llamarSiguientePaciente() {
@@ -742,6 +755,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
         btnGuardar.setText("Guardar avance");
         btnFinalizarDesdeFicha.setVisible(true);
+        btnGuardarEnObservacion.setVisible(true);
         mostrarSoloFormulario();
         btnGuardar.setEnabled(true);
         btnNuevo.setEnabled(false);
@@ -761,7 +775,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (seleccionada == null) return;
         String actual = normalizarEstadoBD(seleccionada.getEstado());
         if ("EN_ESPERA".equals(actual)) {
-            JOptionPane.showMessageDialog(this, "Para comenzar una atención utilice Llamar siguiente.\n"
+            JOptionPane.showMessageDialog(this, "Para comenzar una atención utilice Llamar.\n"
                     + "El sistema seleccionará automáticamente el caso de mayor prioridad.");
             return;
         }
@@ -819,6 +833,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         modelEstado.addElement(null);
         modelEstado.addElement(Constantes.EstadoVisita.EN_ESPERA);
         modelEstado.addElement(Constantes.EstadoVisita.ATENDIENDO);
+        modelEstado.addElement(Constantes.EstadoVisita.OBSERVACION);
         modelEstado.addElement(Constantes.EstadoVisita.FINALIZADO);
         jcbEstado.setModel(modelEstado);
 
@@ -877,9 +892,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private void actualizarResumenCola(java.util.List<Visita> visitas) {
         long espera = visitas.stream().filter(v ->
                 "EN_ESPERA".equals(normalizarEstadoBD(v.getEstado()))).count();
+        long observacion = visitas.stream().filter(v ->
+                "OBSERVACION".equals(normalizarEstadoBD(v.getEstado()))).count();
         long atendiendo = visitas.stream().filter(v ->
                 "ATENDIENDO".equals(normalizarEstadoBD(v.getEstado()))).count();
-        resumenCola.setText("En espera: " + espera + "  |  Atendiendo: " + atendiendo);
+        resumenCola.setText("En espera: " + espera + "  |  Atendiendo: " + atendiendo
+                + "  |  Observación: " + observacion);
     }
 
     private void iniciarActualizacionCola() {
@@ -954,7 +972,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     .comparingInt((Visita v) -> {
                         String estado = normalizarEstadoBD(v.getEstado());
                         return "EN_ESPERA".equals(estado) ? 0
-                                : "ATENDIENDO".equals(estado) ? 1 : 2;
+                                : "ATENDIENDO".equals(estado) ? 1
+                                : "OBSERVACION".equals(estado) ? 2 : 3;
                     })
                     .thenComparingInt(v -> {
                         if (!"EN_ESPERA".equals(normalizarEstadoBD(v.getEstado()))) return 3;
@@ -1055,6 +1074,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         // Si la tabla está vacía, deshabilitar acciones
         if (tableVisitas.getRowCount() == 0) {
+            if (btnRetomarAtencion != null) btnRetomarAtencion.setEnabled(false);
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
             if (btnVerInfo != null) btnVerInfo.setEnabled(false);
@@ -1066,6 +1086,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         // Validar que la fila exista
         if (row < 0 || row >= tableVisitas.getRowCount()) {
+            if (btnRetomarAtencion != null) btnRetomarAtencion.setEnabled(false);
             btnEditar.setEnabled(false);
             btnEliminar.setEnabled(false);
             if (btnVerInfo != null) btnVerInfo.setEnabled(false);
@@ -1097,6 +1118,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             btnCambiarEstado.setEnabled(usuarioClinico() && "ATENDIENDO".equals(estadoSeleccionado)
                     && !jpDatos.isVisible());
         // Cancelar es una baja lógica, nunca debe habilitarse en FINALIZADO.
+        if (btnRetomarAtencion != null) btnRetomarAtencion.setEnabled(
+                usuarioClinico() && "OBSERVACION".equals(estadoSeleccionado)
+                && !jpDatos.isVisible());
         btnEliminar.setEnabled(!esFinalizado && !jpDatos.isVisible()
                 && Application.getSesionUsuario() != null
                 && Application.getSesionUsuario().puede("FormConsulta.CANCELAR"));
@@ -1109,6 +1133,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         // Los permisos históricos del módulo siguen siendo FormVisita.*.
         actualizarNuevoSegunSeleccion(obtenerFilaSeleccionadaPorCheck() != -1);
         btnLlamarSiguiente.setVisible(clinico);
+        btnRetomarAtencion.setVisible(clinico);
         btnCambiarEstado.setVisible(clinico);
         btnEditar.setVisible(clinico);
         btnEliminar.setVisible(sesion.puede("FormConsulta.CANCELAR"));
@@ -1402,7 +1427,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             boolean incluir = "Todas".equals(filtroElegido)
                     || ("Finalizadas".equals(filtroElegido) && "FINALIZADO".equals(estado))
                     || ("En curso".equals(filtroElegido)
-                        && ("EN_ESPERA".equals(estado) || "ATENDIENDO".equals(estado)));
+                        && ("EN_ESPERA".equals(estado) || "ATENDIENDO".equals(estado)
+                            || "OBSERVACION".equals(estado)));
             if (!incluir) continue;
             String[] fila = new String[8];
             for (int j = 0; j < fila.length; j++) {
@@ -2121,6 +2147,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         lbDatos.setText("Registro de llegada · Ticket de consulta");
         btnGuardar.setText("Registrar atención");
         btnFinalizarDesdeFicha.setVisible(false);
+        btnGuardarEnObservacion.setVisible(false);
         prioridadConsulta.setSelectedItem("CONTROL");
         mostrarSoloFormulario();
         jpListaVisitas.setVisible(false);
@@ -2154,6 +2181,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             lbDatos.setText("Atención veterinaria · Diagnóstico y evolución");
             btnGuardar.setText("Guardar avance");
         btnFinalizarDesdeFicha.setVisible(true);
+        btnGuardarEnObservacion.setVisible(true);
             mostrarSoloFormulario();
             jpDatos.setVisible(true);
             jpListaVisitas.setVisible(false);
