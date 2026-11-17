@@ -71,6 +71,13 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private final javax.swing.JLabel resumenCola = new javax.swing.JLabel("En espera: 0  |  Atendiendo: 0");
     private javax.swing.JButton btnActualizarConsultas;
     private javax.swing.JLabel contadorTratamiento;
+    private final javax.swing.JTextField txtEspecieConsulta = new javax.swing.JTextField();
+    private final javax.swing.JTextField txtRazaConsulta = new javax.swing.JTextField();
+    private final javax.swing.JTextField txtPesoConsulta = new javax.swing.JTextField();
+    private final javax.swing.JTextField txtOtroMotivo = new javax.swing.JTextField();
+    private final javax.swing.JTextField txtOtraPatologia = new javax.swing.JTextField();
+    private static final String OPCION_OTROS = "Otro/s";
+    private static final int MAX_TEXTO_CATALOGO = 200;
     private static final int MAX_CARACTERES_EVOLUCION = 10000;
     private javax.swing.Timer actualizacionCola;
     private boolean comprobandoCambios;
@@ -327,6 +334,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (pacienteSelec == null || "Seleccionar Mascota".equals(pacienteSelec)) {
             mascotaSeleccionada = null;
             txtDueño.setText("");
+            txtEspecieConsulta.setText("");
+            txtRazaConsulta.setText("");
             return;
         }
 
@@ -347,6 +356,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 } else {
                     txtDueño.setText("");
                 }
+                txtEspecieConsulta.setText(mascotaSeleccionada == null ? ""
+                        : textoSeguro(mascotaSeleccionada.getEspecie()));
+                txtRazaConsulta.setText(mascotaSeleccionada == null ? ""
+                        : textoSeguro(mascotaSeleccionada.getRaza()));
                 return;
             }
         }
@@ -354,6 +367,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         // Si no se encuentra, limpiar.
         mascotaSeleccionada = null;
         txtDueño.setText("");
+        txtEspecieConsulta.setText("");
+        txtRazaConsulta.setText("");
     }
 
     private void seleccionarMascotaEnCombo(Integer idMascota) {
@@ -440,6 +455,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbPatologia.addItem("Cataratas");
         jcbPatologia.addItem("Conjuntivitis");
         jcbPatologia.addItem("Glaucoma");
+        jcbPatologia.addItem(OPCION_OTROS);
     }
 
     private void llenarComboBoxMotivos() {
@@ -464,6 +480,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbMotivo.addItem("Control post-cirugía");
         jcbMotivo.addItem("Evaluación de tratamiento en curso");
         jcbMotivo.addItem("Monitoreo de condición crónica");
+        jcbMotivo.addItem(OPCION_OTROS);
     }
 
     private void configurarSpinnerHora(LocalTime value) {
@@ -492,6 +509,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         configurarSpinnerHora(null);
         jdcFecha.setDate(new Date());
         txtTratamiento.setText("");
+        txtPesoConsulta.setText("");
+        txtEspecieConsulta.setText("");
+        txtRazaConsulta.setText("");
+        txtOtroMotivo.setText("");
+        txtOtraPatologia.setText("");
+        actualizarCamposOtros();
         // Una visita nueva ingresa a la cola en EN_ESPERA.
         try {
             jcbEstado.setSelectedItem(Constantes.EstadoVisita.EN_ESPERA);
