@@ -73,6 +73,11 @@ public class VisitaControlador {
         }
     }
 
+    /** Registra los datos clínicos y libera al veterinario dejando al paciente en observación. */
+    public void guardarEnObservacion(Visita visita) {
+        visitaDAO.actualizar(visita, true);
+    }
+
     public boolean eliminarVisita(Visita visita) {
         return cancelarVisita(visita);
     }
