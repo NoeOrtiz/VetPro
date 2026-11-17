@@ -193,14 +193,6 @@ public class VisitaDAO {
                 Visita.class
         ).getResultList();
 
-        System.out.println(PersistenceConfig.describeSafe());
-        System.out.println("Cantidad visitas: " + visitas.size());
-
-        for (Visita v : visitas) {
-            System.out.println("ID=" + v.getIdVisita()
-                    + " Estado=" + v.getEstado());
-        }
-
         em.close();
 
         return visitas;
