@@ -691,7 +691,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaUno.setOpaque(false);
         filaUno.add(campoConsulta(lbPaciente, jcbPaciente));
         filaUno.add(campoConsulta(lbDueño, txtDueño));
-        filaUno.add(campoConsulta(lbMotivo, jcbMotivo));
+        txtOtroMotivo.setToolTipText("Especifique el motivo cuando selecciona Otro/s.");
+        javax.swing.JPanel motivoConOtro = comboConOpcionOtro(jcbMotivo, txtOtroMotivo);
+        filaUno.add(campoConsulta(lbMotivo, motivoConOtro));
         filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
         filaUno.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaUno);
@@ -701,11 +703,28 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaDos.setOpaque(false);
         filaDos.add(campoConsulta(lbVeterinarioAsignado, jcbVeterinario));
         filaDos.add(campoConsulta(lbEstado, jcbEstado));
-        filaDos.add(campoConsulta(lbPatologia, jcbPatologia));
+        txtOtraPatologia.setToolTipText("Especifique el diagnóstico cuando selecciona Otro/s.");
+        filaDos.add(campoConsulta(lbPatologia, comboConOpcionOtro(jcbPatologia, txtOtraPatologia)));
         filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
         filaDos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaDos);
-        centro.add(javax.swing.Box.createVerticalStrut(20));
+        centro.add(javax.swing.Box.createVerticalStrut(14));
+        // Datos de paciente: la especie y raza se leen desde Mascota; el peso
+        // corresponde exclusivamente a esta atención.
+        javax.swing.JPanel filaPaciente = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
+        filaPaciente.setOpaque(false);
+        txtEspecieConsulta.setEditable(false);
+        txtRazaConsulta.setEditable(false);
+        txtEspecieConsulta.setFocusable(false);
+        txtRazaConsulta.setFocusable(false);
+        txtPesoConsulta.setToolTipText("Peso medido en esta consulta, en kg (ej.: 5,200).");
+        filaPaciente.add(campoConsulta(new javax.swing.JLabel("Especie"), txtEspecieConsulta));
+        filaPaciente.add(campoConsulta(new javax.swing.JLabel("Raza"), txtRazaConsulta));
+        filaPaciente.add(campoConsulta(new javax.swing.JLabel("Peso actual (kg) *"), txtPesoConsulta));
+        filaPaciente.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
+        filaPaciente.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        centro.add(filaPaciente);
+        centro.add(javax.swing.Box.createVerticalStrut(16));
 
         configurarLimiteEvolucion();
         javax.swing.JPanel textoEvolucion = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
@@ -718,6 +737,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 180));
         centro.add(evolucion);
         jpDatos.add(centro, java.awt.BorderLayout.CENTER);
+        jcbMotivo.addActionListener(e -> actualizarCamposOtros());
+        jcbPatologia.addActionListener(e -> actualizarCamposOtros());
+        txtOtroMotivo.setVisible(false);
+        txtOtraPatologia.setVisible(false);
+        // Al registrarse una consulta aún no corresponde completar evolución.
+        jScrollPane1.setFocusable(false);
 
         javax.swing.JPanel botones = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
@@ -740,6 +765,82 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         botones.add(btnLimpiar);
         jpDatos.add(botones, java.awt.BorderLayout.SOUTH);
         jpDatos.revalidate();
+    }
+
+    private String textoSeguro(String valor) {
+        return valor == null ? "" : valor.trim();
+    }
+
+    private javax.swing.JPanel comboConOpcionOtro(javax.swing.JComboBox<String> combo,
+            javax.swing.JTextField detalle) {
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        panel.setOpaque(false);
+        panel.add(combo, java.awt.BorderLayout.NORTH);
+        panel.add(detalle, java.awt.BorderLayout.CENTER);
+        detalle.setVisible(false);
+        return panel;
+    }
+
+    private void actualizarCamposOtros() {
+        boolean otroMotivo = OPCION_OTROS.equals(jcbMotivo.getSelectedItem());
+        boolean otraPatologia = OPCION_OTROS.equals(jcbPatologia.getSelectedItem())
+                && jcbPatologia.isEnabled();
+        txtOtroMotivo.setVisible(otroMotivo);
+        txtOtraPatologia.setVisible(otraPatologia);
+        txtOtroMotivo.setEnabled(otroMotivo && jcbMotivo.isEnabled());
+        txtOtraPatologia.setEnabled(otraPatologia);
+        if (txtOtroMotivo.getParent() != null) {
+            txtOtroMotivo.getParent().revalidate();
+            txtOtroMotivo.getParent().repaint();
+        }
+        if (txtOtraPatologia.getParent() != null) {
+            txtOtraPatologia.getParent().revalidate();
+            txtOtraPatologia.getParent().repaint();
+        }
+    }
+
+    private String valorCampoPersonalizado(javax.swing.JComboBox<String> combo,
+            javax.swing.JTextField especificacion) {
+        if (OPCION_OTROS.equals(combo.getSelectedItem()))
+            return especificacion.getText().trim();
+        Object item = combo.getSelectedItem();
+        return item == null ? "" : item.toString().trim();
+    }
+
+    private void restaurarCampoPersonalizado(javax.swing.JComboBox<String> combo,
+            javax.swing.JTextField especificacion, String valor) {
+        if (valor == null || valor.isBlank()) {
+            combo.setSelectedIndex(0);
+            especificacion.setText("");
+            actualizarCamposOtros();
+            return;
+        }
+        for (int i = 1; i < combo.getItemCount(); i++) {
+            String item = combo.getItemAt(i);
+            if (valor.equals(item) && !OPCION_OTROS.equals(item)) {
+                combo.setSelectedIndex(i);
+                especificacion.setText("");
+                actualizarCamposOtros();
+                return;
+            }
+        }
+        combo.setSelectedItem(OPCION_OTROS);
+        especificacion.setText(valor);
+        actualizarCamposOtros();
+    }
+
+    private java.math.BigDecimal obtenerPesoActual() {
+        String valor = txtPesoConsulta.getText().trim().replace(',', '.');
+        if (valor.isEmpty()) return null;
+        try {
+            java.math.BigDecimal peso = new java.math.BigDecimal(valor);
+            if (peso.signum() <= 0 || peso.compareTo(new java.math.BigDecimal("99999.999")) > 0
+                    || peso.scale() > 3)
+                throw new NumberFormatException();
+            return peso;
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException("Ingrese un peso válido en kg, mayor a cero, con hasta 3 decimales.");
+        }
     }
 
     private void configurarLimiteEvolucion() {
