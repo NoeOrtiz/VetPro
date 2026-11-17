@@ -763,6 +763,30 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnEliminar.setEnabled(false);
     }
 
+    private void retomarAtencionSeleccionada() {
+        if (!usuarioClinico() || Application.getSesionUsuario() == null
+                || !Application.getSesionUsuario().puede("FormConsulta.EDITAR")) {
+            JOptionPane.showMessageDialog(this, "No tiene permiso para retomar consultas.");
+            return;
+        }
+        Visita seleccionada = obtenerVisitaSeleccionadaDesdeTabla();
+        if (seleccionada == null) return;
+        if (!"OBSERVACION".equals(normalizarEstadoBD(seleccionada.getEstado()))) {
+            JOptionPane.showMessageDialog(this, "Solo se puede retomar una consulta en observación.");
+            return;
+        }
+        try {
+            Visita retomada = visitaControlador.avanzarEstado(
+                    seleccionada.getIdVisita(), "OBSERVACION", "ATENDIENDO");
+            cargarVisitasEnTabla();
+            abrirFichaClinica(retomada);
+        } catch (RuntimeException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo retomar la consulta.\\n" + ex.getMessage(),
+                    "Retomar atención", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
     private void avanzarEstadoSeleccionado() {
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
         if (sesion == null || !sesion.puede("FormConsulta.EDITAR") || !usuarioClinico()) {
@@ -2265,6 +2289,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }//GEN-LAST:event_btnGuardarActionPerformed
 
     private void guardarAtencion(boolean finalizar) {
+        guardarAtencion(finalizar, false);
+    }
+
+    private void guardarAtencion(boolean finalizar, boolean observacion) {
         if (!validarFormulario()) {
             return;
         }
@@ -2315,12 +2343,17 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                             "Primero debe registrarse el ingreso del paciente.");
                     return;
                 }
-                if (finalizar) {
-                    String mensaje = "¿Guardar los datos clínicos y FINALIZAR la consulta de "
-                            + mascotaSeleccionada.getNombre() + "?\n"
-                            + "Una vez finalizada no podrá editarse.";
+                if (finalizar || observacion) {
+                    String mensaje = finalizar
+                            ? "¿Guardar los datos clínicos y FINALIZAR la consulta de "
+                                    + mascotaSeleccionada.getNombre() + "?\n"
+                                    + "Una vez finalizada no podrá editarse."
+                            : "¿Guardar el avance y dejar en OBSERVACIÓN a "
+                                    + mascotaSeleccionada.getNombre() + "?\n"
+                                    + "La consulta seguirá abierta y podrá atender otro paciente.";
                     if (JOptionPane.showConfirmDialog(this, mensaje,
-                            "Confirmar finalización", JOptionPane.YES_NO_OPTION,
+                            finalizar ? "Confirmar finalización" : "Confirmar observación",
+                            JOptionPane.YES_NO_OPTION,
                             JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) return;
                 } else if (!confirmarGuardarVisita(esNueva)) {
                     return;
@@ -2338,14 +2371,22 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                                     + "Paciente en espera de atención veterinaria.",
                             "Consulta guardada", JOptionPane.INFORMATION_MESSAGE);
                 } else {
-                    visitaControlador.actualizarVisita(visita);
+                    if (observacion) {
+                        visitaControlador.guardarEnObservacion(visita);
+                        JOptionPane.showMessageDialog(this,
+                                "Avance guardado. El paciente permanece en OBSERVACIÓN.\n"
+                                + "Puede retomar su consulta más adelante o llamar a otro paciente.",
+                                "Paciente en observación", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        visitaControlador.actualizarVisita(visita);
+                    }
                     if (finalizar) {
                         visitaControlador.avanzarEstado(visita.getIdVisita(),
                                 "ATENDIENDO", "FINALIZADO");
                         JOptionPane.showMessageDialog(this,
                                 "Atención finalizada. La consulta quedó cerrada y se incorporará a la historia clínica.",
                                 "Consulta finalizada", JOptionPane.INFORMATION_MESSAGE);
-                    } else {
+                    } else if (!observacion) {
                         JOptionPane.showMessageDialog(this,
                                 "Avance clínico guardado. La consulta continúa ATENDIENDO.\n"
                                 + "Puede retomarla más tarde o utilizar Guardar y finalizar.",
