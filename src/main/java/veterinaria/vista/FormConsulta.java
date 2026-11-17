@@ -548,10 +548,33 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         tableVisitas.setRowHeight(27);
         tableVisitas.getColumnModel().getColumn(0).setCellRenderer(
                 new veterinaria.vista.table.TableGradientCheckBoxRenderer());
-        int[] anchos = {82, 52, 95, 110, 115, 95, 185, 115, 95, 110, 94};
+        // Dar prioridad a Cliente y Motivo: Paciente suele ser un nombre corto.
+        // Los índices ocultos (5, 6, 7) se conservan para búsqueda e informes.
+        int[] anchos = {84, 52, 122, 225, 205, 95, 185, 115, 135, 148, 112};
         for (int i = 0; i < anchos.length; i++)
             tableVisitas.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
         tableVisitas.getColumnModel().getColumn(0).setMinWidth(80);
+        tableVisitas.getColumnModel().getColumn(1).setMinWidth(45);
+        tableVisitas.getColumnModel().getColumn(2).setMinWidth(95);
+        tableVisitas.getColumnModel().getColumn(2).setMaxWidth(160);
+        tableVisitas.getColumnModel().getColumn(3).setMinWidth(175);
+        tableVisitas.getColumnModel().getColumn(4).setMinWidth(150);
+        tableVisitas.getColumnModel().getColumn(8).setMinWidth(115);
+        tableVisitas.getColumnModel().getColumn(9).setMinWidth(115);
+        // Presentación amigable sin alterar los códigos de estado en el modelo/BD.
+        tableVisitas.getColumnModel().getColumn(8).setCellRenderer(
+                new javax.swing.table.DefaultTableCellRenderer() {
+                    @Override
+                    public java.awt.Component getTableCellRendererComponent(
+                            javax.swing.JTable tabla, Object valor, boolean seleccionado,
+                            boolean foco, int fila, int columna) {
+                        super.getTableCellRendererComponent(tabla, valor, seleccionado,
+                                foco, fila, columna);
+                        setText(estadoParaMostrar(valor == null ? "" : valor.toString()));
+                        setToolTipText(getText());
+                        return this;
+                    }
+                });
         tableVisitas.getColumnModel().getColumn(1).setHeaderValue("N.º");
         // Los datos clínicos y la fecha se consultan desde Ver info.
         // Conservar los índices originales para no alterar búsqueda ni selección.
@@ -1060,7 +1083,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 if (value == null) {
                     setText("Seleccionar...");
                 } else {
-                    setText(((Constantes.EstadoVisita) value).name());
+                    setText(estadoParaMostrar(((Constantes.EstadoVisita) value).name()));
                 }
                 return this;
             }
@@ -1643,6 +1666,18 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 .put("emisor", Application.getNombreApellidoUsuarioLogeado());
         veterinaria.reportes.pdf.ReporteEjecutor.ejecutarConAviso(this,
                 ReporteTipo.VISITA_LISTADO, req);
+    }
+
+    /** Etiqueta visible; internamente se conserva EN_ESPERA, etc. */
+    private String estadoParaMostrar(String estado) {
+        switch (normalizarEstadoBD(estado)) {
+            case "EN_ESPERA": return "En espera";
+            case "ATENDIENDO": return "Atendiendo";
+            case "OBSERVACION": return "En observación";
+            case "FINALIZADO": return "Finalizado";
+            case "CANCELADO": return "Cancelado";
+            default: return estado == null ? "" : estado.replace('_', ' ');
+        }
     }
 
     private String normalizarEstadoBD(String estadoBD) {
