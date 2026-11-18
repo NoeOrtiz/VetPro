@@ -2478,7 +2478,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             return true;
         }
         // Recepción puede emitir el ticket urgente, pero no realizar actos clínicos
-        // ni reactivar al paciente. Se exige una solicitud urgente pendiente.
+        // ni reactivar al paciente. la solicitud se crea o vincula al guardar.
         veterinaria.util.SesionUsuario sesion = Application.getSesionUsuario();
         if (sesion == null || !sesion.puede("FormConsulta.NUEVO")) {
             JOptionPane.showMessageDialog(this,
@@ -2490,17 +2490,17 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         if (!"EMERGENCIA".equals(prioridad) && !"URGENCIA".equals(prioridad)) {
             JOptionPane.showMessageDialog(this,
                     "Para registrar una mascota inactiva, seleccione URGENCIA o EMERGENCIA."
-                    + "\nLa consulta provisoria requiere una solicitud urgente pendiente.",
+                    + "\nLa solicitud urgente se crea automáticamente al registrar el ticket.",
                     "Prioridad de atención", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         int confirmacion = JOptionPane.showConfirmDialog(
                 javax.swing.SwingUtilities.getWindowAncestor(this),
-                "La mascota " + mascotaSeleccionada.getNombre() + " figura como inactiva.\\n\\n"
-                + "Se registrará un ticket URGENTE PROVISORIO en espera de atención veterinaria.\\n"
-                + "VetPRO generará automáticamente una solicitud urgente de revisión o\\n"
-                + "vinculará la que ya esté pendiente.\\n"
-                + "La mascota NO será reactivada ni se modificará su motivo de baja.\\n\\n"
+                "La mascota " + mascotaSeleccionada.getNombre() + " figura como inactiva.\n\n"
+                + "Se registrará un ticket URGENTE PROVISORIO en espera de atención veterinaria.\n"
+                + "VetPRO generará automáticamente una solicitud urgente de revisión o\n"
+                + "vinculará la que ya esté pendiente.\n"
+                + "La mascota NO será reactivada ni se modificará su motivo de baja.\n\n"
                 + "¿Confirma el registro del ingreso?",
                 "Ingreso urgente de paciente inactivo", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
