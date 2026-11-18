@@ -2494,35 +2494,20 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     "Prioridad de atención", JOptionPane.WARNING_MESSAGE);
             return false;
         }
-        Integer solicitud;
-        try {
-            solicitud = new veterinaria.servicio.SolicitudReactivacionService()
-                    .solicitudUrgentePendiente(mascotaSeleccionada.getIdMascota());
-        } catch (RuntimeException ex) {
-            JOptionPane.showMessageDialog(this, "No se pudo verificar la solicitud urgente.\n"
-                    + "Consulte al administrador o verifique la migración SQL.",
-                    "Verificación pendiente", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        if (solicitud == null) {
-            JOptionPane.showMessageDialog(this,
-                    "El paciente está inactivo. Para registrar una atención urgente provisoria, "
-                    + "primero debe existir una solicitud urgente que aún no haya sido resuelta.",
-                    "Solicitud urgente requerida", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-        int confirmacion = JOptionPane.showConfirmDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
-                "La mascota " + mascotaSeleccionada.getNombre() + " figura como inactiva.\n\n"
-                + "Se guardará una CONSULTA PROVISORIA por una atención urgente.\n"
-                + "Quedará relacionada con la solicitud de reactivación N.º " + solicitud + ".\n"
-                + "La consulta NO reactiva a la mascota ni modifica su motivo de baja.\n\n"
-                + "Se generará un ticket EN ESPERA para valoración veterinaria.\n"
-                + "¿Desea registrar la llegada del paciente?",
-                "Confirmar ticket provisorio", JOptionPane.YES_NO_OPTION,
+        int confirmacion = JOptionPane.showConfirmDialog(
+                javax.swing.SwingUtilities.getWindowAncestor(this),
+                "La mascota " + mascotaSeleccionada.getNombre() + " figura como inactiva.\\n\\n"
+                + "Se registrará un ticket URGENTE PROVISORIO en espera de atención veterinaria.\\n"
+                + "VetPRO generará automáticamente una solicitud urgente de revisión o\\n"
+                + "vinculará la que ya esté pendiente.\\n"
+                + "La mascota NO será reactivada ni se modificará su motivo de baja.\\n\\n"
+                + "¿Confirma el registro del ingreso?",
+                "Ingreso urgente de paciente inactivo", JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE);
         if (confirmacion != JOptionPane.YES_OPTION) return false;
         visita.setAtencionProvisional(true);
-        visita.setIdSolicitudReactivacion(solicitud);
+        // DAO crea/vincula la solicitud y el ticket en la MISMA transacción.
+        visita.setIdSolicitudReactivacion(null);
         return true;
     }
 
