@@ -1277,6 +1277,21 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         actualizarBotonImprimir();
     }
 
+    /**
+     * Al regresar desde un formulario, recalcular la visibilidad de las
+     * acciones DESPUÉS de mostrar el listado. Habilitar Nuevo no alcanza
+     * si antes había sido ocultado con setVisible(false).
+     */
+    private void restablecerAccionesDeListado() {
+        if (paginacionConsultas != null) paginacionConsultas.limpiarSeleccion();
+        tableVisitas.clearSelection();
+        actualizarAccionesPorSeleccion();
+        if (herramientasConsultas != null) {
+            herramientasConsultas.revalidate();
+            herramientasConsultas.repaint();
+        }
+    }
+
     // -------------------- Acciones contextuales de la lista --------------------
     private void actualizarBotonImprimir() {
         if (cargandoTabla) return;
@@ -2462,10 +2477,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jpDatos.setVisible(false);
             cargarVisitasEnTabla();
             jpListaVisitas.setVisible(true);
-            btnNuevo.setEnabled(Application.getSesionUsuario() != null
-                && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
-            btnEditar.setEnabled(false);
-            btnEliminar.setEnabled(false);
+            restablecerAccionesDeListado();
         }
 
     }//GEN-LAST:event_btnEliminarActionPerformed
@@ -2642,11 +2654,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             jpDatos.setVisible(false);
             jpHeader.setVisible(true);
             if (herramientasConsultas != null) herramientasConsultas.setVisible(true);
-            btnNuevo.setEnabled(Application.getSesionUsuario() != null
-                && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
-            btnEditar.setEnabled(false);
-            btnEliminar.setEnabled(false);
             jpListaVisitas.setVisible(true);
+            restablecerAccionesDeListado();
         } else {
             JOptionPane.showMessageDialog(this, "Por favor, selecciona una mascota.");
         }
@@ -2657,12 +2666,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jpDatos.setVisible(false);
         jpHeader.setVisible(true);
         if (herramientasConsultas != null) herramientasConsultas.setVisible(true);
-        btnNuevo.setEnabled(Application.getSesionUsuario() != null
-                && Application.getSesionUsuario().puede("FormConsulta.NUEVO"));
-        btnEditar.setEnabled(false);
-        btnEliminar.setEnabled(false);
         txtBusqueda.setEnabled(true);
         jpListaVisitas.setVisible(true);
+        restablecerAccionesDeListado();
     }//GEN-LAST:event_btnCancelarActionPerformed
 
     private void btnLimpiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimpiarActionPerformed
