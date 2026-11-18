@@ -29,11 +29,14 @@ public class VisitaDAO {
             if (!paciente.isActivo()) {
                 veterinaria.util.SesionUsuario sesion =
                         veterinaria.vista.application.Application.getSesionUsuario();
-                String nombreRol = sesion == null || sesion.getRol() == null ? ""
-                        : sesion.getRol().getNombreRol();
-                if (!"Veterinario".equalsIgnoreCase(nombreRol)
-                        && !"Administrador".equalsIgnoreCase(nombreRol))
-                    throw new SecurityException("La consulta urgente provisional requiere un veterinario o administrador.");
+                // La recepción solo emite el ticket EN_ESPERA. La evaluación
+                // clínica y los cambios de estado siguen siendo del veterinario.
+                if (sesion == null || !sesion.puede("FormConsulta.NUEVO"))
+                    throw new SecurityException("No tiene permiso para registrar tickets.");
+                if (!"EMERGENCIA".equals(visita.getPrioridadAtencion())
+                        && !"URGENCIA".equals(visita.getPrioridadAtencion()))
+                    throw new IllegalStateException(
+                            "La atención provisoria solo admite URGENCIA o EMERGENCIA.");
                 if (!visita.isAtencionProvisional() || visita.getIdSolicitudReactivacion() == null)
                     throw new IllegalStateException("El paciente está inactivo. Requiere atención provisional autorizada.");
                 Number n = (Number) em.createNativeQuery(
