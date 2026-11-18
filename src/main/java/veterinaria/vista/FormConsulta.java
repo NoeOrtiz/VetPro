@@ -642,10 +642,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         estado.add(lbEstadoFiltro, java.awt.BorderLayout.NORTH);
         jcbEstadoFiltro.setPreferredSize(new java.awt.Dimension(140, 28));
         resumenCola.setToolTipText("Pacientes en espera de atención y actualmente atendidos");
-        btnActualizarConsultas = new javax.swing.JButton();
-        btnActualizarConsultas.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(
-                "veterinaria/icon/svg/actualizar.svg", 17, 17));
-        btnActualizarConsultas.setPreferredSize(new java.awt.Dimension(34, 28));
+        // Botón legible incluso cuando la carga del recurso SVG falla.
+        btnActualizarConsultas = new javax.swing.JButton("Actualizar");
+        btnActualizarConsultas.setPreferredSize(new java.awt.Dimension(88, 28));
         btnActualizarConsultas.setFocusable(false);
         btnActualizarConsultas.setToolTipText("Actualizar consultas");
         btnActualizarConsultas.getAccessibleContext().setAccessibleName("Actualizar consultas");
