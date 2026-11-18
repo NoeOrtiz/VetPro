@@ -37,15 +37,57 @@ public class VisitaDAO {
                         && !"URGENCIA".equals(visita.getPrioridadAtencion()))
                     throw new IllegalStateException(
                             "La atención provisoria solo admite URGENCIA o EMERGENCIA.");
-                if (!visita.isAtencionProvisional() || visita.getIdSolicitudReactivacion() == null)
-                    throw new IllegalStateException("El paciente está inactivo. Requiere atención provisional autorizada.");
-                Number n = (Number) em.createNativeQuery(
-                    "SELECT COUNT(*) FROM mascota_solicitud_reactivacion "
-                  + "WHERE idSolicitud=? AND idMascota=? AND prioridad='URGENTE' AND estado='PENDIENTE'")
-                    .setParameter(1, visita.getIdSolicitudReactivacion())
-                    .setParameter(2, paciente.getIdMascota()).getSingleResult();
-                if (n.longValue() != 1)
-                    throw new IllegalStateException("La solicitud urgente ya no está pendiente.");
+                if (!visita.isAtencionProvisional())
+                    throw new IllegalStateException(
+                            "El paciente está inactivo. Se requiere registro urgente provisorio.");
+                // El paciente está bloqueado FOR UPDATE: entre instancias no se crean
+                // solicitudes duplicadas ni se permite registrar un ticket sin vínculo.
+                java.util.List<Object[]> pendientes = em.createNativeQuery(
+                        "SELECT idSolicitud, prioridad FROM mascota_solicitud_reactivacion "
+                        + "WHERE idMascota=? AND estado='PENDIENTE' "
+                        + "ORDER BY fechaSolicitud DESC, idSolicitud DESC LIMIT 1 FOR UPDATE")
+                        .setParameter(1, paciente.getIdMascota()).getResultList();
+                Integer solicitudId;
+                if (!pendientes.isEmpty()) {
+                    solicitudId = ((Number) pendientes.get(0)[0]).intValue();
+                    // Una solicitud normal existente se prioriza como urgente,
+                    // preservando su identidad y su justificación original.
+                    if (!"URGENTE".equalsIgnoreCase(String.valueOf(pendientes.get(0)[1]))) {
+                        em.createNativeQuery(
+                                "UPDATE mascota_solicitud_reactivacion "
+                                + "SET prioridad='URGENTE' WHERE idSolicitud=?")
+                                .setParameter(1, solicitudId).executeUpdate();
+                    }
+                } else {
+                    veterinaria.util.SesionUsuario usuarioActual =
+                            veterinaria.vista.application.Application.getSesionUsuario();
+                    if (usuarioActual.getUsuario() == null
+                            || usuarioActual.getUsuario().getIdUsuario() == null)
+                        throw new SecurityException("La recepción debe tener un usuario identificado.");
+                    String motivoBaja = paciente.getMotivoBaja();
+                    String tipoSolicitud = "Fallecimiento".equalsIgnoreCase(
+                            motivoBaja == null ? "" : motivoBaja.trim())
+                            ? "RECTIFICACION" : "REACTIVACION";
+                    String justificacion = "Solicitud urgente automática al registrar ticket "
+                            + "de " + visita.getPrioridadAtencion() + ". Motivo: "
+                            + (visita.getMotivoVisita() == null ? "Sin detallar"
+                                    : visita.getMotivoVisita());
+                    if (justificacion.length() > 1000)
+                        justificacion = justificacion.substring(0, 1000);
+                    em.createNativeQuery(
+                            "INSERT INTO mascota_solicitud_reactivacion "
+                            + "(idMascota,idUsuarioSolicitante,tipo,prioridad,justificacion,motivoBajaOriginal) "
+                            + "VALUES (?,?,?,'URGENTE',?,?)")
+                            .setParameter(1, paciente.getIdMascota())
+                            .setParameter(2, usuarioActual.getUsuario().getIdUsuario())
+                            .setParameter(3, tipoSolicitud)
+                            .setParameter(4, justificacion)
+                            .setParameter(5, motivoBaja)
+                            .executeUpdate();
+                    solicitudId = ((Number) em.createNativeQuery(
+                            "SELECT LAST_INSERT_ID()").getSingleResult()).intValue();
+                }
+                visita.setIdSolicitudReactivacion(solicitudId);
             } else if (visita.isAtencionProvisional()) {
                 throw new IllegalStateException("La atención provisional solo corresponde a pacientes inactivos.");
             }
