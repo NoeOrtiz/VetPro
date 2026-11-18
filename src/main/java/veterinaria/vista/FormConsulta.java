@@ -650,14 +650,22 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnActualizarConsultas.setToolTipText("Actualizar consultas");
         btnActualizarConsultas.getAccessibleContext().setAccessibleName("Actualizar consultas");
         btnActualizarConsultas.addActionListener(e -> comprobarActualizaciones(true));
-        // Mismo renglón y altura que Estado, no un botón aislado.
-        javax.swing.JPanel controlesEstado = new javax.swing.JPanel(new java.awt.BorderLayout(6, 0));
-        controlesEstado.setOpaque(false);
-        controlesEstado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
-        controlesEstado.add(btnActualizarConsultas, java.awt.BorderLayout.EAST);
-        estado.add(controlesEstado, java.awt.BorderLayout.CENTER);
+        // Estado queda limpio; actualizar y limpiar selección corresponden a la lista.
+        estado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
         filtros.add(estado);
         herramientas.add(filtros, java.awt.BorderLayout.WEST);
+
+        javax.swing.JPanel tituloLista = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
+        tituloLista.setOpaque(false);
+        javax.swing.JLabel textoTituloLista = new javax.swing.JLabel(lbListaDeVisitas.getText());
+        textoTituloLista.setFont(lbListaDeVisitas.getFont());
+        tituloLista.add(textoTituloLista);
+        tituloLista.add(btnActualizarConsultas);
+        tituloLista.add(btnQuitarSeleccion);
+        // Reutiliza la cabecera existente, manteniendo Imprimir Lista a la derecha.
+        ((javax.swing.GroupLayout) jpListaVisitas.getLayout()).replace(
+                lbListaDeVisitas, tituloLista);
 
         // Dos filas por función: evita controles encimados en ventanas reducidas.
         javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 4));
@@ -667,7 +675,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         accionesRecepcion.setOpaque(false);
         accionesRecepcion.add(btnNuevo);
         accionesRecepcion.add(btnVerInfo);
-        accionesRecepcion.add(btnQuitarSeleccion);
         accionesRecepcion.add(btnEliminar);
         accionesRecepcion.add(btnImprimirVisita);
         javax.swing.JPanel accionesClinicas = new javax.swing.JPanel(
