@@ -95,7 +95,7 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
 
     private void encabezadoContinuacion(PdfDocument pdf, String filtro,
             int total, String[] titulos, float[] x) throws Exception {
-        String titulo = titulo() + " (continuación)";
+        String titulo = titulo();
         float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT, 12, titulo);
         pdf.text(PdfStyle.H2_FONT, 12, (pdf.getPageW() - anchoTitulo) / 2f,
                 pdf.getY(), titulo);
