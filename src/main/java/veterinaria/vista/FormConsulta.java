@@ -563,7 +563,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         tableVisitas.getColumnModel().getColumn(9).setMinWidth(115);
         // Presentación amigable sin alterar los códigos de estado en el modelo/BD.
         tableVisitas.getColumnModel().getColumn(8).setCellRenderer(
-                new javax.swing.table.DefaultTableCellRenderer() {
+                new veterinaria.vista.table.TableGradientCell() {
                     @Override
                     public java.awt.Component getTableCellRendererComponent(
                             javax.swing.JTable tabla, Object valor, boolean seleccionado,
@@ -987,7 +987,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             abrirFichaClinica(retomada);
         } catch (RuntimeException ex) {
             JOptionPane.showMessageDialog(this,
-                    "No se pudo retomar la consulta.\\n" + ex.getMessage(),
+                    "No se pudo retomar la consulta.\n" + ex.getMessage(),
                     "Retomar atención", JOptionPane.WARNING_MESSAGE);
         }
     }
