@@ -641,14 +641,22 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         estado.setOpaque(false);
         estado.add(lbEstadoFiltro, java.awt.BorderLayout.NORTH);
         jcbEstadoFiltro.setPreferredSize(new java.awt.Dimension(140, 28));
-        estado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
-        filtros.add(estado);
         resumenCola.setToolTipText("Pacientes en espera de atención y actualmente atendidos");
-        btnActualizarConsultas = new javax.swing.JButton("↻");
-        btnActualizarConsultas.setPreferredSize(new java.awt.Dimension(32, 28));
-        btnActualizarConsultas.setToolTipText("Actualizar la lista de consultas desde la base de datos");
+        btnActualizarConsultas = new javax.swing.JButton();
+        btnActualizarConsultas.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(
+                "veterinaria/icon/svg/actualizar.svg", 17, 17));
+        btnActualizarConsultas.setPreferredSize(new java.awt.Dimension(34, 28));
+        btnActualizarConsultas.setFocusable(false);
+        btnActualizarConsultas.setToolTipText("Actualizar consultas");
+        btnActualizarConsultas.getAccessibleContext().setAccessibleName("Actualizar consultas");
         btnActualizarConsultas.addActionListener(e -> comprobarActualizaciones(true));
-        filtros.add(btnActualizarConsultas);
+        // Mismo renglón y altura que Estado, no un botón aislado.
+        javax.swing.JPanel controlesEstado = new javax.swing.JPanel(new java.awt.BorderLayout(6, 0));
+        controlesEstado.setOpaque(false);
+        controlesEstado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
+        controlesEstado.add(btnActualizarConsultas, java.awt.BorderLayout.EAST);
+        estado.add(controlesEstado, java.awt.BorderLayout.CENTER);
+        filtros.add(estado);
         herramientas.add(filtros, java.awt.BorderLayout.WEST);
 
         // Dos filas por función: evita controles encimados en ventanas reducidas.
