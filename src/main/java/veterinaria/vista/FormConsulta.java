@@ -77,6 +77,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private final javax.swing.JTextField txtOtroMotivo = new javax.swing.JTextField();
     private final javax.swing.JTextField txtOtraPatologia = new javax.swing.JTextField();
     private javax.swing.JPanel panelEvolucionConsulta;
+    private final javax.swing.JComboBox<String> comboConsultaOrigen =
+            new javax.swing.JComboBox<>();
+    private final java.util.List<Integer> idsConsultasOrigen = new java.util.ArrayList<>();
+    private final javax.swing.JTextField txtProximoControl = new javax.swing.JTextField();
+    private javax.swing.JPanel panelOrigenConsulta;
+    private javax.swing.JPanel panelFechaControl;
     private static final String OPCION_OTROS = "Otro/s";
     private static final int MAX_TEXTO_CATALOGO = 200;
     private static final int MAX_CARACTERES_EVOLUCION = 10000;
@@ -339,6 +345,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             txtDueño.setText("");
             txtEspecieConsulta.setText("");
             txtRazaConsulta.setText("");
+            cargarConsultasDeSeguimiento();
             return;
         }
 
@@ -363,6 +370,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                         : textoSeguro(mascotaSeleccionada.getEspecie()));
                 txtRazaConsulta.setText(mascotaSeleccionada == null ? ""
                         : textoSeguro(mascotaSeleccionada.getRaza()));
+                cargarConsultasDeSeguimiento();
                 return;
             }
         }
@@ -372,6 +380,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         txtDueño.setText("");
         txtEspecieConsulta.setText("");
         txtRazaConsulta.setText("");
+        cargarConsultasDeSeguimiento();
     }
 
     private void seleccionarMascotaEnCombo(Integer idMascota) {
@@ -389,6 +398,64 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         }
         // Si no se encuentra, dejar placeholder.
         jcbPaciente.setSelectedIndex(0);
+    }
+
+    private void cargarConsultasDeSeguimiento() {
+        Integer seleccionAnterior = null;
+        int indiceAnterior = comboConsultaOrigen.getSelectedIndex();
+        if (indiceAnterior >= 0 && indiceAnterior < idsConsultasOrigen.size())
+            seleccionAnterior = idsConsultasOrigen.get(indiceAnterior);
+
+        comboConsultaOrigen.removeAllItems();
+        idsConsultasOrigen.clear();
+        comboConsultaOrigen.addItem("Sin vinculación");
+        idsConsultasOrigen.add(null);
+        if (mascotaSeleccionada == null || mascotaSeleccionada.getIdMascota() == null)
+            return;
+        try {
+            java.time.format.DateTimeFormatter formato =
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            java.util.List<Visita> anteriores = visitaControlador.obtenerTodasLasVisitas();
+            anteriores.stream()
+                    .filter(v -> v.getIdVisita() != null && v.getMascota() != null
+                            && mascotaSeleccionada.getIdMascota().equals(v.getMascota().getIdMascota())
+                            && "FINALIZADO".equalsIgnoreCase(v.getEstado()))
+                    .sorted(java.util.Comparator.comparing(Visita::getIdVisita).reversed())
+                    .forEach(v -> {
+                        String fecha = v.getFecha() == null ? "Sin fecha" : formato.format(v.getFecha());
+                        comboConsultaOrigen.addItem("N.º " + v.getIdVisita() + " - " + fecha
+                                + " - " + textoSeguro(v.getMotivoVisita()));
+                        idsConsultasOrigen.add(v.getIdVisita());
+                    });
+            if (seleccionAnterior != null) {
+                int i = idsConsultasOrigen.indexOf(seleccionAnterior);
+                if (i >= 0) comboConsultaOrigen.setSelectedIndex(i);
+            }
+        } catch (RuntimeException ex) {
+            veterinaria.util.AppLog.warn(FormConsulta.class,
+                    "No se pudieron consultar antecedentes de seguimiento", ex);
+        }
+    }
+
+    private Integer obtenerConsultaOrigenSeleccionada() {
+        int index = comboConsultaOrigen.getSelectedIndex();
+        return index >= 0 && index < idsConsultasOrigen.size()
+                ? idsConsultasOrigen.get(index) : null;
+    }
+
+    private LocalDate fechaRecomendadaIngresada() {
+        String fecha = txtProximoControl.getText().trim();
+        if (fecha.isEmpty()) return null;
+        try {
+            LocalDate control = LocalDate.parse(fecha,
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/uuuu")
+                            .withResolverStyle(java.time.format.ResolverStyle.STRICT));
+            if (control.isBefore(LocalDate.now()))
+                throw new IllegalArgumentException("El próximo control no puede tener fecha pasada.");
+            return control;
+        } catch (java.time.format.DateTimeParseException ex) {
+            throw new IllegalArgumentException("Ingrese el próximo control con formato dd/MM/yyyy.");
+        }
     }
 
     private void llenarComboBoxPatologias() {
@@ -517,6 +584,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         txtRazaConsulta.setText("");
         txtOtroMotivo.setText("");
         txtOtraPatologia.setText("");
+        txtProximoControl.setText("");
+        comboConsultaOrigen.removeAllItems();
+        idsConsultasOrigen.clear();
+        comboConsultaOrigen.addItem("Sin vinculación");
+        idsConsultasOrigen.add(null);
         actualizarCamposOtros();
         // Una visita nueva ingresa a la cola en EN_ESPERA.
         try {
@@ -780,7 +852,30 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaPaciente.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
         filaPaciente.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaPaciente);
-        centro.add(javax.swing.Box.createVerticalStrut(16));
+        centro.add(javax.swing.Box.createVerticalStrut(12));
+
+        // Una nueva atención puede vincularse a otra consulta finalizada.
+        // La fecha de control solo la recomienda el veterinario, no crea turnos.
+        javax.swing.JPanel filaSeguimiento = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 18, 0));
+        filaSeguimiento.setOpaque(false);
+        comboConsultaOrigen.setPreferredSize(new java.awt.Dimension(330, 28));
+        comboConsultaOrigen.setToolTipText(
+                "Opcional. Seleccione una consulta finalizada de este mismo paciente.");
+        panelOrigenConsulta = campoConsulta(
+                new javax.swing.JLabel("Seguimiento de consulta (opcional)"), comboConsultaOrigen);
+        filaSeguimiento.add(panelOrigenConsulta);
+        txtProximoControl.setPreferredSize(new java.awt.Dimension(160, 28));
+        txtProximoControl.putClientProperty(
+                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "dd/MM/yyyy");
+        txtProximoControl.setToolTipText("Fecha sugerida para el próximo control. No agenda un turno.");
+        panelFechaControl = campoConsulta(
+                new javax.swing.JLabel("Próximo control recomendado"), txtProximoControl);
+        filaSeguimiento.add(panelFechaControl);
+        filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 60));
+        filaSeguimiento.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        centro.add(filaSeguimiento);
+        centro.add(javax.swing.Box.createVerticalStrut(12));
 
         configurarLimiteEvolucion();
         javax.swing.JPanel textoEvolucion = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
@@ -1414,6 +1509,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             {"Responsable", textoInfo(responsable)},
             {"Fecha y hora", fecha + "  " + hora},
             {"Motivo", textoInfo(v.getMotivoVisita())},
+            {"Seguimiento de", v.getIdConsultaOrigen() == null ? "Sin vinculación"
+                    : "Consulta N.º " + v.getIdConsultaOrigen()},
+            {"Próximo control sugerido", v.getProximoControlRecomendado() == null ? "No indicado"
+                    : v.getProximoControlRecomendado().format(
+                            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))},
             {"Veterinario", textoInfo(v.getUsuarioAtiende())}
         };
         javax.swing.JPanel resumen = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 12));
@@ -1502,6 +1602,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             txtTratamiento.setFocusable(false);
             if (panelEvolucionConsulta != null) panelEvolucionConsulta.setVisible(false);
             txtPesoConsulta.setEditable(true);
+            if (panelOrigenConsulta != null) panelOrigenConsulta.setVisible(true);
+            if (panelFechaControl != null) panelFechaControl.setVisible(false);
             actualizarCamposOtros();
             btnLimpiar.setVisible(true);
             txtTratamiento.setText("");
@@ -1528,6 +1630,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             txtTratamiento.setEnabled(usuarioClinico());
             txtTratamiento.setFocusable(usuarioClinico());
             txtPesoConsulta.setEditable(usuarioClinico());
+            if (panelOrigenConsulta != null) panelOrigenConsulta.setVisible(false);
+            if (panelFechaControl != null) panelFechaControl.setVisible(usuarioClinico());
             if (panelEvolucionConsulta != null) panelEvolucionConsulta.setVisible(true);
             actualizarCamposOtros();
             // Evitar borrar accidentalmente una evolución larga: las acciones clínicas guardan o cancelan.
@@ -1830,6 +1934,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         txtRazaConsulta.setText(visita.getRazaConsulta() != null
                 ? visita.getRazaConsulta() : textoSeguro(mascotaSeleccionada == null ? null : mascotaSeleccionada.getRaza()));
         txtTratamiento.setText(visita.getTratamiento());
+        txtProximoControl.setText(visita.getProximoControlRecomendado() == null ? ""
+                : visita.getProximoControlRecomendado().format(
+                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
         jcbEstado.setSelectedItem(
                 Constantes.EstadoVisita.valueOf(
@@ -1917,6 +2024,15 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                         "Seleccione o especifique el diagnóstico (hasta "
                         + MAX_TEXTO_CATALOGO + " caracteres).",
                         "Diagnóstico obligatorio", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+        }
+        if (!esNueva && usuarioClinico()) {
+            try {
+                fechaRecomendadaIngresada();
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(this, ex.getMessage(),
+                        "Fecha de control inválida", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
         }
@@ -2582,10 +2698,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 visita.setCliente(mascotaSeleccionada.getCliente());
                 visita.setMotivoVisita(valorCampoPersonalizado(jcbMotivo, txtOtroMotivo));
                 visita.setPesoConsulta(obtenerPesoActual());
+                visita.setIdConsultaOrigen(obtenerConsultaOrigenSeleccionada());
                 visita.setPatologia("");
                 visita.setTratamiento("");
             } else {
                 visita.setPatologia(valorCampoPersonalizado(jcbPatologia, txtOtraPatologia));
+                visita.setProximoControlRecomendado(fechaRecomendadaIngresada());
                 visita.setPesoConsulta(obtenerPesoActual());
                 visita.setTratamiento(txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "");
             }
