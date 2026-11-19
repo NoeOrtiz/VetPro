@@ -145,6 +145,8 @@ public final class PaginacionTablas {
     /** Limita la búsqueda a valores que comienzan con el texto ingresado. */
     public void activarBusquedaPorPrefijo() {
         busquedaPorPrefijo = true;
+        // El resaltado debe respetar el mismo criterio que el filtrado.
+        tabla.putClientProperty("vetpro.busqueda.soloPrefijo", Boolean.TRUE);
         pagina = 0;
         actualizar();
     }
