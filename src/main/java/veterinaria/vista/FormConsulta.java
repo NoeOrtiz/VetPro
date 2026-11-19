@@ -265,7 +265,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             String display = MascotaComboSupport.buildMascotaDisplay(mascota);
             // Avisar antes del registro: un paciente inactivo requiere
             // URGENCIA o EMERGENCIA. No se modifica su estado ni la búsqueda por ID.
-            if (!mascota.isActivo()) display += "  [INACTIVO]";
+            if (!mascota.isActivo()) display += "  (Inactivo)";
             listaVisitaMascota.add(new AbstractMap.SimpleEntry<>(idMascota, display));
             listaClienteMascota.add(new AbstractMap.SimpleEntry<>(idMascota, cargaCliente));
         }
