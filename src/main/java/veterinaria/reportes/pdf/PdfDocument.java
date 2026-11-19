@@ -122,6 +122,32 @@ public class PdfDocument implements Closeable {
         cs.endText();
     }
 
+    /**
+     * Justifica únicamente renglones intermedios de párrafos largos.
+     * Evita estirar la última línea o frases cortas.
+     */
+    public void textJustified(PDFont font, int size, float x, float baseline,
+            String value, float targetWidth, boolean justify) throws IOException {
+        String line = value == null ? "" : value;
+        int spaces = 0;
+        for (int i = 0; i < line.length(); i++) {
+            if (line.charAt(i) == ' ') spaces++;
+        }
+        float remaining = targetWidth - textWidth(font, size, line);
+        float extra = spaces > 0 ? remaining / spaces : 0f;
+        if (!justify || spaces < 2 || remaining <= 0 || extra > 3.0f) {
+            text(font, size, x, baseline, line);
+            return;
+        }
+        cs.beginText();
+        cs.setFont(font, size);
+        cs.setWordSpacing(extra);
+        cs.newLineAtOffset(x, baseline);
+        cs.showText(line);
+        cs.endText();
+        cs.setWordSpacing(0f);
+    }
+
     public void textLeft(PDFont font, int size, float x, String t) throws IOException {
         text(font, size, x, y, t);
     }
