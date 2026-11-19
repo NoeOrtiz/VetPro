@@ -1602,9 +1602,19 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         ficha.add(campoInfoConsulta("Diagnóstico", textoInfo(v.getPatologia())));
         ficha.add(javax.swing.Box.createVerticalStrut(10));
         ficha.add(campoInfoConsulta("Evolución y tratamiento", textoInfo(v.getTratamiento())));
-        ficha.setPreferredSize(new java.awt.Dimension(600, 405));
-        JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this), ficha,
-                "Información de la consulta · Solo lectura", JOptionPane.PLAIN_MESSAGE);
+        // El tamaño fijo anterior recortaba diagnóstico y evolución.
+        // Mantener el cuadro compacto y permitir recorrer la información completa.
+        javax.swing.JScrollPane desplazamientoFicha = new javax.swing.JScrollPane(ficha);
+        desplazamientoFicha.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        desplazamientoFicha.setHorizontalScrollBarPolicy(
+                javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        desplazamientoFicha.setVerticalScrollBarPolicy(
+                javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        desplazamientoFicha.getVerticalScrollBar().setUnitIncrement(16);
+        desplazamientoFicha.setPreferredSize(new java.awt.Dimension(640, 460));
+        JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                desplazamientoFicha, "Información de la consulta · Solo lectura",
+                JOptionPane.PLAIN_MESSAGE);
     }
 
     private String textoInfo(String valor) {
@@ -1618,14 +1628,18 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JLabel titulo = new javax.swing.JLabel(etiqueta);
         titulo.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
         panel.add(titulo, java.awt.BorderLayout.NORTH);
-        javax.swing.JTextArea detalle = new javax.swing.JTextArea(valor, 2, 44);
+        // Ajustar la altura al contenido clínico, sin cortar el texto largo.
+        int renglones = Math.max(2, Math.min(12,
+                (valor.length() + 66) / 67 + (int) valor.chars().filter(ch -> ch == '\n').count()));
+        javax.swing.JTextArea detalle = new javax.swing.JTextArea(valor, renglones, 44);
         detalle.setEditable(false);
         detalle.setOpaque(false);
+        detalle.setFocusable(false);
         detalle.setLineWrap(true);
         detalle.setWrapStyleWord(true);
         detalle.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD));
         panel.add(detalle, java.awt.BorderLayout.CENTER);
-        panel.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 75));
+        panel.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 300));
         return panel;
     }
 
