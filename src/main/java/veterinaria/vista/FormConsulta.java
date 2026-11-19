@@ -794,8 +794,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     /** Distribución funcional, sin alterar colores ni componentes FlatLaf existentes. */
     private void configurarFormularioAmplio() {
         jpDatos.removeAll();
-        jpDatos.setLayout(new java.awt.BorderLayout(0, 22));
-        jpDatos.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 28, 22, 28));
+        jpDatos.setLayout(new java.awt.BorderLayout(0, 12));
+        jpDatos.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 28, 14, 28));
 
         javax.swing.JPanel cabecera = new javax.swing.JPanel(new java.awt.BorderLayout());
         cabecera.setOpaque(false);
@@ -825,7 +825,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
         filaUno.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaUno);
-        centro.add(javax.swing.Box.createVerticalStrut(20));
+        centro.add(javax.swing.Box.createVerticalStrut(10));
 
         javax.swing.JPanel filaDos = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
         filaDos.setOpaque(false);
@@ -838,7 +838,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
         filaDos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaDos);
-        centro.add(javax.swing.Box.createVerticalStrut(14));
+        centro.add(javax.swing.Box.createVerticalStrut(8));
         // Datos de paciente: la especie y raza se leen desde Mascota; el peso
         // corresponde exclusivamente a esta atención.
         javax.swing.JPanel filaPaciente = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
@@ -854,7 +854,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaPaciente.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
         filaPaciente.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaPaciente);
-        centro.add(javax.swing.Box.createVerticalStrut(12));
+        centro.add(javax.swing.Box.createVerticalStrut(8));
 
         // Una nueva atención puede vincularse a otra consulta finalizada.
         // La fecha de control solo la recomienda el veterinario, no crea turnos.
@@ -871,7 +871,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel columnaOrigen = new javax.swing.JPanel(new java.awt.BorderLayout());
         columnaOrigen.setOpaque(false);
         columnaOrigen.add(panelOrigenConsulta, java.awt.BorderLayout.NORTH);
-        filaSeguimiento.add(columnaOrigen);
+        // Ambas alternativas usan la misma columna izquierda según el rol.
+        // Así el calendario no aparece aislado en el centro del formulario.
         fechaProximoControl.setDateFormatString("dd/MM/yyyy");
         fechaProximoControl.setPreferredSize(new java.awt.Dimension(200, 32));
         fechaProximoControl.setToolTipText("Seleccione el próximo control desde el calendario; no agenda turno.");
@@ -880,14 +881,20 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel columnaFechaControl = new javax.swing.JPanel(new java.awt.BorderLayout());
         columnaFechaControl.setOpaque(false);
         columnaFechaControl.add(panelFechaControl, java.awt.BorderLayout.NORTH);
-        filaSeguimiento.add(columnaFechaControl);
-        javax.swing.JPanel terceraColumna = new javax.swing.JPanel();
-        terceraColumna.setOpaque(false);
-        filaSeguimiento.add(terceraColumna);
+        javax.swing.JPanel columnaSeguimiento = new javax.swing.JPanel(new java.awt.BorderLayout());
+        columnaSeguimiento.setOpaque(false);
+        columnaSeguimiento.add(columnaOrigen, java.awt.BorderLayout.NORTH);
+        columnaSeguimiento.add(columnaFechaControl, java.awt.BorderLayout.CENTER);
+        filaSeguimiento.add(columnaSeguimiento);
+        for (int i = 0; i < 2; i++) {
+            javax.swing.JPanel espacio = new javax.swing.JPanel();
+            espacio.setOpaque(false);
+            filaSeguimiento.add(espacio);
+        }
         filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
         filaSeguimiento.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaSeguimiento);
-        centro.add(javax.swing.Box.createVerticalStrut(12));
+        centro.add(javax.swing.Box.createVerticalStrut(8));
 
         configurarLimiteEvolucion();
         javax.swing.JPanel textoEvolucion = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
@@ -897,8 +904,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel evolucion = campoConsulta(lbTratamiento, textoEvolucion);
         panelEvolucionConsulta = evolucion;
         evolucion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(450, 125));
-        evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 180));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(450, 105));
+        evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 155));
         centro.add(evolucion);
         jpDatos.add(centro, java.awt.BorderLayout.CENTER);
         jcbMotivo.addActionListener(e -> actualizarCamposOtros());
