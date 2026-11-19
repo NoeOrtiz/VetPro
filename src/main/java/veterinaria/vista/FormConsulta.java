@@ -829,8 +829,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     /** Distribución funcional, sin alterar colores ni componentes FlatLaf existentes. */
     private void configurarFormularioAmplio() {
         jpDatos.removeAll();
-        jpDatos.setLayout(new java.awt.BorderLayout(0, 12));
-        jpDatos.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 28, 14, 28));
+        jpDatos.setLayout(new java.awt.BorderLayout(0, 8));
+        jpDatos.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 28, 12, 28));
 
         javax.swing.JPanel cabecera = new javax.swing.JPanel(new java.awt.BorderLayout());
         cabecera.setOpaque(false);
@@ -857,10 +857,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         txtOtroMotivo.setToolTipText("Especifique el motivo cuando selecciona Otro/s.");
         javax.swing.JPanel motivoConOtro = comboConOpcionOtro(jcbMotivo, txtOtroMotivo);
         filaUno.add(campoConsultaAlineado(lbMotivo, motivoConOtro));
-        filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
+        filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 82));
         filaUno.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaUno);
-        centro.add(javax.swing.Box.createVerticalStrut(10));
+        centro.add(javax.swing.Box.createVerticalStrut(6));
 
         javax.swing.JPanel filaDos = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
         filaDos.setOpaque(false);
@@ -870,10 +870,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 "Especifique el diagnóstico");
         txtOtraPatologia.setToolTipText("Especifique el diagnóstico cuando selecciona Otro/s.");
         filaDos.add(campoConsultaAlineado(lbPatologia, comboConOpcionOtro(jcbPatologia, txtOtraPatologia)));
-        filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
+        filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 82));
         filaDos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaDos);
-        centro.add(javax.swing.Box.createVerticalStrut(8));
+        centro.add(javax.swing.Box.createVerticalStrut(6));
         // Datos de paciente: la especie y raza se leen desde Mascota; el peso
         // corresponde exclusivamente a esta atención.
         javax.swing.JPanel filaPaciente = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
@@ -886,10 +886,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filaPaciente.add(campoConsulta(new javax.swing.JLabel("Especie"), txtEspecieConsulta));
         filaPaciente.add(campoConsulta(new javax.swing.JLabel("Raza"), txtRazaConsulta));
         filaPaciente.add(campoConsulta(new javax.swing.JLabel("Peso actual (kg) *"), txtPesoConsulta));
-        filaPaciente.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
+        filaPaciente.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 56));
         filaPaciente.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaPaciente);
-        centro.add(javax.swing.Box.createVerticalStrut(8));
+        centro.add(javax.swing.Box.createVerticalStrut(6));
 
         // Una nueva atención puede vincularse a otra consulta finalizada.
         // La fecha de control solo la recomienda el veterinario, no crea turnos.
@@ -926,10 +926,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             espacio.setOpaque(false);
             filaSeguimiento.add(espacio);
         }
-        filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
+        filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 56));
         filaSeguimiento.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaSeguimiento);
-        centro.add(javax.swing.Box.createVerticalStrut(8));
+        centro.add(javax.swing.Box.createVerticalStrut(6));
 
         configurarLimiteEvolucion();
         javax.swing.JPanel textoEvolucion = new javax.swing.JPanel(new java.awt.BorderLayout(0, 3));
@@ -939,8 +939,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel evolucion = campoConsulta(lbTratamiento, textoEvolucion);
         panelEvolucionConsulta = evolucion;
         evolucion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-        jScrollPane1.setPreferredSize(new java.awt.Dimension(450, 105));
-        evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 155));
+        jScrollPane1.setPreferredSize(new java.awt.Dimension(450, 100));
+        evolucion.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 132));
         centro.add(evolucion);
         jpDatos.add(centro, java.awt.BorderLayout.CENTER);
         jcbMotivo.addActionListener(e -> actualizarCamposOtros());
@@ -951,7 +951,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jScrollPane1.setFocusable(false);
 
         javax.swing.JPanel botones = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
         botones.setOpaque(false);
         btnGuardar.setPreferredSize(new java.awt.Dimension(153, 30));
         btnGuardarEnObservacion = new javax.swing.JButton("Dejar en observación");
@@ -962,7 +962,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnFinalizarDesdeFicha.setPreferredSize(new java.awt.Dimension(155, 30));
         btnFinalizarDesdeFicha.setToolTipText("Guarda diagnóstico y evolución, y cierra definitivamente la consulta.");
         btnFinalizarDesdeFicha.addActionListener(e -> guardarAtencion(true));
-        btnCancelar.setPreferredSize(new java.awt.Dimension(88, 30));
+        btnCancelar.setPreferredSize(new java.awt.Dimension(95, 30));
         btnLimpiar.setPreferredSize(new java.awt.Dimension(83, 30));
         botones.add(btnGuardar);
         botones.add(btnGuardarEnObservacion);
@@ -988,7 +988,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         espacioDetalle.add(detalle, java.awt.BorderLayout.CENTER);
         panel.add(combo);
         panel.add(espacioDetalle);
-        panel.setPreferredSize(new java.awt.Dimension(200, 65));
+        panel.setPreferredSize(new java.awt.Dimension(200, 59));
         detalle.setVisible(false);
         return panel;
     }
