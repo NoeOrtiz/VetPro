@@ -654,17 +654,26 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         filtros.add(estado);
         herramientas.add(filtros, java.awt.BorderLayout.WEST);
 
-        javax.swing.JPanel tituloLista = new javax.swing.JPanel(
+        // Cabecera y tabla comparten un único contenedor: NO reemplazar
+        // componentes del GroupLayout generado (provoca huecos verticales).
+        jpListaVisitas.removeAll();
+        jpListaVisitas.setLayout(new java.awt.BorderLayout(0, 6));
+        javax.swing.JPanel cabeceraLista = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        cabeceraLista.setOpaque(false);
+        javax.swing.JPanel accionesLista = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
-        tituloLista.setOpaque(false);
-        javax.swing.JLabel textoTituloLista = new javax.swing.JLabel(lbListaDeVisitas.getText());
-        textoTituloLista.setFont(lbListaDeVisitas.getFont());
-        tituloLista.add(textoTituloLista);
-        tituloLista.add(btnActualizarConsultas);
-        tituloLista.add(btnQuitarSeleccion);
-        // Reutiliza la cabecera existente, manteniendo Imprimir Lista a la derecha.
-        ((javax.swing.GroupLayout) jpListaVisitas.getLayout()).replace(
-                lbListaDeVisitas, tituloLista);
+        accionesLista.setOpaque(false);
+        accionesLista.add(lbListaDeVisitas);
+        accionesLista.add(btnActualizarConsultas);
+        accionesLista.add(btnQuitarSeleccion);
+        cabeceraLista.add(accionesLista, java.awt.BorderLayout.WEST);
+        cabeceraLista.add(btnImprimirListaVisitas, java.awt.BorderLayout.EAST);
+        cabeceraLista.add(jSeparator6, java.awt.BorderLayout.SOUTH);
+        cabeceraLista.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 10, 0, 10));
+        jpListaVisitas.add(cabeceraLista, java.awt.BorderLayout.NORTH);
+        jpListaVisitas.add(scroll1, java.awt.BorderLayout.CENTER);
+        jpListaVisitas.revalidate();
+        jpListaVisitas.repaint();
 
         // Dos filas por función: evita controles encimados en ventanas reducidas.
         javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 4));
