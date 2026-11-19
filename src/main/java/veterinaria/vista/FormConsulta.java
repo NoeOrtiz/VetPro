@@ -906,8 +906,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel columnaOrigen = new javax.swing.JPanel(new java.awt.BorderLayout());
         columnaOrigen.setOpaque(false);
         columnaOrigen.add(panelOrigenConsulta, java.awt.BorderLayout.NORTH);
-        // Ambas alternativas usan la misma columna izquierda según el rol.
-        // Así el calendario no aparece aislado en el centro del formulario.
+        // Misma fila y ancho de columna para el seguimiento y el control.
         fechaProximoControl.setDateFormatString("dd/MM/yyyy");
         fechaProximoControl.setPreferredSize(new java.awt.Dimension(200, 32));
         fechaProximoControl.setToolTipText("Seleccione el próximo control desde el calendario; no agenda turno.");
@@ -916,16 +915,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         javax.swing.JPanel columnaFechaControl = new javax.swing.JPanel(new java.awt.BorderLayout());
         columnaFechaControl.setOpaque(false);
         columnaFechaControl.add(panelFechaControl, java.awt.BorderLayout.NORTH);
-        javax.swing.JPanel columnaSeguimiento = new javax.swing.JPanel(new java.awt.BorderLayout());
-        columnaSeguimiento.setOpaque(false);
-        columnaSeguimiento.add(columnaOrigen, java.awt.BorderLayout.NORTH);
-        columnaSeguimiento.add(columnaFechaControl, java.awt.BorderLayout.CENTER);
-        filaSeguimiento.add(columnaSeguimiento);
-        for (int i = 0; i < 2; i++) {
-            javax.swing.JPanel espacio = new javax.swing.JPanel();
-            espacio.setOpaque(false);
-            filaSeguimiento.add(espacio);
-        }
+        filaSeguimiento.add(columnaOrigen);
+        filaSeguimiento.add(columnaFechaControl);
+        javax.swing.JPanel espacioSeguimiento = new javax.swing.JPanel();
+        espacioSeguimiento.setOpaque(false);
+        filaSeguimiento.add(espacioSeguimiento);
         filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 56));
         filaSeguimiento.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaSeguimiento);
