@@ -26,6 +26,10 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
     // Mapeo simple para el combo (index -> idMascota)
     private final List<Map.Entry<Integer, String>> listaMascotas = new ArrayList<>();
     private Mascota mascotaSeleccionada;
+    private veterinaria.util.PaginacionTablas paginacionHistoria;
+    private final javax.swing.JTextField buscarRegistros = new javax.swing.JTextField(22);
+    private final javax.swing.JButton btnCancelarHistoria = new javax.swing.JButton("Cancelar");
+    private boolean marcandoFila;
     private final HistoriaEventoControlador historiaEventoControlador = new HistoriaEventoControlador();
     private final MascotaControlador mascotaControlador = new MascotaControlador();
     private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -36,6 +40,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         initComponents();
         PermisoUI.aplicar(this);
         inicializarTabla();
+        configurarListaHistoria();
         btnVerRegistros.setText("Ver detalle");
         btnVerRegistros.setToolTipText("Consultar el evento sin modificar el registro original.");
         cargarComboMascotas();
@@ -74,7 +79,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
         });
 
-        // Habilita el botón "Abrir Registro" cuando se selecciona una fila
+        // Habilita el detalle de solo lectura al seleccionar una fila
         tableHistoriaClinica.getSelectionModel().addListSelectionListener(e -> {
 
             if (!e.getValueIsAdjusting()) {
@@ -84,28 +89,125 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             }
 
         });
+        tableHistoriaClinica.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                int fila = tableHistoriaClinica.rowAtPoint(e.getPoint());
+                if (fila >= 0) seleccionarFilaUnica(tableHistoriaClinica.convertRowIndexToModel(fila));
+            }
+        });
+        tableHistoriaClinica.getModel().addTableModelListener(e -> {
+            if (!marcandoFila && e.getType() == javax.swing.event.TableModelEvent.UPDATE
+                    && e.getColumn() == 0 && e.getFirstRow() >= 0
+                    && Boolean.TRUE.equals(tableHistoriaClinica.getModel().getValueAt(e.getFirstRow(), 0))) {
+                seleccionarFilaUnica(e.getFirstRow());
+            }
+        });
+        btnCancelarHistoria.addActionListener(e -> limpiarPantallaHistoria());
+    }
 
+    private void seleccionarFilaUnica(int filaModelo) {
+        if (marcandoFila) return;
+        marcandoFila = true;
+        try {
+            javax.swing.table.TableModel modelo = tableHistoriaClinica.getModel();
+            for (int i = 0; i < modelo.getRowCount(); i++) {
+                if (!Boolean.valueOf(i == filaModelo).equals(modelo.getValueAt(i, 0)))
+                    modelo.setValueAt(i == filaModelo, i, 0);
+            }
+            int vista = tableHistoriaClinica.convertRowIndexToView(filaModelo);
+            if (vista >= 0) tableHistoriaClinica.setRowSelectionInterval(vista, vista);
+        } finally {
+            marcandoFila = false;
+        }
+        actualizarEstadoBotones();
+    }
+
+    private void limpiarPantallaHistoria() {
+        if (paginacionHistoria != null) paginacionHistoria.limpiarBusqueda();
+        buscarRegistros.setText("");
+        jcbPaciente.setSelectedIndex(0);
+        limpiarDetalleMascota();
+        limpiarTabla();
+        tableHistoriaClinica.clearSelection();
+        actualizarEstadoBotones();
+    }
+
+    /** Panel de historial con búsqueda, paginación y navegación consistente con Consultas. */
+    private void configurarListaHistoria() {
+        jPanel2.removeAll();
+        jPanel2.setLayout(new java.awt.BorderLayout(0, 8));
+        javax.swing.JPanel cabecera = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        cabecera.setOpaque(false);
+        cabecera.add(lbListaServicios, java.awt.BorderLayout.WEST);
+        javax.swing.JPanel botones = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        botones.setOpaque(false);
+        botones.add(btnVerRegistros);
+        botones.add(btnImprimirListaHistorias);
+        cabecera.add(botones, java.awt.BorderLayout.EAST);
+        jPanel2.add(cabecera, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(0, 6));
+        contenido.setOpaque(false);
+        javax.swing.JPanel buscador = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 1));
+        buscador.setOpaque(false);
+        buscador.add(new javax.swing.JLabel("BUSCAR REGISTRO"));
+        buscarRegistros.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Fecha, tipo, profesional, resumen...");
+        buscador.add(buscarRegistros);
+        contenido.add(buscador, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel paginada = new javax.swing.JPanel(new java.awt.BorderLayout());
+        paginada.add(scroll1, java.awt.BorderLayout.CENTER);
+        paginacionHistoria = new veterinaria.util.PaginacionTablas(
+                tableHistoriaClinica, buscarRegistros, 15,
+                new int[]{2, 3, 4, 5, 6}, new int[]{2, 3, 4, 5, 6});
+        paginada.add(paginacionHistoria.getControles(), java.awt.BorderLayout.SOUTH);
+        contenido.add(paginada, java.awt.BorderLayout.CENTER);
+        jPanel2.add(contenido, java.awt.BorderLayout.CENTER);
+        javax.swing.SwingUtilities.invokeLater(() -> paginacionHistoria.activarTamanoAdaptable());
+
+        jPanel3.removeAll();
+        jPanel3.setLayout(new java.awt.BorderLayout());
+        javax.swing.JPanel contador = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 2));
+        contador.setOpaque(false);
+        contador.add(lblCantidadReg);
+        contador.add(lblCantidad);
+        jPanel3.add(contador, java.awt.BorderLayout.WEST);
+        javax.swing.JPanel navegacion = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 2));
+        navegacion.setOpaque(false);
+        btnCancelarHistoria.setToolTipText("Limpiar paciente y registros; volver al inicio.");
+        navegacion.add(btnCancelarHistoria);
+        jPanel3.add(navegacion, java.awt.BorderLayout.EAST);
+        jPanel2.revalidate();
     }
 
     private void inicializarTabla() {
         DefaultTableModel model = new DefaultTableModel(
                 new Object[][]{},
-                new String[]{"ID", "Fecha", "Tipo", "Profesional", "Resumen", "Observaciones"}
+                new String[]{"Seleccionar", "ID", "Fecha", "Tipo", "Profesional", "Resumen", "Observaciones"}
         ) {
             @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                return columnIndex == 0 ? Boolean.class : Object.class;
+            }
+            @Override
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return false;
+                return columnIndex == 0;
             }
         };
         tableHistoriaClinica.setModel(model);
         tableHistoriaClinica.getTableHeader().setReorderingAllowed(false);
-        tableHistoriaClinica.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
+        tableHistoriaClinica.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         tableHistoriaClinica.setRowHeight(30);
-        int[] widths = {50, 135, 110, 155, 255, 330};
+        int[] widths = {92, 50, 143, 110, 145, 240, 330};
         for (int i = 0; i < widths.length; i++) {
             tableHistoriaClinica.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
         tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
+        ocultarColumnaId();
         limpiarTabla();
     }
 
@@ -220,6 +322,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             }
 
             model.addRow(new Object[]{
+                false,
                 ev.getIdEvento(),
                 fechaTxt,
                 nullToEmpty(ev.getTipo()),
@@ -253,7 +356,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         for (java.util.Enumeration<javax.swing.table.TableColumn> cols =
                 tableHistoriaClinica.getColumnModel().getColumns(); cols.hasMoreElements();) {
             javax.swing.table.TableColumn col = cols.nextElement();
-            if (col.getModelIndex() == 0) {
+            if (col.getModelIndex() == 1) {
                 columnaId = col;
                 break;
             }
@@ -278,7 +381,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         int modelRow = tableHistoriaClinica.convertRowIndexToModel(row);
 
         // Obtener el ID desde el modelo (aunque la columna esté oculta)
-        Object idObj = tableHistoriaClinica.getModel().getValueAt(modelRow, 0);
+        Object idObj = tableHistoriaClinica.getModel().getValueAt(modelRow, 1);
 
         if (idObj == null) {
             JOptionPane.showMessageDialog(this,
@@ -304,23 +407,78 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             return;
         }
 
-        // El historial se consulta sin navegar a los formularios operativos.
-        javax.swing.JTextArea detalle = new javax.swing.JTextArea();
-        detalle.setEditable(false);
-        detalle.setLineWrap(true);
-        detalle.setWrapStyleWord(true);
-        detalle.setFont(javax.swing.UIManager.getFont("TextArea.font"));
-        detalle.setText("Fecha: " + (ev.getFecha() == null ? "" : dtf.format(ev.getFecha()))
-                + "\nTipo: " + nullToEmpty(ev.getTipo())
-                + "\nProfesional: " + nullToEmpty(ev.getProfesional())
-                + "\n\nRESUMEN\n" + nullToEmpty(ev.getResumen())
-                + "\n\nOBSERVACIONES\n" + nullToEmpty(ev.getObservaciones()));
-        detalle.setCaretPosition(0);
-        javax.swing.JScrollPane panel = new javax.swing.JScrollPane(detalle);
-        panel.setPreferredSize(new java.awt.Dimension(660, 360));
-        JOptionPane.showMessageDialog(this, panel,
-                "Detalle de historia clínica - Solo lectura", JOptionPane.INFORMATION_MESSAGE);
+        javax.swing.JPanel ficha = new javax.swing.JPanel();
+        ficha.setLayout(new javax.swing.BoxLayout(ficha, javax.swing.BoxLayout.Y_AXIS));
+        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 18, 16, 18));
+        javax.swing.JLabel encabezado = new javax.swing.JLabel("DATOS DEL REGISTRO");
+        encabezado.setForeground(new java.awt.Color(66, 190, 115));
+        encabezado.setFont(encabezado.getFont().deriveFont(java.awt.Font.BOLD, 12f));
+        encabezado.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(encabezado);
+        ficha.add(javax.swing.Box.createVerticalStrut(14));
+        javax.swing.JPanel resumen = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 18, 14));
+        resumen.setOpaque(false);
+        String[][] campos = {
+            {"Fecha", ev.getFecha() == null ? "-" : dtf.format(ev.getFecha())},
+            {"Tipo", textoDetalle(ev.getTipo())},
+            {"Profesional", textoDetalle(ev.getProfesional())},
+            {"Paciente", mascotaSeleccionada == null ? "-" : textoDetalle(mascotaSeleccionada.getNombre())}
+        };
+        for (String[] campo : campos) {
+            javax.swing.JPanel celda = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 3));
+            celda.setOpaque(false);
+            javax.swing.JLabel etiqueta = new javax.swing.JLabel(campo[0]);
+            etiqueta.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
+            javax.swing.JLabel valor = new javax.swing.JLabel(campo[1]);
+            valor.setFont(valor.getFont().deriveFont(java.awt.Font.BOLD));
+            celda.add(etiqueta);
+            celda.add(valor);
+            resumen.add(celda);
+        }
+        resumen.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(resumen);
+        ficha.add(javax.swing.Box.createVerticalStrut(18));
+        javax.swing.JLabel seccion = new javax.swing.JLabel("INFORMACIÓN CLÍNICA");
+        seccion.setForeground(new java.awt.Color(66, 190, 115));
+        seccion.setFont(seccion.getFont().deriveFont(java.awt.Font.BOLD, 12f));
+        seccion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        ficha.add(seccion);
+        ficha.add(javax.swing.Box.createVerticalStrut(12));
+        ficha.add(campoDetalle("Resumen", textoDetalle(ev.getResumen())));
+        ficha.add(javax.swing.Box.createVerticalStrut(14));
+        ficha.add(campoDetalle("Observaciones", textoDetalle(ev.getObservaciones())));
+        javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(ficha);
+        scroll.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        scroll.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.setPreferredSize(new java.awt.Dimension(640, 460));
+        JOptionPane.showMessageDialog(javax.swing.SwingUtilities.getWindowAncestor(this),
+                scroll, "Información del registro · Solo lectura", JOptionPane.PLAIN_MESSAGE);
 
+    }
+
+    private String textoDetalle(String texto) {
+        return texto == null || texto.isBlank() ? "No registrado" : texto.trim();
+    }
+
+    private javax.swing.JPanel campoDetalle(String etiqueta, String valor) {
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        panel.setOpaque(false);
+        panel.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        javax.swing.JLabel label = new javax.swing.JLabel(etiqueta);
+        label.setForeground(javax.swing.UIManager.getColor("Label.disabledForeground"));
+        panel.add(label, java.awt.BorderLayout.NORTH);
+        javax.swing.JTextArea texto = new javax.swing.JTextArea(valor, Math.max(2,
+                Math.min(12, (valor.length() + 66) / 67)), 42);
+        texto.setEditable(false);
+        texto.setOpaque(false);
+        texto.setFocusable(false);
+        texto.setLineWrap(true);
+        texto.setWrapStyleWord(true);
+        texto.setFont(label.getFont().deriveFont(java.awt.Font.BOLD));
+        panel.add(texto, java.awt.BorderLayout.CENTER);
+        panel.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 300));
+        return panel;
     }
 
     private void actualizarEstadoBotones() {
@@ -339,7 +497,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
         btnVerRegistros.setEnabled(haySeleccion);
 
-        lblCantidad.setText(String.valueOf(tableHistoriaClinica.getRowCount()));
+        lblCantidad.setText(String.valueOf(tableHistoriaClinica.getModel().getRowCount()));
 
     }
 
