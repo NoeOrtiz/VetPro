@@ -56,12 +56,12 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
         pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(), "Total de eventos listados: " + m.getRowCount());
         pdf.down(16f);
 
-        int colId = 0;
-        int colFecha = 1;
-        int colTipo = 2;
-        int colProf = 3;
-        int colResumen = 4;
-        int colObs = 5;
+        int colId = 1;
+        int colFecha = 2;
+        int colTipo = 3;
+        int colProf = 4;
+        int colResumen = 5;
+        int colObs = 6;
 
         final int fontSize = 9;
         final float lineH = 11f;
