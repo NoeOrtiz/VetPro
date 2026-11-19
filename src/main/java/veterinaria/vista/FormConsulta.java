@@ -531,6 +531,28 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbPatologia.addItem("Conjuntivitis");
         jcbPatologia.addItem("Glaucoma");
         jcbPatologia.addItem(OPCION_OTROS);
+        ordenarCatalogoAlfabeticamente(jcbPatologia);
+    }
+
+    /** Orden A-Z en español, manteniendo el placeholder primero y Otro/s al final. */
+    private void ordenarCatalogoAlfabeticamente(javax.swing.JComboBox<String> combo) {
+        if (combo.getItemCount() <= 2) return;
+        String placeholder = combo.getItemAt(0);
+        java.util.List<String> valores = new java.util.ArrayList<>();
+        for (int i = 1; i < combo.getItemCount(); i++) {
+            String valor = combo.getItemAt(i);
+            if (valor != null && !OPCION_OTROS.equals(valor))
+                valores.add(valor);
+        }
+        java.text.Collator comparador = java.text.Collator.getInstance(
+                new java.util.Locale("es", "AR"));
+        comparador.setStrength(java.text.Collator.PRIMARY);
+        valores.sort(comparador);
+        combo.removeAllItems();
+        combo.addItem(placeholder);
+        for (String valor : valores) combo.addItem(valor);
+        combo.addItem(OPCION_OTROS);
+        combo.setSelectedIndex(0);
     }
 
     private void llenarComboBoxMotivos() {
@@ -556,6 +578,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         jcbMotivo.addItem("Evaluación de tratamiento en curso");
         jcbMotivo.addItem("Monitoreo de condición crónica");
         jcbMotivo.addItem(OPCION_OTROS);
+        ordenarCatalogoAlfabeticamente(jcbMotivo);
     }
 
     private void configurarSpinnerHora(LocalTime value) {
