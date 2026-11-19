@@ -58,25 +58,36 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                 ? (safe(p.getApellido()) + " " + safe(p.getNombre())).trim()
                 : "";
 
-        pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, pdf.getY(), "Paciente: " + safe(mascota.getNombre()) + " (#" + safe(mascota.getIdMascota()) + ")");
-        pdf.down(14f);
-        if (!dueno.isBlank()) {
-            pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Dueño: " + dueno);
-            pdf.down(14f);
-        }
+        seccion(pdf, "DATOS DEL PROPIETARIO");
+        campo(pdf, "Nombre", p == null ? "" : safe(p.getNombre()));
+        campo(pdf, "Apellido", p == null ? "" : safe(p.getApellido()));
+        campo(pdf, "DNI", p == null ? "" : safe(p.getDni()));
+        campo(pdf, "Dirección", p == null ? "" : safe(p.getDireccion()));
+        campo(pdf, "Teléfono", p == null ? "" : safe(p.getTelefono()));
+        campo(pdf, "Correo electrónico", c == null ? "" : safe(c.getEmail()));
 
-        String especie = safe(mascota.getEspecie());
-        String raza = safe(mascota.getRaza());
-        String sexo = safe(mascota.getSexo());
-        String peso = safe(mascota.getPeso());
+        seccion(pdf, "RESEÑA DEL PACIENTE");
+        campo(pdf, "Historia clínica / ID", safe(mascota.getIdMascota()));
+        campo(pdf, "Paciente", safe(mascota.getNombre()));
+        campo(pdf, "Especie", safe(mascota.getEspecie()));
+        campo(pdf, "Raza", safe(mascota.getRaza()));
+        campo(pdf, "Sexo", safe(mascota.getSexo()));
+        campo(pdf, "Nacimiento", mascota.getFechaNacimiento() == null ? ""
+                : mascota.getFechaNacimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        campo(pdf, "Peso registrado (kg)", safe(mascota.getPeso()));
+        campo(pdf, "Castrado", safe(mascota.getCastrado()));
 
-        String ficha = "Especie: " + especie + "   Raza: " + raza + "   Sexo: " + sexo + "   Peso: " + peso;
-        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), ficha.trim());
-        pdf.down(14f);
+        seccion(pdf, "ANAMNESIS");
+        pdf.ensureSpace(36f);
+        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
+                "Dieta, vacunas y antecedentes: sin datos estructurados en esta ficha.");
+        pdf.down(16f);
+        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
+                "Consultar las evoluciones y observaciones de los eventos siguientes.");
+        pdf.down(17f);
 
-        pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Total de eventos: " + eventos.size());
-        pdf.down(10f);
-        pdf.line();
+        seccion(pdf, "EVOLUCIÓN E HISTORIAL CLÍNICO");
+        campo(pdf, "Total de eventos", String.valueOf(eventos.size()));
 
         for (HistoriaEvento ev : eventos) {
             pdf.ensureSpace(80f);
@@ -122,6 +133,33 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
             pdf.down(12f);
             pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), "Fecha y hora: " + LocalDateTime.now().format(DTF));
             pdf.down(12f);
+        }
+    }
+
+    private void seccion(PdfDocument pdf, String titulo) throws Exception {
+        pdf.ensureSpace(34f);
+        pdf.down(7f);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 11, pdf.getMargin(), pdf.getY(), titulo);
+        pdf.down(15f);
+        pdf.line();
+        pdf.down(5f);
+    }
+
+    private void campo(PdfDocument pdf, String nombre, String valor) throws Exception {
+        pdf.ensureSpace(20f);
+        float x = pdf.getMargin();
+        String etiqueta = nombre + ": ";
+        pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(), etiqueta);
+        float offset = pdf.textWidth(PDType1Font.HELVETICA_BOLD, 9, etiqueta);
+        String texto = valor.isBlank() ? "No registrado" : valor;
+        java.util.List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 9, texto,
+                pdf.getUsableWidth() - offset - 4f);
+        pdf.text(PdfStyle.TXT_FONT, 9, x + offset, pdf.getY(), lineas.get(0));
+        pdf.down(13f);
+        for (int i = 1; i < lineas.size(); i++) {
+            pdf.ensureSpace(16f);
+            pdf.text(PdfStyle.TXT_FONT, 9, x + offset, pdf.getY(), lineas.get(i));
+            pdf.down(13f);
         }
     }
 
