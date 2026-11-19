@@ -858,22 +858,33 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         // Una nueva atención puede vincularse a otra consulta finalizada.
         // La fecha de control solo la recomienda el veterinario, no crea turnos.
+        // Misma grilla de tres columnas y mismos márgenes que las filas anteriores.
+        // Los contenedores conservan su posición aunque su campo esté oculto por rol.
         javax.swing.JPanel filaSeguimiento = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 18, 0));
+                new java.awt.GridLayout(1, 3, 18, 0));
         filaSeguimiento.setOpaque(false);
-        comboConsultaOrigen.setPreferredSize(new java.awt.Dimension(330, 28));
+        comboConsultaOrigen.setPreferredSize(new java.awt.Dimension(200, 32));
         comboConsultaOrigen.setToolTipText(
                 "Opcional. Seleccione una consulta finalizada de este mismo paciente.");
         panelOrigenConsulta = campoConsulta(
                 new javax.swing.JLabel("Seguimiento de consulta (opcional)"), comboConsultaOrigen);
-        filaSeguimiento.add(panelOrigenConsulta);
+        javax.swing.JPanel columnaOrigen = new javax.swing.JPanel(new java.awt.BorderLayout());
+        columnaOrigen.setOpaque(false);
+        columnaOrigen.add(panelOrigenConsulta, java.awt.BorderLayout.NORTH);
+        filaSeguimiento.add(columnaOrigen);
         fechaProximoControl.setDateFormatString("dd/MM/yyyy");
-        fechaProximoControl.setPreferredSize(new java.awt.Dimension(165, 28));
+        fechaProximoControl.setPreferredSize(new java.awt.Dimension(200, 32));
         fechaProximoControl.setToolTipText("Seleccione el próximo control desde el calendario; no agenda turno.");
         panelFechaControl = campoConsulta(
                 new javax.swing.JLabel("Próximo control recomendado"), fechaProximoControl);
-        filaSeguimiento.add(panelFechaControl);
-        filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 60));
+        javax.swing.JPanel columnaFechaControl = new javax.swing.JPanel(new java.awt.BorderLayout());
+        columnaFechaControl.setOpaque(false);
+        columnaFechaControl.add(panelFechaControl, java.awt.BorderLayout.NORTH);
+        filaSeguimiento.add(columnaFechaControl);
+        javax.swing.JPanel terceraColumna = new javax.swing.JPanel();
+        terceraColumna.setOpaque(false);
+        filaSeguimiento.add(terceraColumna);
+        filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 68));
         filaSeguimiento.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaSeguimiento);
         centro.add(javax.swing.Box.createVerticalStrut(12));
