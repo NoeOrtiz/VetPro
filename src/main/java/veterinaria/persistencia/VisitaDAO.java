@@ -91,6 +91,14 @@ public class VisitaDAO {
             } else if (visita.isAtencionProvisional()) {
                 throw new IllegalStateException("La atención provisional solo corresponde a pacientes inactivos.");
             }
+            if (visita.getIdConsultaOrigen() != null) {
+                Visita origen = em.find(Visita.class, visita.getIdConsultaOrigen());
+                if (origen == null || origen.getMascota() == null
+                        || !paciente.getIdMascota().equals(origen.getMascota().getIdMascota())
+                        || !"FINALIZADO".equalsIgnoreCase(origen.getEstado()))
+                    throw new IllegalArgumentException(
+                            "El seguimiento debe vincularse a una consulta finalizada del mismo paciente.");
+            }
             if (!"EN_ESPERA".equals(visita.getEstado()))
                 throw new IllegalStateException("La consulta debe registrarse inicialmente EN ESPERA.");
             if ((visita.getTratamiento() != null && !visita.getTratamiento().isBlank())
@@ -288,6 +296,11 @@ public class VisitaDAO {
                     (sesion.getNombreApellido() == null || actual.getUsuarioAtiende() == null ||
                      !sesion.getNombreApellido().trim().equalsIgnoreCase(actual.getUsuarioAtiende().trim())))
                 throw new SecurityException("La consulta está asignada a otro veterinario. Consulte al administrador.");
+            // Próximo control: solo el profesional que atiende puede recomendarlo.
+            if (visita.getProximoControlRecomendado() != null
+                    && visita.getProximoControlRecomendado().isBefore(java.time.LocalDate.now()))
+                throw new IllegalArgumentException("El próximo control no puede tener fecha pasada.");
+            actual.setProximoControlRecomendado(visita.getProximoControlRecomendado());
             // Actualizar exclusivamente los campos clínicos autorizados; mantener la identidad y asignación.
             actual.setPatologia(visita.getPatologia());
             actual.setTratamiento(visita.getTratamiento());
