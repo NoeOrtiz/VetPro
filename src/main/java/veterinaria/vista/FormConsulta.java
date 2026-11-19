@@ -1603,6 +1603,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             if (panelEvolucionConsulta != null) panelEvolucionConsulta.setVisible(false);
             txtPesoConsulta.setEditable(true);
             if (panelOrigenConsulta != null) panelOrigenConsulta.setVisible(true);
+            comboConsultaOrigen.setEnabled(true);
             if (panelFechaControl != null) panelFechaControl.setVisible(false);
             actualizarCamposOtros();
             btnLimpiar.setVisible(true);
@@ -1630,7 +1631,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             txtTratamiento.setEnabled(usuarioClinico());
             txtTratamiento.setFocusable(usuarioClinico());
             txtPesoConsulta.setEditable(usuarioClinico());
-            if (panelOrigenConsulta != null) panelOrigenConsulta.setVisible(false);
+            // Mostrar el vínculo como dato de solo lectura si la consulta es un seguimiento.
+            if (panelOrigenConsulta != null)
+                panelOrigenConsulta.setVisible(visita != null && visita.getIdConsultaOrigen() != null);
+            comboConsultaOrigen.setEnabled(false);
             if (panelFechaControl != null) panelFechaControl.setVisible(usuarioClinico());
             if (panelEvolucionConsulta != null) panelEvolucionConsulta.setVisible(true);
             actualizarCamposOtros();
@@ -1934,6 +1938,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         txtRazaConsulta.setText(visita.getRazaConsulta() != null
                 ? visita.getRazaConsulta() : textoSeguro(mascotaSeleccionada == null ? null : mascotaSeleccionada.getRaza()));
         txtTratamiento.setText(visita.getTratamiento());
+        if (visita.getIdConsultaOrigen() != null) {
+            int indiceOrigen = idsConsultasOrigen.indexOf(visita.getIdConsultaOrigen());
+            if (indiceOrigen >= 0) comboConsultaOrigen.setSelectedIndex(indiceOrigen);
+        }
         txtProximoControl.setText(visita.getProximoControlRecomendado() == null ? ""
                 : visita.getProximoControlRecomendado().format(
                         java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
