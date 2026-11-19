@@ -61,6 +61,12 @@ public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
         campo(pdf, "Estado", texto(v.getEstado()));
         campo(pdf, "Prioridad", texto(v.getPrioridadAtencion()));
         campo(pdf, "Motivo de consulta", texto(v.getMotivoVisita()));
+        if (v.getIdConsultaOrigen() != null)
+            campo(pdf, "Seguimiento de", "Consulta N.º " + v.getIdConsultaOrigen());
+        if (v.getProximoControlRecomendado() != null)
+            campo(pdf, "Próximo control recomendado",
+                    v.getProximoControlRecomendado().format(
+                            DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         campo(pdf, "Veterinario", texto(v.getUsuarioAtiende()));
         pdf.down(7f);
         seccion(pdf, "INFORMACIÓN CLÍNICA");
