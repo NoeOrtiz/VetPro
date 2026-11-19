@@ -56,7 +56,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private boolean origenHistoriaClinica = false;
 
     // Coincidencias exclusivamente en los campos de búsqueda clínicos.
-    private static final int[] COLUMNAS_BUSQUEDA = {2, 3, 4, 9};
+    private static final int[] COLUMNAS_BUSQUEDA = {2, 3};
     private veterinaria.util.PaginacionTablas paginacionConsultas;
     private javax.swing.JButton btnCambiarEstado;
     private final javax.swing.JComboBox<String> prioridadConsulta =
@@ -635,7 +635,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         tablaPaginada.add(scroll1, java.awt.BorderLayout.CENTER);
         paginacionConsultas = new veterinaria.util.PaginacionTablas(
                 tableVisitas, txtBusqueda, 15, COLUMNAS_BUSQUEDA, COLUMNAS_BUSQUEDA);
-        paginacionConsultas.activarBusquedaPorPrefijo();
         paginacionConsultas.establecerFiltroAdicional(this::coincideEstadoModelo);
         tablaPaginada.add(paginacionConsultas.getControles(), java.awt.BorderLayout.SOUTH);
         txtBusqueda.setLayout(new java.awt.BorderLayout());
