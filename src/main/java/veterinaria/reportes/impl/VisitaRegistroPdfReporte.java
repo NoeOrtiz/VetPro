@@ -39,10 +39,10 @@ public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
                 : v.getHora().format(DateTimeFormatter.ofPattern("HH:mm"));
 
         float x = pdf.getMargin();
-        pdf.down(8f);
+        pdf.down(14f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 12, x, pdf.getY(),
                 "CONSULTA N.º " + v.getIdVisita());
-        pdf.down(21f);
+        pdf.down(27f);
         seccion(pdf, "DATOS DE LA ATENCIÓN");
         // Dos columnas de información: mejor lectura y menor desperdicio de papel.
         par(pdf, "Paciente", mascota == null ? "-" : texto(mascota.getNombre()),
@@ -63,12 +63,12 @@ public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
                     v.getProximoControlRecomendado() == null ? "No indicado"
                             : v.getProximoControlRecomendado().format(
                                     DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        pdf.down(6f);
+        pdf.down(15f);
         seccion(pdf, "INFORMACIÓN CLÍNICA");
         campo(pdf, "Diagnóstico", texto(v.getPatologia()));
         campo(pdf, "Evolución y tratamiento", texto(v.getTratamiento()));
-        pdf.down(7f);
-        pdf.ensureSpace(24f);
+        pdf.down(14f);
+        pdf.ensureSpace(28f);
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
                 "Registrado por: " + texto(v.getUsuarioGestion()));
         pdf.down(15f);
@@ -78,45 +78,47 @@ public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
     /** Dos datos alineados en una fila, con altura calculada según su texto. */
     private void par(PdfDocument pdf, String etiquetaIzquierda, String valorIzquierda,
             String etiquetaDerecha, String valorDerecha) throws Exception {
-        float espacio = 18f;
+        float espacio = 28f;
         float medio = (pdf.getUsableWidth() - espacio) / 2f;
         float x = pdf.getMargin();
         float xDer = x + medio + espacio;
-        List<String> izquierda = pdf.wrapText(PdfStyle.TXT_FONT, 10, valorIzquierda, medio - 8f);
-        List<String> derecha = pdf.wrapText(PdfStyle.TXT_FONT, 10, valorDerecha, medio - 8f);
+        List<String> izquierda = pdf.wrapText(PdfStyle.TXT_FONT, 10, valorIzquierda, medio - 18f);
+        List<String> derecha = pdf.wrapText(PdfStyle.TXT_FONT, 10, valorDerecha, medio - 18f);
         int renglones = Math.max(izquierda.size(), derecha.size());
-        float altura = 14f + 13f * renglones + 7f;
+        float altura = 19f + 15f * renglones + 10f;
         pdf.ensureSpace(altura + 2f);
         float arriba = pdf.getY();
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, arriba, etiquetaIzquierda);
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, xDer, arriba, etiquetaDerecha);
         for (int i = 0; i < izquierda.size(); i++)
-            pdf.text(PdfStyle.TXT_FONT, 10, x + 7f, arriba - 14f - 13f * i, izquierda.get(i));
+            pdf.text(PdfStyle.TXT_FONT, 10, x + 9f, arriba - 19f - 15f * i, izquierda.get(i));
         for (int i = 0; i < derecha.size(); i++)
-            pdf.text(PdfStyle.TXT_FONT, 10, xDer + 7f, arriba - 14f - 13f * i, derecha.get(i));
+            pdf.text(PdfStyle.TXT_FONT, 10, xDer + 9f, arriba - 19f - 15f * i, derecha.get(i));
         pdf.down(altura);
     }
 
     private void seccion(PdfDocument pdf, String titulo) throws Exception {
-        pdf.ensureSpace(42f);
+        pdf.ensureSpace(50f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 10, pdf.getMargin(), pdf.getY(), titulo);
-        pdf.down(13f);
+        pdf.down(17f);
         pdf.line();
-        pdf.down(4f);
+        pdf.down(7f);
     }
 
     private void campo(PdfDocument pdf, String titulo, String valor) throws Exception {
         float x = pdf.getMargin();
-        float ancho = pdf.getUsableWidth() - 14f;
+        float ancho = pdf.getUsableWidth() - 22f;
         List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 10, valor, ancho);
-        pdf.ensureSpace(15f + lineas.size() * 13f + 12f);
+        pdf.ensureSpace(21f + lineas.size() * 17f + 14f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(), titulo);
-        pdf.down(14f);
-        for (String linea : lineas) {
-            pdf.text(PdfStyle.TXT_FONT, 10, x + 8f, pdf.getY(), linea);
-            pdf.down(13f);
+        pdf.down(21f);
+        for (int i = 0; i < lineas.size(); i++) {
+            String linea = lineas.get(i);
+            pdf.textJustified(PdfStyle.TXT_FONT, 10, x + 10f, pdf.getY(),
+                    linea, ancho, i < lineas.size() - 1 && !linea.isBlank());
+            pdf.down(17f);
         }
-        pdf.down(7f);
+        pdf.down(13f);
     }
 
     private String texto(Object value) {
