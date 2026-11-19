@@ -671,7 +671,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         cabeceraLista.add(jSeparator6, java.awt.BorderLayout.SOUTH);
         cabeceraLista.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 10, 0, 10));
         jpListaVisitas.add(cabeceraLista, java.awt.BorderLayout.NORTH);
-        jpListaVisitas.add(scroll1, java.awt.BorderLayout.CENTER);
+        // Mantener el contenedor paginado: incluye la tabla y los controles inferiores.
+        // Agregar directamente scroll1 lo desprendía de tablaPaginada y ocultaba la paginación.
+        tablaPaginada.setOpaque(false);
+        jpListaVisitas.add(tablaPaginada, java.awt.BorderLayout.CENTER);
         jpListaVisitas.revalidate();
         jpListaVisitas.repaint();
 
