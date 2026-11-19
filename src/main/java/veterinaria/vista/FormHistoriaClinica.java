@@ -248,11 +248,18 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
     private void ocultarColumnaId() {
 
-        if (tableHistoriaClinica.getColumnModel().getColumnCount() > 0) {
-
-            tableHistoriaClinica.removeColumn(
-                    tableHistoriaClinica.getColumnModel().getColumn(0));
-
+        // Ocultar el ID una sola vez: al recargar se quitaba por error la Fecha.
+        javax.swing.table.TableColumn columnaId = null;
+        for (java.util.Enumeration<javax.swing.table.TableColumn> cols =
+                tableHistoriaClinica.getColumnModel().getColumns(); cols.hasMoreElements();) {
+            javax.swing.table.TableColumn col = cols.nextElement();
+            if (col.getModelIndex() == 0) {
+                columnaId = col;
+                break;
+            }
+        }
+        if (columnaId != null) {
+            tableHistoriaClinica.removeColumn(columnaId);
         }
 
     }
