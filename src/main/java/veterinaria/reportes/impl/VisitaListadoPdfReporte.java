@@ -69,7 +69,7 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
                 pdf.nuevaPagina();
             }
             if (pdf.getCurrentPage() != paginaAnterior) {
-                encabezadoContinuacion(pdf, filtro, fuente.size(), titulos, x);
+                encabezadoContinuacion(pdf, request, filtro, fuente.size(), titulos, x);
             }
             float arriba = pdf.getY();
             for (int col = 0; col < ancho.length; col++) {
@@ -93,13 +93,11 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
         pdf.down(6f);
     }
 
-    private void encabezadoContinuacion(PdfDocument pdf, String filtro,
+    private void encabezadoContinuacion(PdfDocument pdf, ReporteRequest request, String filtro,
             int total, String[] titulos, float[] x) throws Exception {
-        String titulo = titulo();
-        float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT, 12, titulo);
-        pdf.text(PdfStyle.H2_FONT, 12, (pdf.getPageW() - anchoTitulo) / 2f,
-                pdf.getY(), titulo);
-        pdf.down(19f);
+        // Repetir exactamente el encabezado institucional y logo de la primera hoja.
+        renderHeader(pdf, request);
+        pdf.down(7f);
         pdf.text(PdfStyle.TXT_FONT, 9, pdf.getMargin(), pdf.getY(),
                 "Consultas incluidas: " + (filtro == null ? "Todas" : filtro)
                         + "    |    Total: " + total);
