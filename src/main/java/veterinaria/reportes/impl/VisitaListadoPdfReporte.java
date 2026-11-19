@@ -27,15 +27,15 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
         List<?> fuente = request.get("filas", List.class);
         String filtro = request.get("filtro", String.class);
-        pdf.down(7f);
+        pdf.down(10f);
         pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(),
                 "Consultas incluidas: " + (filtro == null ? "Todas" : filtro)
                 + "    |    Total: " + fuente.size());
-        pdf.down(24f);
+        pdf.down(28f);
 
         String[] titulos = {"N.º", "PACIENTE", "RESPONSABLE", "MOTIVO",
                 "ESTADO", "VETERINARIO", "PRIORIDAD", "FECHA"};
-        float[] pesos = {5f, 12f, 15f, 19f, 12f, 16f, 10f, 11f};
+        float[] pesos = {5f, 11f, 16f, 20f, 11f, 16f, 10f, 11f};
         float total = 0;
         for (float peso : pesos) total += peso;
         float[] ancho = new float[pesos.length];
@@ -57,12 +57,12 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
             for (int i = 0; i < ancho.length; i++) {
                 String valor = i < original.length && original[i] != null ? original[i].trim() : "";
                 if (i == 7) valor = fechaLegible(valor);
-                List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 8, valor,
-                        Math.max(8f, ancho[i] - 7f));
+                List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 9, valor,
+                        Math.max(8f, ancho[i] - 11f));
                 celdas.add(lineas);
                 maxLineas = Math.max(maxLineas, lineas.size());
             }
-            float alto = maxLineas * 12f + 12f;
+            float alto = maxLineas * 14f + 15f;
             int paginaAnterior = pdf.getCurrentPage();
             // Reservar espacio para repetir el título y las columnas si esta fila salta de página.
             if (pdf.getY() - alto - 5f < pdf.getMargin()) {
@@ -75,33 +75,33 @@ public class VisitaListadoPdfReporte extends AbstractPdfReporte {
             for (int col = 0; col < ancho.length; col++) {
                 List<String> lineas = celdas.get(col);
                 for (int l = 0; l < lineas.size(); l++) {
-                    pdf.text(PdfStyle.TXT_FONT, 8, x[col], arriba - l * 12f, lineas.get(l));
+                    pdf.text(PdfStyle.TXT_FONT, 9, x[col] + 3f, arriba - l * 14f, lineas.get(l));
                 }
             }
             pdf.down(alto);
             pdf.line();
-            pdf.down(3f);
+            pdf.down(1f);
         }
     }
     private void encabezadoColumnas(PdfDocument pdf, String[] titulos, float[] x) throws Exception {
         pdf.ensureSpace(40f);
         for (int i = 0; i < titulos.length; i++) {
-            pdf.text(PDType1Font.HELVETICA_BOLD, 8, x[i], pdf.getY(), titulos[i]);
+            pdf.text(PDType1Font.HELVETICA_BOLD, 8, x[i] + 3f, pdf.getY(), titulos[i]);
         }
-        pdf.down(13f);
+        pdf.down(16f);
         pdf.line();
-        pdf.down(6f);
+        pdf.down(8f);
     }
 
     private void encabezadoContinuacion(PdfDocument pdf, ReporteRequest request, String filtro,
             int total, String[] titulos, float[] x) throws Exception {
         // Repetir exactamente el encabezado institucional y logo de la primera hoja.
         renderHeader(pdf, request);
-        pdf.down(7f);
+        pdf.down(10f);
         pdf.text(PdfStyle.TXT_FONT, 9, pdf.getMargin(), pdf.getY(),
                 "Consultas incluidas: " + (filtro == null ? "Todas" : filtro)
                         + "    |    Total: " + total);
-        pdf.down(22f);
+        pdf.down(26f);
         encabezadoColumnas(pdf, titulos, x);
     }
 
