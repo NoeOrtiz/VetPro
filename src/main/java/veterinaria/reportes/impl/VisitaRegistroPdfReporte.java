@@ -1,6 +1,5 @@
 package veterinaria.reportes.impl;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
@@ -16,9 +15,6 @@ import veterinaria.reportes.pdf.PdfStyle;
 
 /** Ficha clínica de una consulta, preparada para texto largo sin superposiciones. */
 public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
-    private static final DateTimeFormatter FECHA =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
     @Override public ReporteTipo tipo() { return ReporteTipo.VISITA_REGISTRO; }
     @Override protected String titulo() { return "REGISTRO DE CONSULTA VETERINARIA"; }
 
@@ -31,7 +27,6 @@ public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
     @Override
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
         Visita v = request.get("visita", Visita.class);
-        String emisor = request.get("emisor", String.class);
         Mascota mascota = v.getMascota();
         // El titular histórico corresponde a la consulta, no al dueño actual.
         Cliente cliente = v.getCliente();
@@ -44,46 +39,62 @@ public class VisitaRegistroPdfReporte extends AbstractPdfReporte {
                 : v.getHora().format(DateTimeFormatter.ofPattern("HH:mm"));
 
         float x = pdf.getMargin();
-        pdf.down(10f);
+        pdf.down(8f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 12, x, pdf.getY(),
                 "CONSULTA N.º " + v.getIdVisita());
-        pdf.down(24f);
+        pdf.down(21f);
         seccion(pdf, "DATOS DE LA ATENCIÓN");
-        campo(pdf, "Paciente", mascota == null ? "-" : texto(mascota.getNombre()));
-        campo(pdf, "Especie", texto(v.getEspecieConsulta() == null
-                ? (mascota == null ? null : mascota.getEspecie()) : v.getEspecieConsulta()));
-        campo(pdf, "Raza", texto(v.getRazaConsulta() == null
-                ? (mascota == null ? null : mascota.getRaza()) : v.getRazaConsulta()));
-        campo(pdf, "Peso medido en consulta", v.getPesoConsulta() == null
-                ? "No registrado" : v.getPesoConsulta().toPlainString().replace('.', ',') + " kg");
-        campo(pdf, "Responsable", responsable);
-        campo(pdf, "Fecha y hora", fecha + "  " + hora);
-        campo(pdf, "Estado", texto(v.getEstado()));
-        campo(pdf, "Prioridad", texto(v.getPrioridadAtencion()));
-        campo(pdf, "Motivo de consulta", texto(v.getMotivoVisita()));
-        if (v.getIdConsultaOrigen() != null)
-            campo(pdf, "Seguimiento de", "Consulta N.º " + v.getIdConsultaOrigen());
-        if (v.getProximoControlRecomendado() != null)
-            campo(pdf, "Próximo control recomendado",
-                    v.getProximoControlRecomendado().format(
-                            DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        campo(pdf, "Veterinario", texto(v.getUsuarioAtiende()));
-        pdf.down(7f);
+        // Dos columnas de información: mejor lectura y menor desperdicio de papel.
+        par(pdf, "Paciente", mascota == null ? "-" : texto(mascota.getNombre()),
+                "Especie", texto(v.getEspecieConsulta() == null
+                        ? (mascota == null ? null : mascota.getEspecie()) : v.getEspecieConsulta()));
+        par(pdf, "Raza", texto(v.getRazaConsulta() == null
+                        ? (mascota == null ? null : mascota.getRaza()) : v.getRazaConsulta()),
+                "Peso de esta consulta", v.getPesoConsulta() == null
+                        ? "No registrado" : v.getPesoConsulta().toPlainString().replace('.', ',') + " kg");
+        par(pdf, "Responsable", responsable, "Fecha y hora", fecha + "  " + hora);
+        par(pdf, "Estado", texto(v.getEstado()), "Prioridad", texto(v.getPrioridadAtencion()));
+        par(pdf, "Motivo de consulta", texto(v.getMotivoVisita()),
+                "Veterinario", texto(v.getUsuarioAtiende()));
+        if (v.getIdConsultaOrigen() != null || v.getProximoControlRecomendado() != null)
+            par(pdf, "Seguimiento de", v.getIdConsultaOrigen() == null
+                            ? "Sin vinculación" : "Consulta N.º " + v.getIdConsultaOrigen(),
+                    "Próximo control recomendado",
+                    v.getProximoControlRecomendado() == null ? "No indicado"
+                            : v.getProximoControlRecomendado().format(
+                                    DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        pdf.down(6f);
         seccion(pdf, "INFORMACIÓN CLÍNICA");
         campo(pdf, "Diagnóstico", texto(v.getPatologia()));
         campo(pdf, "Evolución y tratamiento", texto(v.getTratamiento()));
-        pdf.down(15f);
-        pdf.ensureSpace(65f);
-        pdf.line();
+        pdf.down(7f);
+        pdf.ensureSpace(24f);
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
                 "Registrado por: " + texto(v.getUsuarioGestion()));
         pdf.down(15f);
-        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
-                "Emitido por: " + texto(emisor));
-        pdf.down(15f);
-        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
-                "Fecha de emisión: " + LocalDateTime.now().format(FECHA));
-        pdf.down(15f);
+        // El emisor y la fecha de impresión ya figuran en el pie de cada página.
+    }
+
+    /** Dos datos alineados en una fila, con altura calculada según su texto. */
+    private void par(PdfDocument pdf, String etiquetaIzquierda, String valorIzquierda,
+            String etiquetaDerecha, String valorDerecha) throws Exception {
+        float espacio = 18f;
+        float medio = (pdf.getUsableWidth() - espacio) / 2f;
+        float x = pdf.getMargin();
+        float xDer = x + medio + espacio;
+        List<String> izquierda = pdf.wrapText(PdfStyle.TXT_FONT, 10, valorIzquierda, medio - 8f);
+        List<String> derecha = pdf.wrapText(PdfStyle.TXT_FONT, 10, valorDerecha, medio - 8f);
+        int renglones = Math.max(izquierda.size(), derecha.size());
+        float altura = 14f + 13f * renglones + 7f;
+        pdf.ensureSpace(altura + 2f);
+        float arriba = pdf.getY();
+        pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, arriba, etiquetaIzquierda);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 9, xDer, arriba, etiquetaDerecha);
+        for (int i = 0; i < izquierda.size(); i++)
+            pdf.text(PdfStyle.TXT_FONT, 10, x + 7f, arriba - 14f - 13f * i, izquierda.get(i));
+        for (int i = 0; i < derecha.size(); i++)
+            pdf.text(PdfStyle.TXT_FONT, 10, xDer + 7f, arriba - 14f - 13f * i, derecha.get(i));
+        pdf.down(altura);
     }
 
     private void seccion(PdfDocument pdf, String titulo) throws Exception {
