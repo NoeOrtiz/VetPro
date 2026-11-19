@@ -80,7 +80,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     private final javax.swing.JComboBox<String> comboConsultaOrigen =
             new javax.swing.JComboBox<>();
     private final java.util.List<Integer> idsConsultasOrigen = new java.util.ArrayList<>();
-    private final javax.swing.JTextField txtProximoControl = new javax.swing.JTextField();
+    private final com.toedter.calendar.JDateChooser fechaProximoControl =
+            new com.toedter.calendar.JDateChooser();
     private javax.swing.JPanel panelOrigenConsulta;
     private javax.swing.JPanel panelFechaControl;
     private static final String OPCION_OTROS = "Otro/s";
@@ -444,18 +445,19 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
     }
 
     private LocalDate fechaRecomendadaIngresada() {
-        String fecha = txtProximoControl.getText().trim();
-        if (fecha.isEmpty()) return null;
-        try {
-            LocalDate control = LocalDate.parse(fecha,
-                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/uuuu")
-                            .withResolverStyle(java.time.format.ResolverStyle.STRICT));
-            if (control.isBefore(LocalDate.now()))
-                throw new IllegalArgumentException("El próximo control no puede tener fecha pasada.");
-            return control;
-        } catch (java.time.format.DateTimeParseException ex) {
-            throw new IllegalArgumentException("Ingrese el próximo control con formato dd/MM/yyyy.");
+        java.util.Date fecha = fechaProximoControl.getDate();
+        if (fecha == null) {
+            String escrito = fechaProximoControl.getDateEditor().getUiComponent() instanceof javax.swing.text.JTextComponent
+                    ? ((javax.swing.text.JTextComponent) fechaProximoControl.getDateEditor()
+                            .getUiComponent()).getText().trim() : "";
+            if (!escrito.isEmpty())
+                throw new IllegalArgumentException("Ingrese una fecha válida mediante el calendario.");
+            return null;
         }
+        LocalDate control = fecha.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        if (control.isBefore(LocalDate.now()))
+            throw new IllegalArgumentException("El próximo control no puede tener fecha pasada.");
+        return control;
     }
 
     private void llenarComboBoxPatologias() {
@@ -584,7 +586,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         txtRazaConsulta.setText("");
         txtOtroMotivo.setText("");
         txtOtraPatologia.setText("");
-        txtProximoControl.setText("");
+        fechaProximoControl.setDate(null);
         comboConsultaOrigen.removeAllItems();
         idsConsultasOrigen.clear();
         comboConsultaOrigen.addItem("Sin vinculación");
@@ -865,12 +867,11 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         panelOrigenConsulta = campoConsulta(
                 new javax.swing.JLabel("Seguimiento de consulta (opcional)"), comboConsultaOrigen);
         filaSeguimiento.add(panelOrigenConsulta);
-        txtProximoControl.setPreferredSize(new java.awt.Dimension(160, 28));
-        txtProximoControl.putClientProperty(
-                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "dd/MM/yyyy");
-        txtProximoControl.setToolTipText("Fecha sugerida para el próximo control. No agenda un turno.");
+        fechaProximoControl.setDateFormatString("dd/MM/yyyy");
+        fechaProximoControl.setPreferredSize(new java.awt.Dimension(165, 28));
+        fechaProximoControl.setToolTipText("Seleccione el próximo control desde el calendario; no agenda turno.");
         panelFechaControl = campoConsulta(
-                new javax.swing.JLabel("Próximo control recomendado"), txtProximoControl);
+                new javax.swing.JLabel("Próximo control recomendado"), fechaProximoControl);
         filaSeguimiento.add(panelFechaControl);
         filaSeguimiento.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 60));
         filaSeguimiento.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
@@ -1942,9 +1943,9 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             int indiceOrigen = idsConsultasOrigen.indexOf(visita.getIdConsultaOrigen());
             if (indiceOrigen >= 0) comboConsultaOrigen.setSelectedIndex(indiceOrigen);
         }
-        txtProximoControl.setText(visita.getProximoControlRecomendado() == null ? ""
-                : visita.getProximoControlRecomendado().format(
-                        java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        fechaProximoControl.setDate(visita.getProximoControlRecomendado() == null ? null
+                : Date.from(visita.getProximoControlRecomendado()
+                        .atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
         jcbEstado.setSelectedItem(
                 Constantes.EstadoVisita.valueOf(
@@ -2009,14 +2010,19 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                     "Motivo obligatorio", JOptionPane.WARNING_MESSAGE);
             return false;
         }
+        boolean registroNuevo = visita == null || visita.getIdVisita() == null;
         try {
-            if (obtenerPesoActual() == null) {
+            // La medición es obligatoria al ingreso; en consultas históricas sin
+            // peso guardado no se bloquea la finalización ni se inventa un valor.
+            if (registroNuevo && obtenerPesoActual() == null) {
                 JOptionPane.showMessageDialog(this,
                         "Debe registrar el peso actual del paciente en kg.",
                         "Peso obligatorio", JOptionPane.WARNING_MESSAGE);
                 txtPesoConsulta.requestFocusInWindow();
                 return false;
             }
+            if (!registroNuevo && !txtPesoConsulta.getText().trim().isEmpty())
+                obtenerPesoActual();
         } catch (IllegalArgumentException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "Peso inválido", JOptionPane.WARNING_MESSAGE);
@@ -2712,7 +2718,10 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             } else {
                 visita.setPatologia(valorCampoPersonalizado(jcbPatologia, txtOtraPatologia));
                 visita.setProximoControlRecomendado(fechaRecomendadaIngresada());
-                visita.setPesoConsulta(obtenerPesoActual());
+                // Conservar el valor cargado por recepción, sin sustituirlo por NULL.
+                // Consultas históricas sin medición pueden finalizar sin inventar un peso.
+                if (!txtPesoConsulta.getText().trim().isEmpty())
+                    visita.setPesoConsulta(obtenerPesoActual());
                 visita.setTratamiento(txtTratamiento.getText() != null ? txtTratamiento.getText().trim() : "");
             }
             // La recepción registra fecha y hora reales del sistema al guardar el ticket.
