@@ -794,6 +794,15 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         return campo;
     }
 
+    /** Mantiene los controles arriba sin estirarlos al aparecer el detalle Otro/s. */
+    private javax.swing.JPanel campoConsultaAlineado(javax.swing.JLabel etiqueta,
+            java.awt.Component control) {
+        javax.swing.JPanel alineado = new javax.swing.JPanel(new java.awt.BorderLayout());
+        alineado.setOpaque(false);
+        alineado.add(campoConsulta(etiqueta, control), java.awt.BorderLayout.NORTH);
+        return alineado;
+    }
+
     /** Distribución funcional, sin alterar colores ni componentes FlatLaf existentes. */
     private void configurarFormularioAmplio() {
         jpDatos.removeAll();
@@ -818,13 +827,13 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         javax.swing.JPanel filaUno = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
         filaUno.setOpaque(false);
-        filaUno.add(campoConsulta(lbPaciente, jcbPaciente));
-        filaUno.add(campoConsulta(lbDueño, txtDueño));
+        filaUno.add(campoConsultaAlineado(lbPaciente, jcbPaciente));
+        filaUno.add(campoConsultaAlineado(lbDueño, txtDueño));
         txtOtroMotivo.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
                 "Especifique el motivo");
         txtOtroMotivo.setToolTipText("Especifique el motivo cuando selecciona Otro/s.");
         javax.swing.JPanel motivoConOtro = comboConOpcionOtro(jcbMotivo, txtOtroMotivo);
-        filaUno.add(campoConsulta(lbMotivo, motivoConOtro));
+        filaUno.add(campoConsultaAlineado(lbMotivo, motivoConOtro));
         filaUno.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
         filaUno.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaUno);
@@ -832,12 +841,12 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
         javax.swing.JPanel filaDos = new javax.swing.JPanel(new java.awt.GridLayout(1, 3, 18, 0));
         filaDos.setOpaque(false);
-        filaDos.add(campoConsulta(lbVeterinarioAsignado, jcbVeterinario));
-        filaDos.add(campoConsulta(lbEstado, jcbEstado));
+        filaDos.add(campoConsultaAlineado(lbVeterinarioAsignado, jcbVeterinario));
+        filaDos.add(campoConsultaAlineado(lbEstado, jcbEstado));
         txtOtraPatologia.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
                 "Especifique el diagnóstico");
         txtOtraPatologia.setToolTipText("Especifique el diagnóstico cuando selecciona Otro/s.");
-        filaDos.add(campoConsulta(lbPatologia, comboConOpcionOtro(jcbPatologia, txtOtraPatologia)));
+        filaDos.add(campoConsultaAlineado(lbPatologia, comboConOpcionOtro(jcbPatologia, txtOtraPatologia)));
         filaDos.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 97));
         filaDos.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         centro.add(filaDos);
@@ -947,10 +956,16 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     private javax.swing.JPanel comboConOpcionOtro(javax.swing.JComboBox<String> combo,
             javax.swing.JTextField detalle) {
-        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        // Dos espacios de igual altura, siempre reservados. Solo cambia la
+        // visibilidad del JTextField, nunca el tamaño de los otros componentes.
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 5));
         panel.setOpaque(false);
-        panel.add(combo, java.awt.BorderLayout.NORTH);
-        panel.add(detalle, java.awt.BorderLayout.CENTER);
+        javax.swing.JPanel espacioDetalle = new javax.swing.JPanel(new java.awt.BorderLayout());
+        espacioDetalle.setOpaque(false);
+        espacioDetalle.add(detalle, java.awt.BorderLayout.CENTER);
+        panel.add(combo);
+        panel.add(espacioDetalle);
+        panel.setPreferredSize(new java.awt.Dimension(200, 65));
         detalle.setVisible(false);
         return panel;
     }
