@@ -157,8 +157,10 @@ public class ManejoTablas {
     /** Comparación reutilizable para filtros de texto, sin instalar listeners ni sorters. */
     public static boolean coincideBusqueda(Object valor, String consulta, boolean desdeInicio) {
         if (valor == null || consulta == null) return false;
-        String texto = valor.toString().trim().toLowerCase(java.util.Locale.ROOT);
-        String criterio = consulta.trim().toLowerCase(java.util.Locale.ROOT);
+        String texto = java.text.Normalizer.normalize(valor.toString().trim(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
+        String criterio = java.text.Normalizer.normalize(consulta.trim(), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
         return desdeInicio ? texto.startsWith(criterio) : texto.contains(criterio);
     }
 
@@ -367,7 +369,10 @@ public class ManejoTablas {
                         .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
                 String consultaNormalizada = java.text.Normalizer.normalize(query, java.text.Normalizer.Form.NFD)
                         .replaceAll("\\p{M}", "").toLowerCase(java.util.Locale.ROOT);
-                int indice = textoNormalizado.indexOf(consultaNormalizada);
+                boolean soloPrefijo = Boolean.TRUE.equals(table.getClientProperty("vetpro.busqueda.soloPrefijo"));
+                int indice = soloPrefijo
+                        ? (textoNormalizado.startsWith(consultaNormalizada) ? 0 : -1)
+                        : textoNormalizado.indexOf(consultaNormalizada);
                 // Para preservar índices de caracteres Unicode se usa búsqueda directa
                 // cuando la normalización modifica la longitud.
                 if (indice >= 0 && indice + query.length() <= texto.length()) {
