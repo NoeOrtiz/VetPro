@@ -2805,7 +2805,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
                 String detalle = causa.getMessage() == null || causa.getMessage().isBlank()
                         ? e.getMessage() : causa.getMessage();
                 JOptionPane.showMessageDialog(this,
-                        "No se pudo guardar la consulta.\\nDetalle: " + detalle,
+                        "No se pudo guardar la consulta.\nDetalle: " + detalle,
                         "Error de guardado", JOptionPane.ERROR_MESSAGE);
                 return;
             }
