@@ -61,6 +61,19 @@ public class Visita implements Serializable{
     public String getRazaConsulta() { return razaConsulta; }
     public void setRazaConsulta(String raza) { razaConsulta = raza; }
 
+    /** Consulta finalizada de este mismo paciente que dio origen al seguimiento. */
+    @Column(name = "id_consulta_origen")
+    private Integer idConsultaOrigen;
+
+    /** Recomendación clínica, NO genera automáticamente un turno o un ticket. */
+    @Column(name = "proximo_control_recomendado")
+    private LocalDate proximoControlRecomendado;
+
+    public Integer getIdConsultaOrigen() { return idConsultaOrigen; }
+    public void setIdConsultaOrigen(Integer id) { idConsultaOrigen = id; }
+    public LocalDate getProximoControlRecomendado() { return proximoControlRecomendado; }
+    public void setProximoControlRecomendado(LocalDate fecha) { proximoControlRecomendado = fecha; }
+
     @Column(name = "prioridad_atencion", nullable = false, length = 12)
     private String prioridadAtencion = "CONTROL";
 
