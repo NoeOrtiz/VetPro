@@ -19,7 +19,7 @@ import veterinaria.entidad.Cliente;
 import veterinaria.entidad.HistoriaEvento;
 import veterinaria.entidad.Mascota;
 import veterinaria.util.PermisoUI;
-import veterinaria.util.ui.HistoriaEventoUIRouter;
+import veterinaria.reportes.pdf.ReporteEjecutor;
 
 public class FormHistoriaClinica extends javax.swing.JPanel {
 
@@ -36,6 +36,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         initComponents();
         PermisoUI.aplicar(this);
         inicializarTabla();
+        btnVerRegistros.setText("Ver detalle");
+        btnVerRegistros.setToolTipText("Consultar el evento sin modificar el registro original.");
         cargarComboMascotas();
         initListeners();
         actualizarCantidadRegistros(0);
@@ -97,6 +99,13 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         };
         tableHistoriaClinica.setModel(model);
         tableHistoriaClinica.getTableHeader().setReorderingAllowed(false);
+        tableHistoriaClinica.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_LAST_COLUMN);
+        tableHistoriaClinica.setRowHeight(30);
+        int[] widths = {50, 135, 110, 155, 255, 330};
+        for (int i = 0; i < widths.length; i++) {
+            tableHistoriaClinica.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        }
+        tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
         limpiarTabla();
     }
 
@@ -117,7 +126,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         }
 
         for (Mascota m : mascotas) {
-            String label = (m.getNombre() != null ? m.getNombre() : "Mascota") /*+ " (#" + m.getIdMascota() + ")"*/;
+            String label = veterinaria.util.ui.MascotaComboSupport.label(m);
             listaMascotas.add(new AbstractMap.SimpleEntry<>(m.getIdMascota(), label));
             jcbPaciente.addItem(label);
         }
@@ -288,7 +297,22 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             return;
         }
 
-        HistoriaEventoUIRouter.abrir(ev);
+        // El historial se consulta sin navegar a los formularios operativos.
+        javax.swing.JTextArea detalle = new javax.swing.JTextArea();
+        detalle.setEditable(false);
+        detalle.setLineWrap(true);
+        detalle.setWrapStyleWord(true);
+        detalle.setFont(javax.swing.UIManager.getFont("TextArea.font"));
+        detalle.setText("Fecha: " + (ev.getFecha() == null ? "" : dtf.format(ev.getFecha()))
+                + "\nTipo: " + nullToEmpty(ev.getTipo())
+                + "\nProfesional: " + nullToEmpty(ev.getProfesional())
+                + "\n\nRESUMEN\n" + nullToEmpty(ev.getResumen())
+                + "\n\nOBSERVACIONES\n" + nullToEmpty(ev.getObservaciones()));
+        detalle.setCaretPosition(0);
+        javax.swing.JScrollPane panel = new javax.swing.JScrollPane(detalle);
+        panel.setPreferredSize(new java.awt.Dimension(660, 360));
+        JOptionPane.showMessageDialog(this, panel,
+                "Detalle de historia clínica - Solo lectura", JOptionPane.INFORMATION_MESSAGE);
 
     }
 
@@ -641,7 +665,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                     .put("tabla", tableHistoriaClinica)
                     .put("mascota", mascotaSeleccionada);
 
-            reporteService.generar(ReporteTipo.HISTORIA_CLINICA_LISTADO, req);
+            ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.HISTORIA_CLINICA_LISTADO, req);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error al imprimir", JOptionPane.ERROR_MESSAGE);
         }
@@ -664,7 +688,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                     .put("mascota", mascotaSeleccionada)
                     .put("eventos", eventos);
 
-            reporteService.generar(ReporteTipo.HISTORIA_CLINICA, req);
+            ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.HISTORIA_CLINICA, req);
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(), "Error al imprimir", JOptionPane.ERROR_MESSAGE);
         }
