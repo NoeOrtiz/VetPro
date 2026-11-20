@@ -345,6 +345,22 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         limpiarTabla();
     }
 
+    private String importeHistoria(String tipo, String valor) {
+        if (tipo == null || !tipo.toUpperCase(java.util.Locale.ROOT).contains("PELUQUER")
+                || valor == null || !valor.trim().matches("[0-9]+(?:\\.[0-9]{1,2})?")) {
+            return valor;
+        }
+        try {
+            java.text.NumberFormat formato =
+                    java.text.NumberFormat.getNumberInstance(new java.util.Locale("es", "AR"));
+            formato.setMinimumFractionDigits(2);
+            formato.setMaximumFractionDigits(2);
+            return "$ " + formato.format(new java.math.BigDecimal(valor.trim()));
+        } catch (Exception ex) {
+            return valor;
+        }
+    }
+
     private String escaparHtml(String texto) {
         return texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
@@ -466,7 +482,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 nullToEmpty(ev.getTipo()),
                 nullToEmpty(ev.getProfesional()),
                 nullToEmpty(ev.getResumen()),
-                nullToEmpty(ev.getObservaciones())
+                importeHistoria(ev.getTipo(), nullToEmpty(ev.getObservaciones()))
             });
 
         }
