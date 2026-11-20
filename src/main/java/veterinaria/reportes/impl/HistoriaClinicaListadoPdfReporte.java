@@ -39,7 +39,7 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
         pdf.down(19f);
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
                 "Total de eventos: " + modelo.getRowCount());
-        pdf.down(24f);
+        pdf.down(18f);
 
         // El modelo conserva ID, Fecha, Tipo, Profesional, Resumen y Observaciones
         // aunque ID esté oculto y la tabla en pantalla esté filtrada/paginada.
@@ -55,7 +55,8 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
                     PdfStyle.TXT_FONT, 10, resumen, ancho - 22f);
             java.util.List<String> lObservaciones = pdf.wrapText(
                     PdfStyle.TXT_FONT, 10, observaciones, ancho - 22f);
-            float alto = 52f + 18f * (lResumen.size() + lObservaciones.size()) + 26f;
+            // Reservar la altura real del bloque, sin márgenes sobredimensionados.
+            float alto = 45f + 16f * (lResumen.size() + lObservaciones.size()) + 55f;
             if (pdf.getY() - alto < pdf.getMargin() + 18f) {
                 pdf.nuevaPagina();
                 renderHeader(pdf, request);
@@ -68,17 +69,17 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
                     "Fecha: " + fecha);
             pdf.text(PDType1Font.HELVETICA_BOLD, 9, x + 330f, pdf.getY(),
                     "Tipo: " + tipo);
-            pdf.down(20f);
+            pdf.down(18f);
             pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(),
                     "Profesional: " + (profesional.isBlank() ? "No registrado" : profesional));
-            pdf.down(24f);
+            pdf.down(19f);
 
             bloque(pdf, "RESUMEN", lResumen);
-            pdf.down(10f);
+            pdf.down(5f);
             bloque(pdf, "OBSERVACIONES", lObservaciones);
-            pdf.down(13f);
+            pdf.down(6f);
             pdf.line();
-            pdf.down(20f);
+            pdf.down(10f);
         }
     }
 
@@ -87,14 +88,14 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
         float x = pdf.getMargin();
         pdf.ensureSpace(36f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(), etiqueta);
-        pdf.down(18f);
+        pdf.down(15f);
         for (int i = 0; i < lineas.size(); i++) {
             pdf.ensureSpace(23f);
             String texto = lineas.get(i);
             pdf.textJustified(PdfStyle.TXT_FONT, 10, x + 11f,
                     pdf.getY(), texto, pdf.getUsableWidth() - 22f,
                     i < lineas.size() - 1 && !texto.isBlank());
-            pdf.down(18f);
+            pdf.down(16f);
         }
     }
 
