@@ -233,6 +233,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 tableHistoriaClinica, buscarRegistros, 15,
                 new int[]{2, 3, 4, 5}, new int[]{2, 3, 4, 5});
         paginacionHistoria.activarBusquedaPorPrefijo();
+        // No permitir que el resaltador de búsqueda reemplace el degradado de selección.
+        paginacionHistoria.preservarRenderizadoresPersonalizados();
         paginada.add(paginacionHistoria.getControles(), java.awt.BorderLayout.SOUTH);
         contenido.add(paginada, java.awt.BorderLayout.CENTER);
         jPanel2.add(contenido, java.awt.BorderLayout.CENTER);
@@ -281,24 +283,26 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         }
         // La tabla muestra una síntesis; el contenido íntegro está en Ver detalle.
         // Cada celda conserva el valor original en el modelo para el PDF.
-        javax.swing.table.DefaultTableCellRenderer legible =
-                new javax.swing.table.DefaultTableCellRenderer() {
-                    @Override
-                    public java.awt.Component getTableCellRendererComponent(
-                            javax.swing.JTable tabla, Object valor, boolean seleccionado,
-                            boolean foco, int fila, int columna) {
-                        super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
-                        setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 0, 8));
-                        String texto = valor == null ? "" : valor.toString().replace('\n', ' ');
-                        setText(texto);
-                        setToolTipText(texto.isBlank() ? null : "<html><div style='width:360px'>"
-                                + texto.replace("&", "&amp;").replace("<", "&lt;")
-                                        .replace(">", "&gt;") + "</div></html>");
-                        return this;
-                    }
-                };
+        // La selección utiliza el mismo degradado continuo de Consultas.
+        tableHistoriaClinica.getColumnModel().getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         for (int columna : new int[]{2, 3, 4, 5, 6}) {
-            tableHistoriaClinica.getColumnModel().getColumn(columna).setCellRenderer(legible);
+            tableHistoriaClinica.getColumnModel().getColumn(columna).setCellRenderer(
+                    new veterinaria.vista.table.TableGradientCell() {
+                        @Override public java.awt.Component getTableCellRendererComponent(
+                                javax.swing.JTable tabla, Object valor, boolean seleccionado,
+                                boolean foco, int fila, int columnaVista) {
+                            super.getTableCellRendererComponent(tabla, valor, seleccionado,
+                                    foco, fila, columnaVista);
+                            String texto = valor == null ? "" : valor.toString().replace('\n', ' ');
+                            setText(texto);
+                            setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 9, 0, 9));
+                            setToolTipText(texto.isBlank() ? null : "<html><div style='width:360px'>"
+                                    + texto.replace("&", "&amp;").replace("<", "&lt;")
+                                            .replace(">", "&gt;") + "</div></html>");
+                            return this;
+                        }
+                    });
         }
         tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
         ocultarColumnaId();
