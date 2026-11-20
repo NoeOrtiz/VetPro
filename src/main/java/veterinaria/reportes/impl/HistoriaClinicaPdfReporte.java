@@ -88,7 +88,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
 
         // Mantener el encabezado junto al primer evento: evitar títulos
         // abandonados al final de página y el conteo aislado en la siguiente.
-        pdf.ensureSpace(225f);
+        pdf.ensureSpace(350f);
         seccion(pdf, "EVOLUCIÓN E HISTORIAL CLÍNICO");
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
                 "Total de eventos registrados: " + eventos.size());
