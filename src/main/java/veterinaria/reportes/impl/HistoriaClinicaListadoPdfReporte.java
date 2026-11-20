@@ -26,21 +26,22 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
      */
     @Override
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
-        float anchoPagina = pdf.getPageW();
-        float ySuperior = pdf.getY();
-        float anchoLogo = 160f;
-        float altoLogo = 116f;
-        renderLogo(pdf, (anchoPagina - anchoLogo) / 2f,
-                ySuperior - altoLogo, anchoLogo, altoLogo);
+        float top = pdf.getY();
+        float margen = pdf.getMargin();
+        boolean primeraPagina = pdf.getCurrentPage() == 1;
+        // Encabezado institucional horizontal: logo original sin márgenes
+        // transparentes y sin estirar la imagen.
+        float anchoLogo = primeraPagina ? 115f : 72f;
+        float altoLogo = primeraPagina ? 88f : 53f;
+        LogoHistoriaClinica.dibujar(pdf, margen, top, anchoLogo, altoLogo);
 
-        pdf.setY(ySuperior - altoLogo - 22f);
-        String textoTitulo = titulo();
-        float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT, 14, textoTitulo);
-        pdf.text(PdfStyle.H2_FONT, 14,
-                (anchoPagina - anchoTitulo) / 2f, pdf.getY(), textoTitulo);
-        pdf.down(19f);
+        int tamanioTitulo = primeraPagina ? 14 : 11;
+        float xTitulo = margen + anchoLogo + 17f;
+        float yTitulo = top - (altoLogo / 2f) + 4f;
+        pdf.text(PdfStyle.H2_FONT, tamanioTitulo, xTitulo, yTitulo, titulo());
+        pdf.setY(top - altoLogo - 13f);
         pdf.line();
-        pdf.down(9f);
+        pdf.down(12f);
     }
 
     @Override
