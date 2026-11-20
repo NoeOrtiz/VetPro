@@ -96,7 +96,13 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         tableHistoriaClinica.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 int fila = tableHistoriaClinica.rowAtPoint(e.getPoint());
-                if (fila >= 0) seleccionarFilaUnica(tableHistoriaClinica.convertRowIndexToModel(fila));
+                // El checkbox tiene su propio listener: no seleccionar dos veces
+                // ni recalcular el listado cuando se hace clic sobre la casilla.
+                int columna = tableHistoriaClinica.columnAtPoint(e.getPoint());
+                if (fila >= 0 && columna >= 0
+                        && tableHistoriaClinica.convertColumnIndexToModel(columna) != 0) {
+                    seleccionarFilaUnica(tableHistoriaClinica.convertRowIndexToModel(fila));
+                }
             }
         });
         tableHistoriaClinica.getModel().addTableModelListener(e -> {
@@ -289,6 +295,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         tableHistoriaClinica.setRowHeight(34);
         ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
                 .setAjustarAnchoAutomaticamente(false);
+        ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
+                .setIgnorarActualizacionesCheckbox(true);
         // Proporciones del modelo antes de ocultar el ID. Las columnas cortas
         // conservan un ancho máximo; Resumen y Observaciones absorben el resto.
         int[] widths = {92, 45, 155, 145, 175, 360, 500};
@@ -340,18 +348,6 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                                 .reajustarColumnasYFilasSeguro());
             }
         });
-        tableHistoriaClinica.getColumnModel().addColumnModelListener(
-                new javax.swing.event.TableColumnModelListener() {
-                    @Override public void columnMarginChanged(javax.swing.event.ChangeEvent e) {
-                        javax.swing.SwingUtilities.invokeLater(() ->
-                                ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
-                                        .reajustarColumnasYFilasSeguro());
-                    }
-                    @Override public void columnAdded(javax.swing.event.TableColumnModelEvent e) {}
-                    @Override public void columnRemoved(javax.swing.event.TableColumnModelEvent e) {}
-                    @Override public void columnMoved(javax.swing.event.TableColumnModelEvent e) {}
-                    @Override public void columnSelectionChanged(javax.swing.event.ListSelectionEvent e) {}
-                });
         tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
         ocultarColumnaId();
         configurarAnchosHistoria();
@@ -520,6 +516,9 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         }
 
         ocultarColumnaId();
+        // Alturas definitivas antes de que el usuario seleccione una fila.
+        ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
+                .reajustarColumnasYFilasSeguro();
         actualizarEstadoBotones();
 
     }
