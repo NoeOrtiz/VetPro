@@ -36,21 +36,24 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
      */
     @Override
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
-        float anchoPagina = pdf.getPageW();
-        float ySuperior = pdf.getY();
-        float anchoLogo = 160f;
-        float altoLogo = 116f;
-        renderLogo(pdf, (anchoPagina - anchoLogo) / 2f,
-                ySuperior - altoLogo, anchoLogo, altoLogo);
-
-        pdf.setY(ySuperior - altoLogo - 22f);
-        String textoTitulo = titulo();
-        float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT, 14, textoTitulo);
-        pdf.text(PdfStyle.H2_FONT, 14,
-                (anchoPagina - anchoTitulo) / 2f, pdf.getY(), textoTitulo);
-        pdf.down(19f);
+        float pageW = pdf.getPageW();
+        float top = pdf.getY();
+        boolean portada = pdf.getCurrentPage() == 1;
+        // Logo institucional visible en portada; en páginas siguientes,
+        // encabezado breve para aprovechar la superficie clínica.
+        float logoW = portada ? 128f : 75f;
+        float logoH = portada ? 78f : 43f;
+        renderLogo(pdf, (pageW - logoW) / 2f,
+                top - logoH, logoW, logoH);
+        pdf.setY(top - logoH - (portada ? 18f : 11f));
+        String tituloReporte = titulo();
+        float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT,
+                portada ? 14 : 11, tituloReporte);
+        pdf.text(PdfStyle.H2_FONT, portada ? 14 : 11,
+                (pageW - anchoTitulo) / 2f, pdf.getY(), tituloReporte);
+        pdf.down(portada ? 19f : 15f);
         pdf.line();
-        pdf.down(9f);
+        pdf.down(portada ? 12f : 16f);
     }
 
     @Override
@@ -103,10 +106,12 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         // Mantener el encabezado junto al primer evento: evitar títulos
         // abandonados al final de página y el conteo aislado en la siguiente.
         // Dejar la sección junto al primer evento, sin reservar media página.
-        if (pdf.getY() < 225f) {
+        // Reservar el título de evolución y la primera atención juntos.
+        // No desplazar a una página nueva el título por separado.
+        float reservaInicial = eventos.isEmpty() ? 52f : 135f;
+        if (pdf.getY() - reservaInicial < pdf.getMargin() + 42f) {
             pdf.nuevaPagina();
             renderHeader(pdf, request);
-            pdf.down(22f); // distancia real entre encabezado y primera sección
         }
         seccion(pdf, "03  EVOLUCIÓN CLÍNICA Y ATENCIONES");
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
@@ -128,7 +133,6 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                     && pdf.getY() - reserva < pdf.getMargin() + 12f) {
                 pdf.nuevaPagina();
                 renderHeader(pdf, request);
-                pdf.down(26f); // no apoyar el evento sobre la línea del encabezado
             }
 
             String fechaTxt = (ev.getFecha() != null) ? ev.getFecha().format(DTF) : "";
