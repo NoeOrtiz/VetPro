@@ -86,47 +86,65 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                 "Consultar las evoluciones y observaciones de los eventos siguientes.");
         pdf.down(17f);
 
+        // Mantener el encabezado junto al primer evento: evitar títulos
+        // abandonados al final de página y el conteo aislado en la siguiente.
+        pdf.ensureSpace(225f);
         seccion(pdf, "EVOLUCIÓN E HISTORIAL CLÍNICO");
-        campo(pdf, "Total de eventos", String.valueOf(eventos.size()));
+        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
+                "Total de eventos registrados: " + eventos.size());
+        pdf.down(23f);
 
         for (HistoriaEvento ev : eventos) {
-            pdf.ensureSpace(145f);
+            int lineasResumen = pdf.wrapText(PdfStyle.TXT_FONT, 10,
+                    safe(ev.getResumen()), pdf.getUsableWidth() - 20f).size();
+            int lineasObservaciones = pdf.wrapText(PdfStyle.TXT_FONT, 10,
+                    safe(ev.getObservaciones()), pdf.getUsableWidth() - 20f).size();
+            float reserva = 52f
+                    + (safe(ev.getResumen()).isBlank() ? 0f : 32f + lineasResumen * 17f)
+                    + (safe(ev.getObservaciones()).isBlank() ? 0f : 32f + lineasObservaciones * 17f)
+                    + 47f;
+            // Un evento no se parte salvo que exceda una página completa.
+            if (reserva < pdf.getUsableHeight() - 110f) {
+                pdf.ensureSpace(reserva);
+            } else {
+                pdf.ensureSpace(80f);
+            }
 
             String fechaTxt = (ev.getFecha() != null) ? ev.getFecha().format(DTF) : "";
             String tituloEv = (safe(ev.getTipo()).isBlank() ? "EVENTO" : safe(ev.getTipo()))
                     + (fechaTxt.isBlank() ? "" : "  -  " + fechaTxt);
 
             pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, pdf.getY(), tituloEv);
-            pdf.down(21f);
+            pdf.down(18f);
 
             if (!safe(ev.getProfesional()).isBlank()) {
                 pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Profesional: " + safe(ev.getProfesional()));
-                pdf.down(19f);
+                pdf.down(17f);
             }
 
             if (!safe(ev.getResumen()).isBlank()) {
                 pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), "Resumen:");
                 pdf.down(18f);
                 renderParagraph(pdf, safe(ev.getResumen()), 10);
-                pdf.down(13f);
+                pdf.down(9f);
             }
 
             if (!safe(ev.getObservaciones()).isBlank()) {
                 pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), "Observaciones:");
                 pdf.down(18f);
                 renderParagraph(pdf, safe(ev.getObservaciones()), 10);
-                pdf.down(13f);
+                pdf.down(9f);
             }
 
             String ref = buildRef(ev);
             if (!ref.isBlank()) {
                 pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), ref);
-                pdf.down(16f);
+                pdf.down(14f);
             }
 
-            pdf.down(5f);
+            pdf.down(3f);
             pdf.line();
-            pdf.down(14f);
+            pdf.down(9f);
         }
 
         // El usuario y la fecha ya figuran en el pie de todas las páginas.
