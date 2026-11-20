@@ -60,7 +60,7 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
             java.util.List<String> lo = pdf.wrapText(PdfStyle.TXT_FONT, 9,
                     observaciones, colObs - 12f);
             int renglones = Math.max(lr.size(), lo.size());
-            float alto = 18f + 17f + 17f + (renglones * 14f) + 17f;
+            float alto = 42f + renglones * 13f;
             if (pdf.getY() - alto < pdf.getMargin() + 20f) {
                 pdf.nuevaPagina();
                 renderHeader(pdf, request);
@@ -72,20 +72,20 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
                     "N.º " + id + "  |  " + tipo + "  |  " + fecha);
             pdf.text(PdfStyle.TXT_FONT, 9, xObs, arriba,
                     "Profesional: " + (profesional.isBlank() ? "No registrado" : profesional));
-            pdf.down(18f);
+            pdf.down(14f);
             pdf.text(PDType1Font.HELVETICA_BOLD, 8, x, pdf.getY(), "RESUMEN");
             pdf.text(PDType1Font.HELVETICA_BOLD, 8, xObs, pdf.getY(), "OBSERVACIONES");
-            pdf.down(17f);
+            pdf.down(14f);
             float yTexto = pdf.getY();
             for (int i = 0; i < lr.size(); i++) {
-                pdf.text(PdfStyle.TXT_FONT, 9, x + 6f, yTexto - i * 14f, lr.get(i));
+                pdf.text(PdfStyle.TXT_FONT, 9, x + 6f, yTexto - i * 13f, lr.get(i));
             }
             for (int i = 0; i < lo.size(); i++) {
-                pdf.text(PdfStyle.TXT_FONT, 9, xObs + 6f, yTexto - i * 14f, lo.get(i));
+                pdf.text(PdfStyle.TXT_FONT, 9, xObs + 6f, yTexto - i * 13f, lo.get(i));
             }
-            pdf.down(renglones * 14f + 9f);
+            pdf.down(renglones * 13f + 7f);
             pdf.line();
-            pdf.down(8f);
+            pdf.down(6f);
         }
     }
 
