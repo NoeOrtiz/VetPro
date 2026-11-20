@@ -675,7 +675,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
         btnVerHistoria.setEnabled(hayMascota);
 
-        btnImprimirHistoria.setEnabled(hayRegistros);
+        // La historia completa se imprime por paciente, sin seleccionar una fila.
+        btnImprimirHistoria.setEnabled(hayMascota);
 
         btnImprimirListaHistorias.setEnabled(hayRegistros);
 
