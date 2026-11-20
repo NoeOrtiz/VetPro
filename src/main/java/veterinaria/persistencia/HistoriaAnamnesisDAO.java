@@ -23,6 +23,21 @@ public class HistoriaAnamnesisDAO {
         }
     }
 
+    public List<HistoriaAnamnesis> listarVersiones(Integer idMascota) {
+        if (idMascota == null) return java.util.Collections.emptyList();
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            return em.createQuery(
+                    "SELECT a FROM HistoriaAnamnesis a WHERE a.mascota.idMascota = :id "
+                            + "ORDER BY a.fechaRegistro DESC, a.idAnamnesis DESC",
+                    HistoriaAnamnesis.class)
+                    .setParameter("id", idMascota)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
     public void guardarVersion(HistoriaAnamnesis datos) {
         if (datos == null || datos.getMascota() == null
                 || datos.getMascota().getIdMascota() == null)
