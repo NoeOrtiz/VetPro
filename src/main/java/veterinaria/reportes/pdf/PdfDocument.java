@@ -100,6 +100,15 @@ public class PdfDocument implements Closeable {
         this.y = y;
     }
 
+    /** Relleno gráfico para encabezados de reportes, sin alterar el estilo global. */
+    public void fillRect(float x, float y, float w, float h, java.awt.Color color)
+            throws IOException {
+        cs.setNonStrokingColor(color);
+        cs.addRect(x, y, w, h);
+        cs.fill();
+        cs.setNonStrokingColor(java.awt.Color.BLACK);
+    }
+
     public void rect(float x, float y, float w, float h) throws IOException {
         cs.addRect(x, y, w, h);
         cs.stroke();
