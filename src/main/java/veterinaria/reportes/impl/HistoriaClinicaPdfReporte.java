@@ -36,24 +36,22 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
      */
     @Override
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
-        float pageW = pdf.getPageW();
         float top = pdf.getY();
-        boolean portada = pdf.getCurrentPage() == 1;
-        // Logo institucional visible en portada; en páginas siguientes,
-        // encabezado breve para aprovechar la superficie clínica.
-        float logoW = portada ? 128f : 75f;
-        float logoH = portada ? 78f : 43f;
-        renderLogo(pdf, (pageW - logoW) / 2f,
-                top - logoH, logoW, logoH);
-        pdf.setY(top - logoH - (portada ? 18f : 11f));
-        String tituloReporte = titulo();
-        float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT,
-                portada ? 14 : 11, tituloReporte);
-        pdf.text(PdfStyle.H2_FONT, portada ? 14 : 11,
-                (pageW - anchoTitulo) / 2f, pdf.getY(), tituloReporte);
-        pdf.down(portada ? 19f : 15f);
+        float margen = pdf.getMargin();
+        boolean primeraPagina = pdf.getCurrentPage() == 1;
+        // Encabezado institucional horizontal: logo original sin márgenes
+        // transparentes y sin estirar la imagen.
+        float anchoLogo = primeraPagina ? 115f : 72f;
+        float altoLogo = primeraPagina ? 88f : 53f;
+        LogoHistoriaClinica.dibujar(pdf, margen, top, anchoLogo, altoLogo);
+
+        int tamanioTitulo = primeraPagina ? 14 : 11;
+        float xTitulo = margen + anchoLogo + 17f;
+        float yTitulo = top - (altoLogo / 2f) + 4f;
+        pdf.text(PdfStyle.H2_FONT, tamanioTitulo, xTitulo, yTitulo, titulo());
+        pdf.setY(top - altoLogo - 13f);
         pdf.line();
-        pdf.down(portada ? 12f : 16f);
+        pdf.down(12f);
     }
 
     @Override
