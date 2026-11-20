@@ -28,6 +28,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
     private Mascota mascotaSeleccionada;
     private final javax.swing.JButton seleccionarPaciente = new javax.swing.JButton("Seleccionar paciente...");
     private final javax.swing.JButton btnAnamnesis = new javax.swing.JButton("Anamnesis");
+    private final javax.swing.JLabel lblResumenAntecedentes = new javax.swing.JLabel("Seleccioná un paciente.");
     private final javax.swing.JButton btnHistorialAnamnesis =
             new javax.swing.JButton("Versiones");
     private final veterinaria.persistencia.HistoriaAnamnesisDAO anamnesisDAO =
@@ -82,9 +83,10 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             seleccionarPaciente.setText(listaMascotas.get(idx - 1).getValue());
 
             mostrarDetalleMascota();
+            actualizarVistaAntecedentes();
 
-            // Solo muestra los datos. La historia se consulta con el botón.
-            limpiarTabla();
+            // Al seleccionar un paciente, su historia se consulta automáticamente.
+            cargarHistoria();
 
         });
 
@@ -168,9 +170,11 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         javax.swing.JPanel acciones = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
-        acciones.add(btnAnamnesis);
-        acciones.add(btnHistorialAnamnesis);
-        acciones.add(btnVerHistoria);
+        // Acciones principales: los antecedentes y sus versiones quedan
+        // asociados a la ficha, no como cuatro botones en el encabezado.
+        btnAnamnesis.setText("Actualizar antecedentes");
+        btnHistorialAnamnesis.setText("Historial de cambios");
+        btnImprimirHistoria.setText("Imprimir historia clínica");
         acciones.add(btnImprimirHistoria);
         titulo.add(acciones, java.awt.BorderLayout.EAST);
         jPanel1.add(titulo, java.awt.BorderLayout.NORTH);
@@ -195,6 +199,23 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         caracteristicas.add(campoFicha(lbPeso, txtPeso));
         caracteristicas.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 58));
         campos.add(caracteristicas);
+        campos.add(javax.swing.Box.createVerticalStrut(8));
+        javax.swing.JPanel antecedentes = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        antecedentes.setOpaque(false);
+        javax.swing.JPanel detalleAntecedentes = new javax.swing.JPanel(
+                new java.awt.BorderLayout(0, 3));
+        detalleAntecedentes.setOpaque(false);
+        detalleAntecedentes.add(new javax.swing.JLabel("ANTECEDENTES CLÍNICOS"),
+                java.awt.BorderLayout.NORTH);
+        detalleAntecedentes.add(lblResumenAntecedentes, java.awt.BorderLayout.CENTER);
+        antecedentes.add(detalleAntecedentes, java.awt.BorderLayout.CENTER);
+        javax.swing.JPanel accionesAntecedentes = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
+        accionesAntecedentes.setOpaque(false);
+        accionesAntecedentes.add(btnAnamnesis);
+        accionesAntecedentes.add(btnHistorialAnamnesis);
+        antecedentes.add(accionesAntecedentes, java.awt.BorderLayout.EAST);
+        campos.add(antecedentes);
         jPanel1.add(campos, java.awt.BorderLayout.CENTER);
         jPanel1.add(jSeparator1, java.awt.BorderLayout.SOUTH);
     }
@@ -656,12 +677,36 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             nueva.setComportamiento(d[10]);
             nueva.setSenalesParticulares(d[11]);
             anamnesisDAO.guardarVersion(nueva);
+            actualizarVistaAntecedentes();
             JOptionPane.showMessageDialog(this,
-                    "Anamnesis guardada. Se conservó la versión anterior.");
+                    "Antecedentes actualizados. Se conservó la versión anterior.");
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "No se pudo consultar o guardar la anamnesis: " + ex.getMessage(),
                     "Error de anamnesis", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void actualizarVistaAntecedentes() {
+        if (mascotaSeleccionada == null) {
+            lblResumenAntecedentes.setText("Seleccioná un paciente.");
+            return;
+        }
+        try {
+            veterinaria.entidad.HistoriaAnamnesis a =
+                    anamnesisDAO.ultima(mascotaSeleccionada.getIdMascota());
+            if (a == null) {
+                lblResumenAntecedentes.setText("Sin antecedentes complementarios cargados.");
+                return;
+            }
+            int campos = 0;
+            for (String valor : valoresAnamnesis(a)) {
+                if (valor != null && !valor.isBlank()) campos++;
+            }
+            lblResumenAntecedentes.setText(campos + " datos registrados · Actualizado: "
+                    + a.getFechaRegistro().format(dtf));
+        } catch (Exception ex) {
+            lblResumenAntecedentes.setText("No se pudieron consultar los antecedentes.");
         }
     }
 
@@ -695,6 +740,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         txtSexo.setText("");
         txtEdad.setText("");
         txtPeso.setText("");
+        lblResumenAntecedentes.setText("Seleccioná un paciente.");
     }
 
     private String calcularEdadTexto(LocalDate fechaNacimiento) {
