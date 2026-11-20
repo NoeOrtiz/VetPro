@@ -48,7 +48,6 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         Mascota mascota = request.get("mascota", Mascota.class);
         @SuppressWarnings("unchecked")
         List<HistoriaEvento> eventos = request.get("eventos", List.class);
-        String emisor = request.get("emisor", String.class);
 
         float x = pdf.getMargin();
 
@@ -90,86 +89,85 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         campo(pdf, "Total de eventos", String.valueOf(eventos.size()));
 
         for (HistoriaEvento ev : eventos) {
-            pdf.ensureSpace(80f);
+            pdf.ensureSpace(145f);
 
             String fechaTxt = (ev.getFecha() != null) ? ev.getFecha().format(DTF) : "";
             String tituloEv = (safe(ev.getTipo()).isBlank() ? "EVENTO" : safe(ev.getTipo()))
                     + (fechaTxt.isBlank() ? "" : "  -  " + fechaTxt);
 
             pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, pdf.getY(), tituloEv);
-            pdf.down(14f);
+            pdf.down(21f);
 
             if (!safe(ev.getProfesional()).isBlank()) {
                 pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Profesional: " + safe(ev.getProfesional()));
-                pdf.down(12f);
+                pdf.down(19f);
             }
 
             if (!safe(ev.getResumen()).isBlank()) {
                 pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), "Resumen:");
-                pdf.down(12f);
+                pdf.down(18f);
                 renderParagraph(pdf, safe(ev.getResumen()), 10);
-                pdf.down(8f);
+                pdf.down(13f);
             }
 
             if (!safe(ev.getObservaciones()).isBlank()) {
                 pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), "Observaciones:");
-                pdf.down(12f);
+                pdf.down(18f);
                 renderParagraph(pdf, safe(ev.getObservaciones()), 10);
-                pdf.down(8f);
+                pdf.down(13f);
             }
 
             String ref = buildRef(ev);
             if (!ref.isBlank()) {
                 pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), ref);
-                pdf.down(12f);
+                pdf.down(16f);
             }
 
+            pdf.down(5f);
             pdf.line();
+            pdf.down(14f);
         }
 
-        if (emisor != null && !emisor.isBlank()) {
-            pdf.ensureSpace(40f);
-            pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), "Emitido por: " + emisor);
-            pdf.down(12f);
-            pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), "Fecha y hora: " + LocalDateTime.now().format(DTF));
-            pdf.down(12f);
-        }
+        // El usuario y la fecha ya figuran en el pie de todas las páginas.
+        // No generar una página adicional solo para repetir esos datos.
     }
 
     private void seccion(PdfDocument pdf, String titulo) throws Exception {
-        pdf.ensureSpace(34f);
-        pdf.down(7f);
+        pdf.ensureSpace(46f);
+        pdf.down(12f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 11, pdf.getMargin(), pdf.getY(), titulo);
-        pdf.down(15f);
+        pdf.down(19f);
         pdf.line();
-        pdf.down(5f);
+        pdf.down(10f);
     }
 
     private void campo(PdfDocument pdf, String nombre, String valor) throws Exception {
-        pdf.ensureSpace(20f);
         float x = pdf.getMargin();
-        String etiqueta = nombre + ": ";
-        pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(), etiqueta);
-        float offset = pdf.textWidth(PDType1Font.HELVETICA_BOLD, 9, etiqueta);
-        String texto = valor.isBlank() ? "No registrado" : valor;
-        java.util.List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 9, texto,
-                pdf.getUsableWidth() - offset - 4f);
-        pdf.text(PdfStyle.TXT_FONT, 9, x + offset, pdf.getY(), lineas.get(0));
-        pdf.down(13f);
-        for (int i = 1; i < lineas.size(); i++) {
-            pdf.ensureSpace(16f);
-            pdf.text(PdfStyle.TXT_FONT, 9, x + offset, pdf.getY(), lineas.get(i));
-            pdf.down(13f);
+        float ancho = pdf.getUsableWidth() - 18f;
+        String texto = valor == null || valor.isBlank() ? "No registrado" : valor;
+        java.util.List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 10, texto, ancho);
+        float alto = 21f + (lineas.size() * 16f) + 9f;
+        pdf.ensureSpace(alto + 8f);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(), nombre);
+        pdf.down(20f);
+        for (int i = 0; i < lineas.size(); i++) {
+            pdf.textJustified(PdfStyle.TXT_FONT, 10, x + 10f, pdf.getY(),
+                    lineas.get(i), ancho, i < lineas.size() - 1);
+            pdf.down(16f);
         }
+        pdf.down(9f);
     }
 
     private void renderParagraph(PdfDocument pdf, String text, int fontSize) throws Exception {
         float maxW = pdf.getPageW() - (pdf.getMargin() * 2);
         java.util.List<String> lines = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, text, maxW);
-        final float lineH = 12f;
-        for (String ln : lines) {
-            pdf.ensureSpace(lineH + 4f);
-            pdf.text(PdfStyle.TXT_FONT, fontSize, pdf.getMargin(), pdf.getY(), ln);
+        final float lineH = 17f;
+        for (int i = 0; i < lines.size(); i++) {
+            String ln = lines.get(i);
+            pdf.ensureSpace(lineH + 7f);
+            pdf.textJustified(PdfStyle.TXT_FONT, fontSize,
+                    pdf.getMargin() + 10f, pdf.getY(), ln, maxW - 20f,
+                    i < lines.size() - 1 && !ln.isBlank());
             pdf.down(lineH);
         }
     }
