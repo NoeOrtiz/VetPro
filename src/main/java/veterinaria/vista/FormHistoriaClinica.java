@@ -27,6 +27,9 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
     private final List<Map.Entry<Integer, String>> listaMascotas = new ArrayList<>();
     private Mascota mascotaSeleccionada;
     private final javax.swing.JButton seleccionarPaciente = new javax.swing.JButton("Seleccionar paciente...");
+    private final javax.swing.JButton btnAnamnesis = new javax.swing.JButton("Anamnesis");
+    private final veterinaria.persistencia.HistoriaAnamnesisDAO anamnesisDAO =
+            new veterinaria.persistencia.HistoriaAnamnesisDAO();
     private final java.util.List<Mascota> pacientesBusqueda = new java.util.ArrayList<>();
     private veterinaria.util.PaginacionTablas paginacionHistoria;
     private final javax.swing.JTextField buscarRegistros = new javax.swing.JTextField(22);
@@ -50,6 +53,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         btnCancelarHistoria.setText("Limpiar");
         cargarComboMascotas();
         seleccionarPaciente.addActionListener(e -> abrirSelectorPacientes());
+        btnAnamnesis.addActionListener(e -> abrirAnamnesis());
         initListeners();
         actualizarCantidadRegistros(0);
         actualizarEstadoBotones();
@@ -161,6 +165,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         javax.swing.JPanel acciones = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
+        acciones.add(btnAnamnesis);
         acciones.add(btnVerHistoria);
         acciones.add(btnImprimirHistoria);
         titulo.add(acciones, java.awt.BorderLayout.EAST);
@@ -479,6 +484,107 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 .toLowerCase(java.util.Locale.ROOT);
     }
 
+    private static final String[] ETIQUETAS_ANAMNESIS = {
+        "Dieta y alimentación", "Enfermedades previas", "Cirugías previas",
+        "Esquema de vacunación", "Última desparasitación y producto",
+        "Tratamientos recientes", "Esterilización (Sí / No / Sin datos)",
+        "Número de partos", "Viajes recientes", "Convivencia con otros animales",
+        "Comportamiento", "Identificaciones y señales particulares"
+    };
+
+    private String[] valoresAnamnesis(veterinaria.entidad.HistoriaAnamnesis a) {
+        if (a == null) return new String[ETIQUETAS_ANAMNESIS.length];
+        return new String[]{a.getDieta(), a.getEnfermedadesPrevias(),
+            a.getCirugiasPrevias(), a.getEsquemaVacunal(), a.getDesparasitacion(),
+            a.getTratamientosRecientes(), a.getEsterilizacion(), a.getNumeroPartos(),
+            a.getViajesRecientes(), a.getConviveConAnimales(),
+            a.getComportamiento(), a.getSenalesParticulares()};
+    }
+
+    private void abrirAnamnesis() {
+        if (mascotaSeleccionada == null) {
+            JOptionPane.showMessageDialog(this, "Seleccioná un paciente.");
+            return;
+        }
+        try {
+            veterinaria.entidad.HistoriaAnamnesis anterior =
+                    anamnesisDAO.ultima(mascotaSeleccionada.getIdMascota());
+            String[] guardados = valoresAnamnesis(anterior);
+            javax.swing.JPanel campos = new javax.swing.JPanel();
+            campos.setLayout(new javax.swing.BoxLayout(campos, javax.swing.BoxLayout.Y_AXIS));
+            campos.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12));
+            javax.swing.JTextArea[] entradas = new javax.swing.JTextArea[ETIQUETAS_ANAMNESIS.length];
+            javax.swing.JLabel encabezado = new javax.swing.JLabel(
+                    "ANAMNESIS · " + mascotaSeleccionada.getNombre()
+                    + (anterior == null ? " · Sin antecedentes registrados"
+                            : " · Última actualización: " + anterior.getFechaRegistro().format(dtf)));
+            encabezado.setFont(encabezado.getFont().deriveFont(java.awt.Font.BOLD));
+            encabezado.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+            campos.add(encabezado);
+            campos.add(javax.swing.Box.createVerticalStrut(12));
+            for (int i = 0; i < entradas.length; i++) {
+                javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+                campo.setOpaque(false);
+                campo.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 85));
+                javax.swing.JLabel etiqueta = new javax.swing.JLabel(ETIQUETAS_ANAMNESIS[i]);
+                javax.swing.JTextArea entrada = new javax.swing.JTextArea(
+                        guardados[i] == null ? "" : guardados[i], 2, 48);
+                entrada.setLineWrap(true);
+                entrada.setWrapStyleWord(true);
+                entradas[i] = entrada;
+                campo.add(etiqueta, java.awt.BorderLayout.NORTH);
+                campo.add(new javax.swing.JScrollPane(entrada), java.awt.BorderLayout.CENTER);
+                campos.add(campo);
+                campos.add(javax.swing.Box.createVerticalStrut(10));
+            }
+            javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(campos);
+            scroll.setPreferredSize(new java.awt.Dimension(720, 485));
+            scroll.getVerticalScrollBar().setUnitIncrement(18);
+            int respuesta = JOptionPane.showConfirmDialog(this, scroll,
+                    "Ficha de anamnesis · Guardar nueva versión",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+            if (respuesta != JOptionPane.OK_OPTION) return;
+            boolean cambios = false;
+            for (int i = 0; i < entradas.length; i++) {
+                if (!entradas[i].getText().trim().equals(
+                        guardados[i] == null ? "" : guardados[i].trim())) {
+                    cambios = true;
+                    break;
+                }
+            }
+            if (!cambios) {
+                JOptionPane.showMessageDialog(this, "No hay cambios para guardar.");
+                return;
+            }
+            veterinaria.entidad.HistoriaAnamnesis nueva =
+                    new veterinaria.entidad.HistoriaAnamnesis();
+            nueva.setMascota(mascotaSeleccionada);
+            nueva.setRegistradoPor(
+                    veterinaria.vista.application.Application.getNombreApellidoUsuarioLogeado());
+            String[] d = new String[entradas.length];
+            for (int i = 0; i < d.length; i++) d[i] = entradas[i].getText().trim();
+            nueva.setDieta(d[0]);
+            nueva.setEnfermedadesPrevias(d[1]);
+            nueva.setCirugiasPrevias(d[2]);
+            nueva.setEsquemaVacunal(d[3]);
+            nueva.setDesparasitacion(d[4]);
+            nueva.setTratamientosRecientes(d[5]);
+            nueva.setEsterilizacion(d[6]);
+            nueva.setNumeroPartos(d[7]);
+            nueva.setViajesRecientes(d[8]);
+            nueva.setConviveConAnimales(d[9]);
+            nueva.setComportamiento(d[10]);
+            nueva.setSenalesParticulares(d[11]);
+            anamnesisDAO.guardarVersion(nueva);
+            JOptionPane.showMessageDialog(this,
+                    "Anamnesis guardada. Se conservó la versión anterior.");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "No se pudo consultar o guardar la anamnesis: " + ex.getMessage(),
+                    "Error de anamnesis", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void mostrarDetalleMascota() {
         if (mascotaSeleccionada == null) {
             limpiarDetalleMascota();
@@ -735,6 +841,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         boolean haySeleccion = tableHistoriaClinica.getSelectedRow() >= 0;
 
         btnVerHistoria.setEnabled(hayMascota);
+        btnAnamnesis.setEnabled(hayMascota);
 
         btnImprimirHistoria.setEnabled(hayRegistros);
 
@@ -1096,7 +1203,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
             ReporteRequest req = new ReporteRequest()
                     .put("mascota", mascotaSeleccionada)
-                    .put("eventos", eventos);
+                    .put("eventos", eventos)
+                    .put("anamnesis", anamnesisDAO.ultima(mascotaSeleccionada.getIdMascota()));
 
             ReporteEjecutor.ejecutarConAviso(this, ReporteTipo.HISTORIA_CLINICA, req);
         } catch (Exception ex) {
