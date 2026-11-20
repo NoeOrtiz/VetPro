@@ -300,6 +300,18 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                                     tabla.getColumnModel().getColumn(columnaVista).getWidth() - 24);
                             String html = texto.replace("&", "&amp;").replace("<", "&lt;")
                                     .replace(">", "&gt;").replace("\n", "<br>");
+                            // Resaltar solo el prefijo de los campos buscados.
+                            String consulta = buscarRegistros.getText().trim();
+                            int columnaModelo = tabla.convertColumnIndexToModel(columnaVista);
+                            if (!consulta.isEmpty() && columnaModelo >= 2 && columnaModelo <= 5
+                                    && veterinaria.util.ManejoTablas.coincideBusqueda(
+                                            texto, consulta, true) && texto.length() >= consulta.length()) {
+                                String prefijo = texto.substring(0, consulta.length());
+                                String resto = texto.substring(consulta.length());
+                                html = "<span style='color:#FFA500;font-weight:bold'>"
+                                        + escaparHtml(prefijo) + "</span>"
+                                        + escaparHtml(resto).replace("\n", "<br>");
+                            }
                             setText("<html><div style='width:" + disponible
                                     + "px; margin:0px'>" + html + "</div></html>");
                             setBorder(javax.swing.BorderFactory.createEmptyBorder(6, 9, 6, 9));
@@ -331,6 +343,10 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
         ocultarColumnaId();
         limpiarTabla();
+    }
+
+    private String escaparHtml(String texto) {
+        return texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private void actualizarCantidadRegistros(int cantidad) {
