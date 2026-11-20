@@ -108,7 +108,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         // Dejar la sección junto al primer evento, sin reservar media página.
         // Reservar el título de evolución y la primera atención juntos.
         // No desplazar a una página nueva el título por separado.
-        float reservaInicial = eventos.isEmpty() ? 52f : 135f;
+        float reservaInicial = eventos.isEmpty() ? 52f : 205f;
         if (pdf.getY() - reservaInicial < pdf.getMargin() + 42f) {
             pdf.nuevaPagina();
             renderHeader(pdf, request);
@@ -181,12 +181,12 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
 
     private void seccion(PdfDocument pdf, String titulo) throws Exception {
         pdf.ensureSpace(44f);
-        pdf.down(8f);
-        pdf.fillRect(pdf.getMargin(), pdf.getY() - 19f,
-                pdf.getUsableWidth(), 28f, new java.awt.Color(231, 236, 241));
+        pdf.down(6f);
+        pdf.fillRect(pdf.getMargin(), pdf.getY() - 17f,
+                pdf.getUsableWidth(), 26f, new java.awt.Color(231, 236, 241));
         pdf.text(PDType1Font.HELVETICA_BOLD, 10,
                 pdf.getMargin() + 10f, pdf.getY() - 8f, titulo);
-        pdf.down(37f);
+        pdf.down(30f);
     }
 
     /** Dos campos alineados; separación horizontal y vertical constante. */
@@ -201,13 +201,13 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         java.util.List<String> li = pdf.wrapText(PdfStyle.TXT_FONT, 10, vi, ancho - 12f);
         java.util.List<String> ld = pdf.wrapText(PdfStyle.TXT_FONT, 10, vd, ancho - 12f);
         int n = Math.max(li.size(), ld.size());
-        float altura = 17f + n * 15f + 7f;
+        float altura = 17f + n * 14f + 3f;
         pdf.ensureSpace(altura + 4f);
         float arriba = pdf.getY();
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, arriba, nombreIzq);
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, xDer, arriba, nombreDer);
         for (int i = 0; i < li.size(); i++) {
-            pdf.text(PdfStyle.TXT_FONT, 10, x + 9f, arriba - 17f - i * 15f, li.get(i));
+            pdf.text(PdfStyle.TXT_FONT, 10, x + 9f, arriba - 17f - i * 14f, li.get(i));
         }
         for (int i = 0; i < ld.size(); i++) {
             pdf.text(PdfStyle.TXT_FONT, 10, xDer + 9f, arriba - 17f - i * 15f, ld.get(i));
