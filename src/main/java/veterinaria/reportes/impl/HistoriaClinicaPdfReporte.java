@@ -27,7 +27,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
 
     @Override
     protected String titulo() {
-        return "HISTORIA CLÍNICA - DETALLADO";
+        return "HISTORIA CLÍNICA VETERINARIA";
     }
 
     @Override
@@ -57,7 +57,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                 ? (safe(p.getApellido()) + " " + safe(p.getNombre())).trim()
                 : "";
 
-        seccion(pdf, "DATOS DEL PROPIETARIO");
+        seccion(pdf, "01  DATOS DEL PROPIETARIO");
         campoPar(pdf, "Nombre", p == null ? "" : safe(p.getNombre()),
                 "Apellido", p == null ? "" : safe(p.getApellido()));
         campoPar(pdf, "DNI", p == null ? "" : safe(p.getDni()),
@@ -65,7 +65,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         campoPar(pdf, "Dirección", p == null ? "" : safe(p.getDireccion()),
                 "Correo electrónico", c == null ? "" : safe(c.getEmail()));
 
-        seccion(pdf, "RESEÑA DEL PACIENTE");
+        seccion(pdf, "02  IDENTIFICACIÓN DEL PACIENTE");
         campoPar(pdf, "Historia clínica / ID", safe(mascota.getIdMascota()),
                 "Paciente", safe(mascota.getNombre()));
         campoPar(pdf, "Especie", safe(mascota.getEspecie()),
@@ -85,7 +85,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
             renderHeader(pdf, request);
             pdf.down(22f); // distancia real entre encabezado y primera sección
         }
-        seccion(pdf, "EVOLUCIÓN E HISTORIAL CLÍNICO");
+        seccion(pdf, "03  EVOLUCIÓN CLÍNICA Y ATENCIONES");
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
                 "Total de eventos registrados: " + eventos.size());
         pdf.down(23f);
@@ -112,8 +112,11 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
             String tituloEv = (safe(ev.getTipo()).isBlank() ? "EVENTO" : safe(ev.getTipo()))
                     + (fechaTxt.isBlank() ? "" : "  -  " + fechaTxt);
 
-            pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, pdf.getY(), tituloEv);
-            pdf.down(16f);
+            // Banda de identificación de la atención: fecha y tipo claramente diferenciados.
+            pdf.fillRect(x, pdf.getY() - 22f, pdf.getUsableWidth(), 29f,
+                    new java.awt.Color(234, 239, 243));
+            pdf.text(PDType1Font.HELVETICA_BOLD, 10, x + 10f, pdf.getY() - 11f, tituloEv);
+            pdf.down(34f);
 
             if (!safe(ev.getProfesional()).isBlank()) {
                 pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Profesional: " + safe(ev.getProfesional()));
@@ -140,9 +143,9 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                 pdf.down(14f);
             }
 
-            pdf.down(11f);
+            pdf.down(10f);
             pdf.line();
-            pdf.down(13f);
+            pdf.down(14f);
         }
 
         // El usuario y la fecha ya figuran en el pie de todas las páginas.
@@ -150,12 +153,13 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
     }
 
     private void seccion(PdfDocument pdf, String titulo) throws Exception {
-        pdf.ensureSpace(38f);
-        pdf.down(7f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, 11, pdf.getMargin(), pdf.getY(), titulo);
-        pdf.down(15f);
-        pdf.line();
-        pdf.down(4f);
+        pdf.ensureSpace(44f);
+        pdf.down(8f);
+        pdf.fillRect(pdf.getMargin(), pdf.getY() - 19f,
+                pdf.getUsableWidth(), 28f, new java.awt.Color(231, 236, 241));
+        pdf.text(PDType1Font.HELVETICA_BOLD, 10,
+                pdf.getMargin() + 10f, pdf.getY() - 8f, titulo);
+        pdf.down(37f);
     }
 
     /** Dos campos alineados; separación horizontal y vertical constante. */
