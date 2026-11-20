@@ -17,6 +17,7 @@ public class ClassConfig extends JPanel {
     private final PanelConfigPeluqueria panelConfigPeluqueria = new PanelConfigPeluqueria();
     private final PanelTiposCitaPeluqueria panelTiposCitaPeluqueria = new PanelTiposCitaPeluqueria();
     private final PanelRubros panelRubros = new PanelRubros();
+    private final PanelConfigHistoriaClinica panelHistoriaClinica = new PanelConfigHistoriaClinica();
 
     public ClassConfig() {
         setLayout(new BorderLayout());
@@ -31,6 +32,7 @@ public class ClassConfig extends JPanel {
         tabs.addTab("Turnos y Horarios", panelConfigPeluqueria);
         tabs.addTab("Tipos de Cita", panelTiposCitaPeluqueria);
         tabs.addTab("Rubros / Stock", panelRubros);
+        tabs.addTab("Historia Clínica", panelHistoriaClinica);
 
         tabs.addChangeListener(e -> {
             cargarSolapaSeleccionada();
@@ -55,6 +57,9 @@ public class ClassConfig extends JPanel {
                 break;
             case 5:
                 panelRubros.refrescarTabla();
+                break;
+            case 6:
+                panelHistoriaClinica.cargar();
                 break;
             default:
                 break;
