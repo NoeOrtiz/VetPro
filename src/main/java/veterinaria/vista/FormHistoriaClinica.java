@@ -276,14 +276,15 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         tableHistoriaClinica.getTableHeader().setReorderingAllowed(false);
         tableHistoriaClinica.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         tableHistoriaClinica.setFillsViewportHeight(true);
-        tableHistoriaClinica.setRowHeight(30);
+        tableHistoriaClinica.setRowHeight(34);
+        ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
+                .setAjustarAnchoAutomaticamente(false);
         int[] widths = {92, 50, 135, 125, 185, 250, 295};
         for (int i = 0; i < widths.length; i++) {
             tableHistoriaClinica.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
-        // La tabla muestra una síntesis; el contenido íntegro está en Ver detalle.
-        // Cada celda conserva el valor original en el modelo para el PDF.
-        // La selección utiliza el mismo degradado continuo de Consultas.
+        // Una celda larga se distribuye en varios renglones en lugar de cortarse.
+        // Conservar el mismo degradado continuo que el módulo Consultas.
         tableHistoriaClinica.getColumnModel().getColumn(0).setCellRenderer(
                 new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         for (int columna : new int[]{2, 3, 4, 5, 6}) {
@@ -292,18 +293,41 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                         @Override public java.awt.Component getTableCellRendererComponent(
                                 javax.swing.JTable tabla, Object valor, boolean seleccionado,
                                 boolean foco, int fila, int columnaVista) {
-                            super.getTableCellRendererComponent(tabla, valor, seleccionado,
-                                    foco, fila, columnaVista);
-                            String texto = valor == null ? "" : valor.toString().replace('\n', ' ');
-                            setText(texto);
-                            setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 9, 0, 9));
-                            setToolTipText(texto.isBlank() ? null : "<html><div style='width:360px'>"
-                                    + texto.replace("&", "&amp;").replace("<", "&lt;")
-                                            .replace(">", "&gt;") + "</div></html>");
+                            super.getTableCellRendererComponent(
+                                    tabla, valor, seleccionado, foco, fila, columnaVista);
+                            String texto = valor == null ? "" : String.valueOf(valor);
+                            int disponible = Math.max(72,
+                                    tabla.getColumnModel().getColumn(columnaVista).getWidth() - 24);
+                            String html = texto.replace("&", "&amp;").replace("<", "&lt;")
+                                    .replace(">", "&gt;").replace("\n", "<br>");
+                            setText("<html><div style='width:" + disponible
+                                    + "px; margin:0px'>" + html + "</div></html>");
+                            setBorder(javax.swing.BorderFactory.createEmptyBorder(6, 9, 6, 9));
+                            setToolTipText(texto.isBlank() ? null : "<html><div style='width:420px'>"
+                                    + html + "</div></html>");
                             return this;
                         }
                     });
         }
+        tableHistoriaClinica.addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override public void componentResized(java.awt.event.ComponentEvent e) {
+                javax.swing.SwingUtilities.invokeLater(() ->
+                        ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
+                                .reajustarColumnasYFilasSeguro());
+            }
+        });
+        tableHistoriaClinica.getColumnModel().addColumnModelListener(
+                new javax.swing.event.TableColumnModelListener() {
+                    @Override public void columnMarginChanged(javax.swing.event.ChangeEvent e) {
+                        javax.swing.SwingUtilities.invokeLater(() ->
+                                ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
+                                        .reajustarColumnasYFilasSeguro());
+                    }
+                    @Override public void columnAdded(javax.swing.event.TableColumnModelEvent e) {}
+                    @Override public void columnRemoved(javax.swing.event.TableColumnModelEvent e) {}
+                    @Override public void columnMoved(javax.swing.event.TableColumnModelEvent e) {}
+                    @Override public void columnSelectionChanged(javax.swing.event.ListSelectionEvent e) {}
+                });
         tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
         ocultarColumnaId();
         limpiarTabla();
