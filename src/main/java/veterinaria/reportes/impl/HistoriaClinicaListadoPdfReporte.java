@@ -2,9 +2,7 @@ package veterinaria.reportes.impl;
 
 import javax.swing.JTable;
 import javax.swing.table.TableModel;
-
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-
 import veterinaria.entidad.Mascota;
 import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteTipo;
@@ -12,27 +10,17 @@ import veterinaria.reportes.pdf.AbstractPdfReporte;
 import veterinaria.reportes.pdf.PdfDocument;
 import veterinaria.reportes.pdf.PdfStyle;
 
+/** Listado clínico legible: cada evento tiene su propio bloque de información. */
 public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
 
-    @Override
-    public ReporteTipo tipo() {
-        return ReporteTipo.HISTORIA_CLINICA_LISTADO;
-    }
-
-    @Override
-    protected String titulo() {
-        return "INFORME - LISTA DE HISTORIA CLÍNICA";
-    }
-
-    @Override
-    protected boolean isLandscape() {
-        return true;
-    }
+    @Override public ReporteTipo tipo() { return ReporteTipo.HISTORIA_CLINICA_LISTADO; }
+    @Override protected String titulo() { return "LISTADO DE HISTORIA CLÍNICA"; }
+    @Override protected boolean isLandscape() { return true; }
 
     @Override
     protected void validar(ReporteRequest request) throws Exception {
         JTable tabla = request.get("tabla", JTable.class);
-        if (tabla == null || tabla.getRowCount() == 0) {
+        if (tabla == null || tabla.getModel().getRowCount() == 0) {
             throw new Exception("No hay registros de historia clínica para imprimir.");
         }
     }
@@ -41,112 +29,74 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
         JTable tabla = request.get("tabla", JTable.class);
         Mascota mascota = request.get("mascota", Mascota.class);
-        TableModel m = tabla.getModel();
-
-        String cabecera = "";
-        if (mascota != null) {
-            cabecera = "Paciente: " + safe(mascota.getNombre()) + " (#" + safe(mascota.getIdMascota()) + ")";
-        }
-
-        if (!cabecera.isBlank()) {
-            pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(), cabecera);
-            pdf.down(14f);
-        }
-
-        pdf.text(PdfStyle.TXT_FONT, 10, pdf.getMargin(), pdf.getY(), "Total de eventos listados: " + m.getRowCount());
-        pdf.down(16f);
-
-        int colId = 1;
-        int colFecha = 2;
-        int colTipo = 3;
-        int colProf = 4;
-        int colResumen = 5;
-        int colObs = 6;
-
-        final int fontSize = 9;
-        final float lineH = 14f;
-
-        float[] pesos = {4f, 13f, 12f, 16f, 23f, 32f};
-        float[] w = new float[pesos.length];
-        for (int i = 0; i < pesos.length; i++) {
-            w[i] = pdf.getUsableWidth() * pesos[i] / 100f;
-        }
-
+        TableModel modelo = tabla.getModel();
         float x = pdf.getMargin();
-        final float[] cx = new float[w.length];
-        cx[0] = x;
-        for (int i = 1; i < w.length; i++) {
-            cx[i] = cx[i - 1] + w[i - 1];
-        }
+        float ancho = pdf.getUsableWidth();
 
-        dibujarEncabezado(pdf, cx, fontSize);
+        pdf.down(9f);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(),
+                "Paciente: " + (mascota == null ? "No registrado" : safe(mascota.getNombre())));
+        pdf.down(19f);
+        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
+                "Total de eventos: " + modelo.getRowCount());
+        pdf.down(24f);
 
-        for (int r = 0; r < m.getRowCount(); r++) {
-            String id = safe(m.getValueAt(r, colId));
-            String fecha = safe(m.getValueAt(r, colFecha));
-            String tipo = safe(m.getValueAt(r, colTipo));
-            String prof = safe(m.getValueAt(r, colProf));
-            String resumen = safe(m.getValueAt(r, colResumen));
-            String obs = safe(m.getValueAt(r, colObs));
+        // El modelo conserva ID, Fecha, Tipo, Profesional, Resumen y Observaciones
+        // aunque ID esté oculto y la tabla en pantalla esté filtrada/paginada.
+        for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+            String id = safe(modelo.getValueAt(fila, 1));
+            String fecha = safe(modelo.getValueAt(fila, 2));
+            String tipo = safe(modelo.getValueAt(fila, 3));
+            String profesional = safe(modelo.getValueAt(fila, 4));
+            String resumen = safe(modelo.getValueAt(fila, 5));
+            String observaciones = safe(modelo.getValueAt(fila, 6));
 
-            java.util.List<String> l0 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, id, w[0] - 9);
-            java.util.List<String> l1 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, fecha, w[1] - 9);
-            java.util.List<String> l2 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, tipo, w[2] - 9);
-            java.util.List<String> l3 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, prof, w[3] - 9);
-            java.util.List<String> l4 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, resumen, w[4] - 9);
-            java.util.List<String> l5 = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, obs, w[5] - 9);
-
-            int maxLines = max(l0.size(), l1.size(), l2.size(), l3.size(), l4.size(), l5.size());
-            float rowH = Math.max(1, maxLines) * lineH + 14f;
-            if (pdf.getY() - rowH < pdf.getMargin() + 14f) {
+            java.util.List<String> lResumen = pdf.wrapText(
+                    PdfStyle.TXT_FONT, 10, resumen, ancho - 22f);
+            java.util.List<String> lObservaciones = pdf.wrapText(
+                    PdfStyle.TXT_FONT, 10, observaciones, ancho - 22f);
+            float alto = 52f + 18f * (lResumen.size() + lObservaciones.size()) + 26f;
+            if (pdf.getY() - alto < pdf.getMargin() + 18f) {
                 pdf.nuevaPagina();
                 renderHeader(pdf, request);
-                dibujarEncabezado(pdf, cx, fontSize);
+                pdf.down(14f);
             }
 
-            float yTop = pdf.getY();
-            for (int i = 0; i < maxLines; i++) {
-                float yy = yTop - (i * lineH);
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[0] + 3f, yy, pick(l0, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[1] + 3f, yy, pick(l1, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[2] + 3f, yy, pick(l2, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[3] + 3f, yy, pick(l3, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[4] + 3f, yy, pick(l4, i));
-                pdf.text(PdfStyle.TXT_FONT, fontSize, cx[5] + 3f, yy, pick(l5, i));
-            }
-            pdf.down(rowH);
+            pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(),
+                    "EVENTO N.º " + id);
+            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x + 145f, pdf.getY(),
+                    "Fecha: " + fecha);
+            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x + 330f, pdf.getY(),
+                    "Tipo: " + tipo);
+            pdf.down(20f);
+            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(),
+                    "Profesional: " + (profesional.isBlank() ? "No registrado" : profesional));
+            pdf.down(24f);
+
+            bloque(pdf, "RESUMEN", lResumen);
+            pdf.down(10f);
+            bloque(pdf, "OBSERVACIONES", lObservaciones);
+            pdf.down(13f);
             pdf.line();
-            pdf.down(3f);
+            pdf.down(20f);
         }
     }
 
-    private void dibujarEncabezado(PdfDocument pdf, float[] cx, int fontSize) throws Exception {
-        pdf.ensureSpace(60f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[0] + 3f, pdf.getY(), "ID");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[1] + 3f, pdf.getY(), "FECHA");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[2] + 3f, pdf.getY(), "TIPO");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[3] + 3f, pdf.getY(), "PROFESIONAL");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[4] + 3f, pdf.getY(), "RESUMEN");
-        pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[5] + 3f, pdf.getY(), "OBSERVACIONES");
-        pdf.down(17f);
-        pdf.line();
-
+    private void bloque(PdfDocument pdf, String etiqueta,
+            java.util.List<String> lineas) throws Exception {
+        float x = pdf.getMargin();
+        pdf.ensureSpace(36f);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(), etiqueta);
+        pdf.down(18f);
+        for (int i = 0; i < lineas.size(); i++) {
+            pdf.ensureSpace(23f);
+            String texto = lineas.get(i);
+            pdf.textJustified(PdfStyle.TXT_FONT, 10, x + 11f,
+                    pdf.getY(), texto, pdf.getUsableWidth() - 22f,
+                    i < lineas.size() - 1 && !texto.isBlank());
+            pdf.down(18f);
+        }
     }
 
-    private String safe(Object o) {
-        return (o == null) ? "" : String.valueOf(o);
-    }
-
-    private String pick(java.util.List<String> lines, int idx) {
-        if (lines == null || lines.isEmpty()) return "";
-        if (idx < 0 || idx >= lines.size()) return "";
-        return lines.get(idx) != null ? lines.get(idx) : "";
-    }
-
-    private int max(int... v) {
-        int m = 0;
-        if (v == null) return 0;
-        for (int n : v) if (n > m) m = n;
-        return m;
-    }
+    private String safe(Object o) { return o == null ? "" : String.valueOf(o); }
 }
