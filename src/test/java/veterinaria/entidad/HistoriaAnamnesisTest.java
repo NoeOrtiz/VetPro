@@ -10,8 +10,9 @@ class HistoriaAnamnesisTest {
     @Test
     void conservaAntecedentesYDatosDeTrazabilidad() {
         HistoriaAnamnesis ficha = new HistoriaAnamnesis();
-        Mascota paciente = new Mascota();
-        paciente.setIdMascota(42);
+        // Mascota no expone setIdMascota: el ID se asigna al crear o persistir.
+        Mascota paciente = new Mascota(42, "Paciente de prueba", "Hembra",
+                "Mestiza", "Perro", null, "No", null, null, null);
         ficha.setMascota(paciente);
         ficha.setFechaRegistro(LocalDateTime.of(2026, 11, 20, 8, 30));
         ficha.setRegistradoPor("Veterinario de prueba");
