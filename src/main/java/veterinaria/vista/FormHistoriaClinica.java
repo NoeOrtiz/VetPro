@@ -238,7 +238,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         buscador.setOpaque(false);
         javax.swing.JLabel etiquetaBuscar = new javax.swing.JLabel("BUSCAR");
         buscador.add(etiquetaBuscar);
-        javax.swing.JLabel lupa = new javax.swing.JLabel("\uD83D\uDD0D");
+        javax.swing.JLabel lupa = new javax.swing.JLabel();
+        lupa.setIcon(new javax.swing.ImageIcon(getClass().getResource("/veterinaria/icon/png/search.png")));
         lupa.setToolTipText("Buscar registros");
         buscador.add(lupa);
         buscarRegistros.setColumns(22);
