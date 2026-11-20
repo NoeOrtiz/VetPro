@@ -40,9 +40,12 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         initComponents();
         PermisoUI.aplicar(this);
         inicializarTabla();
+        configurarCabeceraHistoria();
         configurarListaHistoria();
+        configurarEstructuraHistoria();
         btnVerRegistros.setText("Ver detalle");
         btnVerRegistros.setToolTipText("Consultar el evento sin modificar el registro original.");
+        btnCancelarHistoria.setText("Limpiar");
         cargarComboMascotas();
         initListeners();
         actualizarCantidadRegistros(0);
@@ -133,9 +136,76 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
     }
 
     /** Panel de historial con búsqueda, paginación y navegación consistente con Consultas. */
+    private javax.swing.JPanel campoFicha(javax.swing.JLabel etiqueta, java.awt.Component control) {
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        panel.setOpaque(false);
+        panel.add(etiqueta, java.awt.BorderLayout.NORTH);
+        panel.add(control, java.awt.BorderLayout.CENTER);
+        panel.setMinimumSize(new java.awt.Dimension(70, 55));
+        return panel;
+    }
+
+    /** Encabezado compacto, independiente del diseño generado por NetBeans. */
+    private void configurarCabeceraHistoria() {
+        jPanel1.removeAll();
+        jPanel1.setLayout(new java.awt.BorderLayout(0, 13));
+        jPanel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 16, 16, 16));
+        javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout());
+        titulo.setOpaque(false);
+        titulo.add(lbConsumos, java.awt.BorderLayout.WEST);
+        javax.swing.JPanel acciones = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        acciones.setOpaque(false);
+        acciones.add(btnVerHistoria);
+        acciones.add(btnImprimirHistoria);
+        titulo.add(acciones, java.awt.BorderLayout.EAST);
+        jPanel1.add(titulo, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel campos = new javax.swing.JPanel();
+        campos.setOpaque(false);
+        campos.setLayout(new javax.swing.BoxLayout(campos, javax.swing.BoxLayout.Y_AXIS));
+        javax.swing.JPanel principales = new javax.swing.JPanel(new java.awt.GridLayout(1, 2, 12, 0));
+        principales.setOpaque(false);
+        principales.add(campoFicha(lbPaciente, jcbPaciente));
+        principales.add(campoFicha(lbDueño, txtDueño));
+        principales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 58));
+        campos.add(principales);
+        campos.add(javax.swing.Box.createVerticalStrut(9));
+
+        javax.swing.JPanel caracteristicas = new javax.swing.JPanel(new java.awt.GridLayout(1, 5, 12, 0));
+        caracteristicas.setOpaque(false);
+        caracteristicas.add(campoFicha(lbEspecie, txtEspecie));
+        caracteristicas.add(campoFicha(lbRaza, txtRaza));
+        caracteristicas.add(campoFicha(lbRaza1, txtSexo));
+        caracteristicas.add(campoFicha(lbEdad, txtEdad));
+        caracteristicas.add(campoFicha(lbPeso, txtPeso));
+        caracteristicas.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 58));
+        campos.add(caracteristicas);
+        jPanel1.add(campos, java.awt.BorderLayout.CENTER);
+        jPanel1.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+    }
+
+    private void configurarEstructuraHistoria() {
+        // El GroupLayout de la versión anterior producía un ancho mínimo excesivo
+        // y una barra vertical que escondía la navegación y el título.
+        setLayout(new java.awt.BorderLayout(0, 6));
+        add(jPanel1, java.awt.BorderLayout.NORTH);
+        add(jPanel2, java.awt.BorderLayout.CENTER);
+        add(jPanel3, java.awt.BorderLayout.SOUTH);
+        setMinimumSize(new java.awt.Dimension(0, 0));
+        jPanel1.setMinimumSize(new java.awt.Dimension(0, 0));
+        jPanel2.setMinimumSize(new java.awt.Dimension(0, 0));
+        scroll1.setMinimumSize(new java.awt.Dimension(0, 0));
+        tableHistoriaClinica.setMinimumSize(new java.awt.Dimension(0, 0));
+        tableHistoriaClinica.setPreferredScrollableViewportSize(new java.awt.Dimension(780, 300));
+        revalidate();
+        repaint();
+    }
+
     private void configurarListaHistoria() {
         jPanel2.removeAll();
         jPanel2.setLayout(new java.awt.BorderLayout(0, 8));
+        jPanel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 16, 0, 16));
         javax.swing.JPanel cabecera = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
         cabecera.setOpaque(false);
         cabecera.add(lbListaServicios, java.awt.BorderLayout.WEST);
@@ -152,16 +222,17 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         javax.swing.JPanel buscador = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 1));
         buscador.setOpaque(false);
-        buscador.add(new javax.swing.JLabel("BUSCAR REGISTRO"));
+        buscador.add(new javax.swing.JLabel("BUSCAR POR INICIO"));
         buscarRegistros.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
-                "Fecha, tipo, profesional, resumen...");
+                "Buscar desde el inicio de fecha, tipo, profesional o resumen");
         buscador.add(buscarRegistros);
         contenido.add(buscador, java.awt.BorderLayout.NORTH);
         javax.swing.JPanel paginada = new javax.swing.JPanel(new java.awt.BorderLayout());
         paginada.add(scroll1, java.awt.BorderLayout.CENTER);
         paginacionHistoria = new veterinaria.util.PaginacionTablas(
                 tableHistoriaClinica, buscarRegistros, 15,
-                new int[]{2, 3, 4, 5, 6}, new int[]{2, 3, 4, 5, 6});
+                new int[]{2, 3, 4, 5}, new int[]{2, 3, 4, 5});
+        paginacionHistoria.activarBusquedaPorPrefijo();
         paginada.add(paginacionHistoria.getControles(), java.awt.BorderLayout.SOUTH);
         contenido.add(paginada, java.awt.BorderLayout.CENTER);
         jPanel2.add(contenido, java.awt.BorderLayout.CENTER);
@@ -169,6 +240,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
         jPanel3.removeAll();
         jPanel3.setLayout(new java.awt.BorderLayout());
+        jPanel3.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 16, 8, 16));
         javax.swing.JPanel contador = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 2));
         contador.setOpaque(false);
@@ -201,10 +273,32 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         tableHistoriaClinica.setModel(model);
         tableHistoriaClinica.getTableHeader().setReorderingAllowed(false);
         tableHistoriaClinica.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
+        tableHistoriaClinica.setFillsViewportHeight(true);
         tableHistoriaClinica.setRowHeight(30);
-        int[] widths = {92, 50, 143, 110, 145, 240, 330};
+        int[] widths = {92, 50, 135, 125, 185, 250, 295};
         for (int i = 0; i < widths.length; i++) {
             tableHistoriaClinica.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        }
+        // La tabla muestra una síntesis; el contenido íntegro está en Ver detalle.
+        // Cada celda conserva el valor original en el modelo para el PDF.
+        javax.swing.table.DefaultTableCellRenderer legible =
+                new javax.swing.table.DefaultTableCellRenderer() {
+                    @Override
+                    public java.awt.Component getTableCellRendererComponent(
+                            javax.swing.JTable tabla, Object valor, boolean seleccionado,
+                            boolean foco, int fila, int columna) {
+                        super.getTableCellRendererComponent(tabla, valor, seleccionado, foco, fila, columna);
+                        setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 0, 8));
+                        String texto = valor == null ? "" : valor.toString().replace('\n', ' ');
+                        setText(texto);
+                        setToolTipText(texto.isBlank() ? null : "<html><div style='width:360px'>"
+                                + texto.replace("&", "&amp;").replace("<", "&lt;")
+                                        .replace(">", "&gt;") + "</div></html>");
+                        return this;
+                    }
+                };
+        for (int columna : new int[]{2, 3, 4, 5, 6}) {
+            tableHistoriaClinica.getColumnModel().getColumn(columna).setCellRenderer(legible);
         }
         tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
         ocultarColumnaId();
