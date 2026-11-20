@@ -28,6 +28,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
     private Mascota mascotaSeleccionada;
     private final javax.swing.JButton seleccionarPaciente = new javax.swing.JButton("Seleccionar paciente...");
     private final javax.swing.JButton btnAnamnesis = new javax.swing.JButton("Anamnesis");
+    private final javax.swing.JButton btnHistorialAnamnesis =
+            new javax.swing.JButton("Versiones");
     private final veterinaria.persistencia.HistoriaAnamnesisDAO anamnesisDAO =
             new veterinaria.persistencia.HistoriaAnamnesisDAO();
     private final java.util.List<Mascota> pacientesBusqueda = new java.util.ArrayList<>();
@@ -54,6 +56,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         cargarComboMascotas();
         seleccionarPaciente.addActionListener(e -> abrirSelectorPacientes());
         btnAnamnesis.addActionListener(e -> abrirAnamnesis());
+        btnHistorialAnamnesis.addActionListener(e -> verVersionesAnamnesis());
         initListeners();
         actualizarCantidadRegistros(0);
         actualizarEstadoBotones();
@@ -166,6 +169,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
         acciones.add(btnAnamnesis);
+        acciones.add(btnHistorialAnamnesis);
         acciones.add(btnVerHistoria);
         acciones.add(btnImprimirHistoria);
         titulo.add(acciones, java.awt.BorderLayout.EAST);
@@ -482,6 +486,53 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 java.text.Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase(java.util.Locale.ROOT);
+    }
+
+    /** Versiones previas disponibles para consulta, sin editar datos históricos. */
+    private void verVersionesAnamnesis() {
+        if (mascotaSeleccionada == null) return;
+        try {
+            java.util.List<veterinaria.entidad.HistoriaAnamnesis> versiones =
+                    anamnesisDAO.listarVersiones(mascotaSeleccionada.getIdMascota());
+            if (versiones.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No hay versiones de anamnesis registradas.");
+                return;
+            }
+            String[] opciones = new String[versiones.size()];
+            for (int i = 0; i < versiones.size(); i++) {
+                veterinaria.entidad.HistoriaAnamnesis v = versiones.get(i);
+                opciones[i] = v.getFechaRegistro().format(dtf) + " · "
+                        + (v.getRegistradoPor() == null ? "Sin usuario" : v.getRegistradoPor())
+                        + " · Versión #" + v.getIdAnamnesis();
+            }
+            Object elegida = JOptionPane.showInputDialog(this,
+                    "Seleccioná una versión histórica para consultar:",
+                    "Versiones de anamnesis · Solo lectura",
+                    JOptionPane.PLAIN_MESSAGE, null, opciones, opciones[0]);
+            if (elegida == null) return;
+            int indice = java.util.Arrays.asList(opciones).indexOf(elegida.toString());
+            if (indice < 0) return;
+            String[] valores = valoresAnamnesis(versiones.get(indice));
+            StringBuilder texto = new StringBuilder();
+            for (int i = 0; i < ETIQUETAS_ANAMNESIS.length; i++) {
+                texto.append(ETIQUETAS_ANAMNESIS[i]).append(":\n")
+                        .append(valores[i] == null || valores[i].isBlank()
+                                ? "Sin registrar" : valores[i])
+                        .append("\n\n");
+            }
+            javax.swing.JTextArea contenido = new javax.swing.JTextArea(texto.toString());
+            contenido.setEditable(false);
+            contenido.setLineWrap(true);
+            contenido.setWrapStyleWord(true);
+            contenido.setCaretPosition(0);
+            javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(contenido);
+            scroll.setPreferredSize(new java.awt.Dimension(660, 430));
+            JOptionPane.showMessageDialog(this, scroll, elegida.toString(),
+                    JOptionPane.PLAIN_MESSAGE);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error al recuperar versiones: "
+                    + ex.getMessage(), "Anamnesis", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private static final String[] ETIQUETAS_ANAMNESIS = {
@@ -842,6 +893,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
         btnVerHistoria.setEnabled(hayMascota);
         btnAnamnesis.setEnabled(hayMascota);
+        btnHistorialAnamnesis.setEnabled(hayMascota);
 
         btnImprimirHistoria.setEnabled(hayRegistros);
 
