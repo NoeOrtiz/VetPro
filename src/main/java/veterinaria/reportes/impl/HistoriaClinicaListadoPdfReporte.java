@@ -1,6 +1,9 @@
 package veterinaria.reportes.impl;
 
 import javax.swing.JTable;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.Locale;
 import javax.swing.table.TableModel;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import veterinaria.entidad.Mascota;
@@ -29,73 +32,77 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
         JTable tabla = request.get("tabla", JTable.class);
         Mascota mascota = request.get("mascota", Mascota.class);
-        TableModel modelo = tabla.getModel();
+        TableModel m = tabla.getModel();
         float x = pdf.getMargin();
         float ancho = pdf.getUsableWidth();
+        float separacion = 22f;
+        float colResumen = ancho * 0.39f;
+        float xObs = x + colResumen + separacion;
+        float colObs = ancho - colResumen - separacion;
 
-        pdf.down(9f);
+        pdf.down(8f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(),
                 "Paciente: " + (mascota == null ? "No registrado" : safe(mascota.getNombre())));
         pdf.down(19f);
-        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
-                "Total de eventos: " + modelo.getRowCount());
-        pdf.down(18f);
+        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), "Eventos: " + m.getRowCount());
+        pdf.down(19f);
 
-        // El modelo conserva ID, Fecha, Tipo, Profesional, Resumen y Observaciones
-        // aunque ID esté oculto y la tabla en pantalla esté filtrada/paginada.
-        for (int fila = 0; fila < modelo.getRowCount(); fila++) {
-            String id = safe(modelo.getValueAt(fila, 1));
-            String fecha = safe(modelo.getValueAt(fila, 2));
-            String tipo = safe(modelo.getValueAt(fila, 3));
-            String profesional = safe(modelo.getValueAt(fila, 4));
-            String resumen = safe(modelo.getValueAt(fila, 5));
-            String observaciones = safe(modelo.getValueAt(fila, 6));
+        for (int r = 0; r < m.getRowCount(); r++) {
+            String id = safe(m.getValueAt(r, 1));
+            String fecha = safe(m.getValueAt(r, 2));
+            String tipo = safe(m.getValueAt(r, 3));
+            String profesional = safe(m.getValueAt(r, 4));
+            String resumen = safe(m.getValueAt(r, 5));
+            String observaciones = formatearImporte(tipo, safe(m.getValueAt(r, 6)));
 
-            java.util.List<String> lResumen = pdf.wrapText(
-                    PdfStyle.TXT_FONT, 10, resumen, ancho - 22f);
-            java.util.List<String> lObservaciones = pdf.wrapText(
-                    PdfStyle.TXT_FONT, 10, observaciones, ancho - 22f);
-            // Reservar la altura real del bloque, sin márgenes sobredimensionados.
-            float alto = 45f + 16f * (lResumen.size() + lObservaciones.size()) + 55f;
-            if (pdf.getY() - alto < pdf.getMargin() + 18f) {
+            java.util.List<String> lr = pdf.wrapText(PdfStyle.TXT_FONT, 9,
+                    resumen, colResumen - 12f);
+            java.util.List<String> lo = pdf.wrapText(PdfStyle.TXT_FONT, 9,
+                    observaciones, colObs - 12f);
+            int renglones = Math.max(lr.size(), lo.size());
+            float alto = 18f + 17f + 17f + (renglones * 14f) + 17f;
+            if (pdf.getY() - alto < pdf.getMargin() + 20f) {
                 pdf.nuevaPagina();
                 renderHeader(pdf, request);
-                pdf.down(14f);
+                pdf.down(12f);
             }
 
-            pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(),
-                    "EVENTO N.º " + id);
-            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x + 145f, pdf.getY(),
-                    "Fecha: " + fecha);
-            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x + 330f, pdf.getY(),
-                    "Tipo: " + tipo);
-            pdf.down(18f);
-            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(),
+            float arriba = pdf.getY();
+            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, arriba,
+                    "N.º " + id + "  |  " + tipo + "  |  " + fecha);
+            pdf.text(PdfStyle.TXT_FONT, 9, xObs, arriba,
                     "Profesional: " + (profesional.isBlank() ? "No registrado" : profesional));
-            pdf.down(19f);
-
-            bloque(pdf, "RESUMEN", lResumen);
-            pdf.down(5f);
-            bloque(pdf, "OBSERVACIONES", lObservaciones);
-            pdf.down(6f);
+            pdf.down(18f);
+            pdf.text(PDType1Font.HELVETICA_BOLD, 8, x, pdf.getY(), "RESUMEN");
+            pdf.text(PDType1Font.HELVETICA_BOLD, 8, xObs, pdf.getY(), "OBSERVACIONES");
+            pdf.down(17f);
+            float yTexto = pdf.getY();
+            for (int i = 0; i < lr.size(); i++) {
+                pdf.text(PdfStyle.TXT_FONT, 9, x + 6f, yTexto - i * 14f, lr.get(i));
+            }
+            for (int i = 0; i < lo.size(); i++) {
+                pdf.text(PdfStyle.TXT_FONT, 9, xObs + 6f, yTexto - i * 14f, lo.get(i));
+            }
+            pdf.down(renglones * 14f + 9f);
             pdf.line();
-            pdf.down(10f);
+            pdf.down(8f);
         }
     }
 
-    private void bloque(PdfDocument pdf, String etiqueta,
-            java.util.List<String> lineas) throws Exception {
-        float x = pdf.getMargin();
-        pdf.ensureSpace(36f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, pdf.getY(), etiqueta);
-        pdf.down(15f);
-        for (int i = 0; i < lineas.size(); i++) {
-            pdf.ensureSpace(23f);
-            String texto = lineas.get(i);
-            pdf.textJustified(PdfStyle.TXT_FONT, 10, x + 11f,
-                    pdf.getY(), texto, pdf.getUsableWidth() - 22f,
-                    i < lineas.size() - 1 && !texto.isBlank());
-            pdf.down(16f);
+    /** Solo formatear como importe los valores monetarios completos;
+     * nunca convertir pesos corporales, dosis u observaciones clínicas. */
+    private String formatearImporte(String tipo, String valor) {
+        if (tipo == null || !tipo.toUpperCase(Locale.ROOT).contains("PELUQUER")
+                || valor == null || !valor.trim().matches("[0-9]+(?:\\.[0-9]{1,2})?")) {
+            return valor;
+        }
+        try {
+            NumberFormat formato = NumberFormat.getNumberInstance(new Locale("es", "AR"));
+            formato.setMinimumFractionDigits(2);
+            formato.setMaximumFractionDigits(2);
+            return "$ " + formato.format(new BigDecimal(valor.trim()));
+        } catch (Exception ex) {
+            return valor;
         }
     }
 
