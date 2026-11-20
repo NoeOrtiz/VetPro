@@ -80,9 +80,10 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         // Mantener el encabezado junto al primer evento: evitar títulos
         // abandonados al final de página y el conteo aislado en la siguiente.
         // Dejar la sección junto al primer evento, sin reservar media página.
-        if (pdf.getY() < 250f) {
+        if (pdf.getY() < 225f) {
             pdf.nuevaPagina();
             renderHeader(pdf, request);
+            pdf.down(22f); // distancia real entre encabezado y primera sección
         }
         seccion(pdf, "EVOLUCIÓN E HISTORIAL CLÍNICO");
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
@@ -104,6 +105,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                     && pdf.getY() - reserva < pdf.getMargin() + 12f) {
                 pdf.nuevaPagina();
                 renderHeader(pdf, request);
+                pdf.down(26f); // no apoyar el evento sobre la línea del encabezado
             }
 
             String fechaTxt = (ev.getFecha() != null) ? ev.getFecha().format(DTF) : "";
@@ -138,9 +140,9 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                 pdf.down(14f);
             }
 
-            pdf.down(3f);
+            pdf.down(11f);
             pdf.line();
-            pdf.down(9f);
+            pdf.down(13f);
         }
 
         // El usuario y la fecha ya figuran en el pie de todas las páginas.
@@ -177,7 +179,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
             pdf.text(PdfStyle.TXT_FONT, 10, x + 9f, arriba - 17f - i * 15f, li.get(i));
         }
         for (int i = 0; i < ld.size(); i++) {
-            pdf.text(PdfStyle.TXT_FONT, 10, xDer + 9f, arriba - 22f - i * 17f, ld.get(i));
+            pdf.text(PdfStyle.TXT_FONT, 10, xDer + 9f, arriba - 17f - i * 15f, ld.get(i));
         }
         pdf.down(altura);
     }
