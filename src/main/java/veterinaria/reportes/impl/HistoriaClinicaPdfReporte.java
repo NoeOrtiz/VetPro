@@ -79,7 +79,11 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
 
         // Mantener el encabezado junto al primer evento: evitar títulos
         // abandonados al final de página y el conteo aislado en la siguiente.
-        pdf.ensureSpace(350f);
+        // Dejar la sección junto al primer evento, sin reservar media página.
+        if (pdf.getY() < 250f) {
+            pdf.nuevaPagina();
+            renderHeader(pdf, request);
+        }
         seccion(pdf, "EVOLUCIÓN E HISTORIAL CLÍNICO");
         pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
                 "Total de eventos registrados: " + eventos.size());
@@ -90,15 +94,16 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                     safe(ev.getResumen()), pdf.getUsableWidth() - 20f).size();
             int lineasObservaciones = pdf.wrapText(PdfStyle.TXT_FONT, 10,
                     safe(ev.getObservaciones()), pdf.getUsableWidth() - 20f).size();
-            float reserva = 52f
-                    + (safe(ev.getResumen()).isBlank() ? 0f : 32f + lineasResumen * 17f)
-                    + (safe(ev.getObservaciones()).isBlank() ? 0f : 32f + lineasObservaciones * 17f)
-                    + 47f;
-            // Un evento no se parte salvo que exceda una página completa.
-            if (reserva < pdf.getUsableHeight() - 110f) {
-                pdf.ensureSpace(reserva);
-            } else {
-                pdf.ensureSpace(80f);
+            float reserva = 35f
+                    + (safe(ev.getProfesional()).isBlank() ? 0f : 16f)
+                    + (safe(ev.getResumen()).isBlank() ? 0f : 23f + lineasResumen * 15f)
+                    + (safe(ev.getObservaciones()).isBlank() ? 0f : 23f + lineasObservaciones * 15f)
+                    + (buildRef(ev).isBlank() ? 0f : 15f);
+            // Evita dejar un evento corto solo en una hoja al calcular de más.
+            if (reserva < pdf.getUsableHeight() - 100f
+                    && pdf.getY() - reserva < pdf.getMargin() + 12f) {
+                pdf.nuevaPagina();
+                renderHeader(pdf, request);
             }
 
             String fechaTxt = (ev.getFecha() != null) ? ev.getFecha().format(DTF) : "";
@@ -106,25 +111,25 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                     + (fechaTxt.isBlank() ? "" : "  -  " + fechaTxt);
 
             pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, pdf.getY(), tituloEv);
-            pdf.down(18f);
+            pdf.down(16f);
 
             if (!safe(ev.getProfesional()).isBlank()) {
                 pdf.text(PdfStyle.TXT_FONT, 10, x, pdf.getY(), "Profesional: " + safe(ev.getProfesional()));
-                pdf.down(17f);
+                pdf.down(15f);
             }
 
             if (!safe(ev.getResumen()).isBlank()) {
                 pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), "Resumen:");
-                pdf.down(18f);
+                pdf.down(15f);
                 renderParagraph(pdf, safe(ev.getResumen()), 10);
-                pdf.down(9f);
+                pdf.down(5f);
             }
 
             if (!safe(ev.getObservaciones()).isBlank()) {
                 pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), "Observaciones:");
-                pdf.down(18f);
+                pdf.down(15f);
                 renderParagraph(pdf, importeHistoria(ev.getTipo(), safe(ev.getObservaciones())), 10);
-                pdf.down(9f);
+                pdf.down(5f);
             }
 
             String ref = buildRef(ev);
@@ -143,12 +148,12 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
     }
 
     private void seccion(PdfDocument pdf, String titulo) throws Exception {
-        pdf.ensureSpace(46f);
-        pdf.down(12f);
+        pdf.ensureSpace(38f);
+        pdf.down(7f);
         pdf.text(PDType1Font.HELVETICA_BOLD, 11, pdf.getMargin(), pdf.getY(), titulo);
-        pdf.down(19f);
+        pdf.down(15f);
         pdf.line();
-        pdf.down(10f);
+        pdf.down(4f);
     }
 
     /** Dos campos alineados; separación horizontal y vertical constante. */
@@ -163,13 +168,13 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         java.util.List<String> li = pdf.wrapText(PdfStyle.TXT_FONT, 10, vi, ancho - 12f);
         java.util.List<String> ld = pdf.wrapText(PdfStyle.TXT_FONT, 10, vd, ancho - 12f);
         int n = Math.max(li.size(), ld.size());
-        float altura = 22f + n * 17f + 12f;
-        pdf.ensureSpace(altura + 8f);
+        float altura = 17f + n * 15f + 7f;
+        pdf.ensureSpace(altura + 4f);
         float arriba = pdf.getY();
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, arriba, nombreIzq);
         pdf.text(PDType1Font.HELVETICA_BOLD, 9, xDer, arriba, nombreDer);
         for (int i = 0; i < li.size(); i++) {
-            pdf.text(PdfStyle.TXT_FONT, 10, x + 9f, arriba - 22f - i * 17f, li.get(i));
+            pdf.text(PdfStyle.TXT_FONT, 10, x + 9f, arriba - 17f - i * 15f, li.get(i));
         }
         for (int i = 0; i < ld.size(); i++) {
             pdf.text(PdfStyle.TXT_FONT, 10, xDer + 9f, arriba - 22f - i * 17f, ld.get(i));
@@ -197,7 +202,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
     private void renderParagraph(PdfDocument pdf, String text, int fontSize) throws Exception {
         float maxW = pdf.getPageW() - (pdf.getMargin() * 2);
         java.util.List<String> lines = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, text, maxW);
-        final float lineH = 17f;
+        final float lineH = 15f;
         for (int i = 0; i < lines.size(); i++) {
             String ln = lines.get(i);
             pdf.ensureSpace(lineH + 7f);
