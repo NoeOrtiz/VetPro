@@ -20,6 +20,29 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
     @Override protected String titulo() { return "RESUMEN DE ATENCIONES CLÍNICAS"; }
     @Override protected boolean isLandscape() { return true; }
 
+    /**
+     * Encabezado exclusivo de Historia Clínica: logo protagonista,
+     * sin modificar la presentación de los demás reportes de VetPRO.
+     */
+    @Override
+    protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
+        float anchoPagina = pdf.getPageW();
+        float ySuperior = pdf.getY();
+        float anchoLogo = 160f;
+        float altoLogo = 116f;
+        renderLogo(pdf, (anchoPagina - anchoLogo) / 2f,
+                ySuperior - altoLogo, anchoLogo, altoLogo);
+
+        pdf.setY(ySuperior - altoLogo - 22f);
+        String textoTitulo = titulo();
+        float anchoTitulo = pdf.textWidth(PdfStyle.H2_FONT, 14, textoTitulo);
+        pdf.text(PdfStyle.H2_FONT, 14,
+                (anchoPagina - anchoTitulo) / 2f, pdf.getY(), textoTitulo);
+        pdf.down(19f);
+        pdf.line();
+        pdf.down(9f);
+    }
+
     @Override
     protected void validar(ReporteRequest request) throws Exception {
         JTable tabla = request.get("tabla", JTable.class);
