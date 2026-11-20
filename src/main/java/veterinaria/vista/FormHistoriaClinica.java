@@ -85,13 +85,10 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
         // Habilita el detalle de solo lectura al seleccionar una fila
         tableHistoriaClinica.getSelectionModel().addListSelectionListener(e -> {
-
             if (!e.getValueIsAdjusting()) {
-
+                tableHistoriaClinica.repaint();
                 actualizarEstadoBotones();
-
             }
-
         });
         tableHistoriaClinica.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
@@ -106,11 +103,15 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             }
         });
         tableHistoriaClinica.getModel().addTableModelListener(e -> {
-            if (!marcandoFila && e.getType() == javax.swing.event.TableModelEvent.UPDATE
-                    && e.getColumn() == 0 && e.getFirstRow() >= 0
-                    && Boolean.TRUE.equals(tableHistoriaClinica.getModel().getValueAt(e.getFirstRow(), 0))) {
+            if (e.getType() != javax.swing.event.TableModelEvent.UPDATE
+                    || e.getColumn() != 0 || e.getFirstRow() < 0) return;
+            // Editor del checkbox: primero se confirma el valor, después
+            // se repinta la fila COMPLETA, no solo la primera columna.
+            if (!marcandoFila && Boolean.TRUE.equals(
+                    tableHistoriaClinica.getModel().getValueAt(e.getFirstRow(), 0))) {
                 seleccionarFilaUnica(e.getFirstRow());
             }
+            tableHistoriaClinica.repaint();
         });
         btnCancelarHistoria.addActionListener(e -> limpiarPantallaHistoria());
     }
@@ -129,6 +130,9 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         } finally {
             marcandoFila = false;
         }
+        // El degradado depende de la marca en el modelo, no del foco de JTable.
+        // Repintar todas las columnas en el mismo ciclo EDT.
+        tableHistoriaClinica.repaint();
         actualizarEstadoBotones();
     }
 
