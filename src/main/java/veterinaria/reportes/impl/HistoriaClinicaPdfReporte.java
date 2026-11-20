@@ -58,23 +58,24 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                 : "";
 
         seccion(pdf, "DATOS DEL PROPIETARIO");
-        campo(pdf, "Nombre", p == null ? "" : safe(p.getNombre()));
-        campo(pdf, "Apellido", p == null ? "" : safe(p.getApellido()));
-        campo(pdf, "DNI", p == null ? "" : safe(p.getDni()));
-        campo(pdf, "Dirección", p == null ? "" : safe(p.getDireccion()));
-        campo(pdf, "Teléfono", p == null ? "" : safe(p.getTelefono()));
-        campo(pdf, "Correo electrónico", c == null ? "" : safe(c.getEmail()));
+        campoPar(pdf, "Nombre", p == null ? "" : safe(p.getNombre()),
+                "Apellido", p == null ? "" : safe(p.getApellido()));
+        campoPar(pdf, "DNI", p == null ? "" : safe(p.getDni()),
+                "Teléfono", p == null ? "" : safe(p.getTelefono()));
+        campoPar(pdf, "Dirección", p == null ? "" : safe(p.getDireccion()),
+                "Correo electrónico", c == null ? "" : safe(c.getEmail()));
 
         seccion(pdf, "RESEÑA DEL PACIENTE");
-        campo(pdf, "Historia clínica / ID", safe(mascota.getIdMascota()));
-        campo(pdf, "Paciente", safe(mascota.getNombre()));
-        campo(pdf, "Especie", safe(mascota.getEspecie()));
-        campo(pdf, "Raza", safe(mascota.getRaza()));
-        campo(pdf, "Sexo", safe(mascota.getSexo()));
-        campo(pdf, "Nacimiento", mascota.getFechaNacimiento() == null ? ""
-                : mascota.getFechaNacimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-        campo(pdf, "Peso registrado (kg)", safe(mascota.getPeso()));
-        campo(pdf, "Castrado", safe(mascota.getCastrado()));
+        campoPar(pdf, "Historia clínica / ID", safe(mascota.getIdMascota()),
+                "Paciente", safe(mascota.getNombre()));
+        campoPar(pdf, "Especie", safe(mascota.getEspecie()),
+                "Raza", safe(mascota.getRaza()));
+        campoPar(pdf, "Sexo", safe(mascota.getSexo()),
+                "Nacimiento", mascota.getFechaNacimiento() == null ? ""
+                        : mascota.getFechaNacimiento().format(
+                                DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        campoPar(pdf, "Peso registrado (kg)", safe(mascota.getPeso()),
+                "Castrado", safe(mascota.getCastrado()));
 
         seccion(pdf, "ANAMNESIS");
         pdf.ensureSpace(36f);
@@ -139,6 +140,32 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
         pdf.down(19f);
         pdf.line();
         pdf.down(10f);
+    }
+
+    /** Dos campos alineados; separación horizontal y vertical constante. */
+    private void campoPar(PdfDocument pdf, String nombreIzq, String valorIzq,
+            String nombreDer, String valorDer) throws Exception {
+        float x = pdf.getMargin();
+        float separacion = 32f;
+        float ancho = (pdf.getUsableWidth() - separacion) / 2f;
+        float xDer = x + ancho + separacion;
+        String vi = valorIzq == null || valorIzq.isBlank() ? "No registrado" : valorIzq;
+        String vd = valorDer == null || valorDer.isBlank() ? "No registrado" : valorDer;
+        java.util.List<String> li = pdf.wrapText(PdfStyle.TXT_FONT, 10, vi, ancho - 12f);
+        java.util.List<String> ld = pdf.wrapText(PdfStyle.TXT_FONT, 10, vd, ancho - 12f);
+        int n = Math.max(li.size(), ld.size());
+        float altura = 22f + n * 17f + 12f;
+        pdf.ensureSpace(altura + 8f);
+        float arriba = pdf.getY();
+        pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, arriba, nombreIzq);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 9, xDer, arriba, nombreDer);
+        for (int i = 0; i < li.size(); i++) {
+            pdf.text(PdfStyle.TXT_FONT, 10, x + 9f, arriba - 22f - i * 17f, li.get(i));
+        }
+        for (int i = 0; i < ld.size(); i++) {
+            pdf.text(PdfStyle.TXT_FONT, 10, xDer + 9f, arriba - 22f - i * 17f, ld.get(i));
+        }
+        pdf.down(altura);
     }
 
     private void campo(PdfDocument pdf, String nombre, String valor) throws Exception {
