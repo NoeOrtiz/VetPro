@@ -132,7 +132,7 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
             if (!safe(ev.getObservaciones()).isBlank()) {
                 pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), "Observaciones:");
                 pdf.down(18f);
-                renderParagraph(pdf, safe(ev.getObservaciones()), 10);
+                renderParagraph(pdf, importeHistoria(ev.getTipo(), safe(ev.getObservaciones())), 10);
                 pdf.down(9f);
             }
 
@@ -214,6 +214,22 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                     pdf.getMargin() + 10f, pdf.getY(), ln, maxW - 20f,
                     i < lines.size() - 1 && !ln.isBlank());
             pdf.down(lineH);
+        }
+    }
+
+    private String importeHistoria(String tipo, String valor) {
+        if (tipo == null || !tipo.toUpperCase(java.util.Locale.ROOT).contains("PELUQUER")
+                || valor == null || !valor.trim().matches("[0-9]+(?:\\.[0-9]{1,2})?")) {
+            return valor;
+        }
+        try {
+            java.text.NumberFormat formato =
+                    java.text.NumberFormat.getNumberInstance(new java.util.Locale("es", "AR"));
+            formato.setMinimumFractionDigits(2);
+            formato.setMaximumFractionDigits(2);
+            return "$ " + formato.format(new java.math.BigDecimal(valor.trim()));
+        } catch (Exception ex) {
+            return valor;
         }
     }
 
