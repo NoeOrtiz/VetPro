@@ -480,13 +480,15 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 = historiaEventoControlador.listarPorMascota(
                         mascotaSeleccionada.getIdMascota());
 
+        eventos = veterinaria.servicio.HistoriaClinicaPreferencias.filtrar(eventos);
+
         if (eventos == null || eventos.isEmpty()) {
 
             actualizarCantidadRegistros(0);
 
             JOptionPane.showMessageDialog(
                     this,
-                    "La mascota seleccionada aún no posee registros en su historia clínica.",
+                    "No hay eventos clínicos visibles según la configuración actual.",
                     "Historia Clínica",
                     JOptionPane.INFORMATION_MESSAGE);
 
@@ -1028,7 +1030,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 return;
             }
 
-            List<HistoriaEvento> eventos = historiaEventoControlador.listarPorMascota(mascotaSeleccionada.getIdMascota());
+            List<HistoriaEvento> eventos = veterinaria.servicio.HistoriaClinicaPreferencias.filtrar(
+                    historiaEventoControlador.listarPorMascota(mascotaSeleccionada.getIdMascota()));
             if (eventos == null || eventos.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "La mascota no tiene eventos para imprimir.", "Imprimir", JOptionPane.INFORMATION_MESSAGE);
                 return;
