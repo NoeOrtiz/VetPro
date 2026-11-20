@@ -33,60 +33,74 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
         JTable tabla = request.get("tabla", JTable.class);
         Mascota mascota = request.get("mascota", Mascota.class);
         TableModel m = tabla.getModel();
-        float x = pdf.getMargin();
+        float margen = pdf.getMargin();
         float ancho = pdf.getUsableWidth();
-        float separacion = 22f;
-        float colResumen = ancho * 0.39f;
-        float xObs = x + colResumen + separacion;
-        float colObs = ancho - colResumen - separacion;
 
-        pdf.down(8f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(),
+        pdf.down(6f);
+        pdf.text(PDType1Font.HELVETICA_BOLD, 11, margen, pdf.getY(),
                 "Paciente: " + (mascota == null ? "No registrado" : safe(mascota.getNombre())));
-        pdf.down(19f);
-        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(), "Eventos: " + m.getRowCount());
-        pdf.down(19f);
+        pdf.text(PdfStyle.TXT_FONT, 9, margen + ancho - 95f, pdf.getY(),
+                "Registros: " + m.getRowCount());
+        pdf.down(26f);
 
-        for (int r = 0; r < m.getRowCount(); r++) {
-            String id = safe(m.getValueAt(r, 1));
-            String fecha = safe(m.getValueAt(r, 2));
-            String tipo = safe(m.getValueAt(r, 3));
-            String profesional = safe(m.getValueAt(r, 4));
-            String resumen = safe(m.getValueAt(r, 5));
-            String observaciones = formatearImporte(tipo, safe(m.getValueAt(r, 6)));
+        float[] proporciones = {0.16f, 0.14f, 0.17f, 0.23f, 0.30f};
+        float[] x = new float[5];
+        float[] w = new float[5];
+        float actual = margen;
+        for (int i = 0; i < 5; i++) {
+            x[i] = actual;
+            w[i] = ancho * proporciones[i];
+            actual += w[i];
+        }
+        encabezadoTabla(pdf, x);
 
-            java.util.List<String> lr = pdf.wrapText(PdfStyle.TXT_FONT, 9,
-                    resumen, colResumen - 12f);
-            java.util.List<String> lo = pdf.wrapText(PdfStyle.TXT_FONT, 9,
-                    observaciones, colObs - 12f);
-            int renglones = Math.max(lr.size(), lo.size());
-            float alto = 42f + renglones * 13f;
-            if (pdf.getY() - alto < pdf.getMargin() + 20f) {
+        for (int fila = 0; fila < m.getRowCount(); fila++) {
+            String tipo = safe(m.getValueAt(fila, 3));
+            String[] valores = {
+                safe(m.getValueAt(fila, 2)),
+                tipo,
+                safe(m.getValueAt(fila, 4)),
+                safe(m.getValueAt(fila, 5)),
+                formatearImporte(tipo, safe(m.getValueAt(fila, 6)))
+            };
+            java.util.List<java.util.List<String>> celdas = new java.util.ArrayList<>();
+            int maxLineas = 1;
+            for (int i = 0; i < valores.length; i++) {
+                java.util.List<String> lineas = pdf.wrapText(
+                        PdfStyle.TXT_FONT, 9, valores[i], w[i] - 16f);
+                celdas.add(lineas);
+                maxLineas = Math.max(maxLineas, lineas.size());
+            }
+            float alto = 12f + maxLineas * 15f;
+            if (pdf.getY() - alto < pdf.getMargin() + 15f) {
                 pdf.nuevaPagina();
                 renderHeader(pdf, request);
-                pdf.down(12f);
+                pdf.down(8f);
+                encabezadoTabla(pdf, x);
             }
-
             float arriba = pdf.getY();
-            pdf.text(PDType1Font.HELVETICA_BOLD, 9, x, arriba,
-                    "N.º " + id + "  |  " + tipo + "  |  " + fecha);
-            pdf.text(PdfStyle.TXT_FONT, 9, xObs, arriba,
-                    "Profesional: " + (profesional.isBlank() ? "No registrado" : profesional));
-            pdf.down(14f);
-            pdf.text(PDType1Font.HELVETICA_BOLD, 8, x, pdf.getY(), "RESUMEN");
-            pdf.text(PDType1Font.HELVETICA_BOLD, 8, xObs, pdf.getY(), "OBSERVACIONES");
-            pdf.down(14f);
-            float yTexto = pdf.getY();
-            for (int i = 0; i < lr.size(); i++) {
-                pdf.text(PdfStyle.TXT_FONT, 9, x + 6f, yTexto - i * 13f, lr.get(i));
+            for (int col = 0; col < celdas.size(); col++) {
+                java.util.List<String> lineas = celdas.get(col);
+                for (int i = 0; i < lineas.size(); i++) {
+                    pdf.text(PdfStyle.TXT_FONT, 9, x[col] + 7f,
+                            arriba - 7f - i * 15f, lineas.get(i));
+                }
             }
-            for (int i = 0; i < lo.size(); i++) {
-                pdf.text(PdfStyle.TXT_FONT, 9, xObs + 6f, yTexto - i * 13f, lo.get(i));
-            }
-            pdf.down(renglones * 13f + 7f);
+            pdf.down(alto);
             pdf.line();
-            pdf.down(6f);
+            pdf.down(3f);
         }
+    }
+
+    private void encabezadoTabla(PdfDocument pdf, float[] x) throws Exception {
+        String[] titulos = {"FECHA", "TIPO", "PROFESIONAL", "RESUMEN", "OBSERVACIONES"};
+        for (int i = 0; i < titulos.length; i++) {
+            pdf.text(PDType1Font.HELVETICA_BOLD, 9,
+                    x[i] + 7f, pdf.getY(), titulos[i]);
+        }
+        pdf.down(17f);
+        pdf.line();
+        pdf.down(5f);
     }
 
     /** Solo formatear como importe los valores monetarios completos;
