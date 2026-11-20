@@ -13,6 +13,14 @@ public class AutoTable extends JTable {
 
     private TableModelListener tableModelListener;
     private boolean ajustarAnchoAutomaticamente = true;
+    // Optativo por pantalla: marcar un checkbox no cambia el contenido ni
+    // requiere recalcular tamaños de todas las filas.
+    private boolean ignorarActualizacionesCheckbox;
+    private boolean reajustePendiente;
+
+    public void setIgnorarActualizacionesCheckbox(boolean ignorar) {
+        this.ignorarActualizacionesCheckbox = ignorar;
+    }
 
     public void setAjustarAnchoAutomaticamente(boolean ajustar) {
         this.ajustarAnchoAutomaticamente = ajustar;
@@ -39,7 +47,18 @@ public class AutoTable extends JTable {
         }
 
         tableModelListener = (TableModelEvent e) -> {
-            SwingUtilities.invokeLater(this::reajustarColumnasYFilasSeguro);
+            if (ignorarActualizacionesCheckbox
+                    && e.getType() == TableModelEvent.UPDATE && e.getColumn() == 0) {
+                return;
+            }
+            // Una carga de varios eventos debe producir un único ajuste,
+            // no un cálculo diferido por cada fila agregada.
+            if (reajustePendiente) return;
+            reajustePendiente = true;
+            SwingUtilities.invokeLater(() -> {
+                reajustePendiente = false;
+                reajustarColumnasYFilasSeguro();
+            });
         };
 
         model.addTableModelListener(tableModelListener);
