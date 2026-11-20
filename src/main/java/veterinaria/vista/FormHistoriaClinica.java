@@ -236,9 +236,14 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         javax.swing.JPanel buscador = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 1));
         buscador.setOpaque(false);
-        buscador.add(new javax.swing.JLabel("BUSCAR POR INICIO"));
+        javax.swing.JLabel etiquetaBuscar = new javax.swing.JLabel("BUSCAR");
+        buscador.add(etiquetaBuscar);
+        javax.swing.JLabel lupa = new javax.swing.JLabel("\uD83D\uDD0D");
+        lupa.setToolTipText("Buscar registros");
+        buscador.add(lupa);
+        buscarRegistros.setColumns(22);
         buscarRegistros.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
-                "Buscar desde el inicio de fecha, tipo, profesional o resumen");
+                "Buscar registros...");
         buscador.add(buscarRegistros);
         contenido.add(buscador, java.awt.BorderLayout.NORTH);
         javax.swing.JPanel paginada = new javax.swing.JPanel(new java.awt.BorderLayout());
@@ -249,6 +254,9 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         paginacionHistoria.activarBusquedaPorPrefijo();
         // No permitir que el resaltador de búsqueda reemplace el degradado de selección.
         paginacionHistoria.preservarRenderizadoresPersonalizados();
+        // Misma X de limpieza integrada al buscador que en Consultas.
+        buscarRegistros.setLayout(new java.awt.BorderLayout());
+        buscarRegistros.add(paginacionHistoria.getBotonLimpiar(), java.awt.BorderLayout.EAST);
         paginada.add(paginacionHistoria.getControles(), java.awt.BorderLayout.SOUTH);
         contenido.add(paginada, java.awt.BorderLayout.CENTER);
         jPanel2.add(contenido, java.awt.BorderLayout.CENTER);
@@ -293,7 +301,9 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         tableHistoriaClinica.setRowHeight(34);
         ((veterinaria.vista.table.AutoTable) tableHistoriaClinica)
                 .setAjustarAnchoAutomaticamente(false);
-        int[] widths = {92, 50, 135, 125, 185, 250, 295};
+        // Proporciones del modelo antes de ocultar el ID. Las columnas cortas
+        // conservan un ancho máximo; Resumen y Observaciones absorben el resto.
+        int[] widths = {92, 45, 155, 145, 175, 360, 500};
         for (int i = 0; i < widths.length; i++) {
             tableHistoriaClinica.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
         }
@@ -356,7 +366,25 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
                 });
         tableHistoriaClinica.setToolTipText("Seleccione un registro y presione Ver detalle para leerlo completo.");
         ocultarColumnaId();
+        configurarAnchosHistoria();
         limpiarTabla();
+    }
+
+    private void configurarAnchosHistoria() {
+        javax.swing.table.TableColumnModel columnas = tableHistoriaClinica.getColumnModel();
+        // Orden visible: Seleccionar, Fecha, Tipo, Profesional, Resumen, Observaciones.
+        int[] fijos = {100, 168, 155, 185};
+        for (int i = 0; i < fijos.length; i++) {
+            javax.swing.table.TableColumn columna = columnas.getColumn(i);
+            columna.setMinWidth(i == 0 ? 92 : (i == 1 ? 150 : 118));
+            columna.setMaxWidth(fijos[i]);
+            columna.setPreferredWidth(fijos[i]);
+        }
+        columnas.getColumn(4).setMinWidth(180);
+        columnas.getColumn(4).setPreferredWidth(330);
+        columnas.getColumn(5).setMinWidth(240);
+        columnas.getColumn(5).setPreferredWidth(490);
+        tableHistoriaClinica.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
     }
 
     private String importeHistoria(String tipo, String valor) {
