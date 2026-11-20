@@ -78,13 +78,28 @@ public class HistoriaClinicaPdfReporte extends AbstractPdfReporte {
                 "Castrado", safe(mascota.getCastrado()));
 
         seccion(pdf, "ANAMNESIS");
-        pdf.ensureSpace(36f);
-        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
-                "Dieta, vacunas y antecedentes: sin datos estructurados en esta ficha.");
-        pdf.down(16f);
-        pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
-                "Consultar las evoluciones y observaciones de los eventos siguientes.");
-        pdf.down(17f);
+        veterinaria.entidad.HistoriaAnamnesis antecedentes =
+                request.get("anamnesis", veterinaria.entidad.HistoriaAnamnesis.class);
+        if (antecedentes == null) {
+            pdf.ensureSpace(33f);
+            pdf.text(PdfStyle.TXT_FONT, 9, x, pdf.getY(),
+                    "Sin anamnesis registrada para este paciente.");
+            pdf.down(20f);
+        } else {
+            campoPar(pdf, "Dieta", safe(antecedentes.getDieta()),
+                    "Esterilización", safe(antecedentes.getEsterilizacion()));
+            campoPar(pdf, "Enfermedades previas", safe(antecedentes.getEnfermedadesPrevias()),
+                    "Cirugías previas", safe(antecedentes.getCirugiasPrevias()));
+            campoPar(pdf, "Esquema vacunal", safe(antecedentes.getEsquemaVacunal()),
+                    "Desparasitación", safe(antecedentes.getDesparasitacion()));
+            campoPar(pdf, "Tratamientos recientes", safe(antecedentes.getTratamientosRecientes()),
+                    "Número de partos", safe(antecedentes.getNumeroPartos()));
+            campoPar(pdf, "Viajes recientes", safe(antecedentes.getViajesRecientes()),
+                    "Convivencia con otros animales", safe(antecedentes.getConviveConAnimales()));
+            campoPar(pdf, "Comportamiento", safe(antecedentes.getComportamiento()),
+                    "Señales particulares", safe(antecedentes.getSenalesParticulares()));
+            campo(pdf, "Registrado por", safe(antecedentes.getRegistradoPor()));
+        }
 
         // Mantener el encabezado junto al primer evento: evitar títulos
         // abandonados al final de página y el conteo aislado en la siguiente.
