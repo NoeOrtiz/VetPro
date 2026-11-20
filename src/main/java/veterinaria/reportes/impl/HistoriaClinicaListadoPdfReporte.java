@@ -17,7 +17,7 @@ import veterinaria.reportes.pdf.PdfStyle;
 public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
 
     @Override public ReporteTipo tipo() { return ReporteTipo.HISTORIA_CLINICA_LISTADO; }
-    @Override protected String titulo() { return "LISTADO DE HISTORIA CLÍNICA"; }
+    @Override protected String titulo() { return "RESUMEN DE ATENCIONES CLÍNICAS"; }
     @Override protected boolean isLandscape() { return true; }
 
     @Override
@@ -94,13 +94,13 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
 
     private void encabezadoTabla(PdfDocument pdf, float[] x) throws Exception {
         String[] titulos = {"FECHA", "TIPO", "PROFESIONAL", "RESUMEN", "OBSERVACIONES"};
+        pdf.fillRect(pdf.getMargin(), pdf.getY() - 20f,
+                pdf.getUsableWidth(), 29f, new java.awt.Color(231, 236, 241));
         for (int i = 0; i < titulos.length; i++) {
             pdf.text(PDType1Font.HELVETICA_BOLD, 9,
-                    x[i] + 7f, pdf.getY(), titulos[i]);
+                    x[i] + 7f, pdf.getY() - 8f, titulos[i]);
         }
-        pdf.down(17f);
-        pdf.line();
-        pdf.down(5f);
+        pdf.down(37f);
     }
 
     /** Solo formatear como importe los valores monetarios completos;
