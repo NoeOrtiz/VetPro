@@ -26,6 +26,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
     // Mapeo simple para el combo (index -> idMascota)
     private final List<Map.Entry<Integer, String>> listaMascotas = new ArrayList<>();
     private Mascota mascotaSeleccionada;
+    private final javax.swing.JButton seleccionarPaciente = new javax.swing.JButton("Seleccionar paciente...");
+    private final java.util.List<Mascota> pacientesBusqueda = new java.util.ArrayList<>();
     private veterinaria.util.PaginacionTablas paginacionHistoria;
     private final javax.swing.JTextField buscarRegistros = new javax.swing.JTextField(22);
     private final javax.swing.JButton btnCancelarHistoria = new javax.swing.JButton("Cancelar");
@@ -47,6 +49,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         btnVerRegistros.setToolTipText("Consultar el evento sin modificar el registro original.");
         btnCancelarHistoria.setText("Limpiar");
         cargarComboMascotas();
+        seleccionarPaciente.addActionListener(e -> abrirSelectorPacientes());
         initListeners();
         actualizarCantidadRegistros(0);
         actualizarEstadoBotones();
@@ -60,6 +63,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             int idx = jcbPaciente.getSelectedIndex();
 
             if (idx <= 0) {
+                seleccionarPaciente.setText("Seleccionar paciente...");
                 limpiarDetalleMascota();
                 limpiarTabla();
                 return;
@@ -68,6 +72,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             Integer idMascota = listaMascotas.get(idx - 1).getKey();
 
             mascotaSeleccionada = mascotaControlador.buscarMascotaPorId(idMascota);
+            seleccionarPaciente.setText(listaMascotas.get(idx - 1).getValue());
 
             mostrarDetalleMascota();
 
@@ -166,7 +171,7 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         campos.setLayout(new javax.swing.BoxLayout(campos, javax.swing.BoxLayout.Y_AXIS));
         javax.swing.JPanel principales = new javax.swing.JPanel(new java.awt.GridLayout(1, 2, 12, 0));
         principales.setOpaque(false);
-        principales.add(campoFicha(lbPaciente, jcbPaciente));
+        principales.add(campoFicha(lbPaciente, seleccionarPaciente));
         principales.add(campoFicha(lbDueño, txtDueño));
         principales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 58));
         campos.add(principales);
@@ -381,11 +386,97 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
             return;
         }
 
+        pacientesBusqueda.clear();
         for (Mascota m : mascotas) {
+            pacientesBusqueda.add(m);
             String label = veterinaria.util.ui.MascotaComboSupport.label(m);
             listaMascotas.add(new AbstractMap.SimpleEntry<>(m.getIdMascota(), label));
             jcbPaciente.addItem(label);
         }
+    }
+
+    /** Buscador de pacientes por inicio de nombre o de propietario.
+     * Selección única, sin modificar ningún dato del paciente. */
+    private void abrirSelectorPacientes() {
+        javax.swing.JTextField buscar = new javax.swing.JTextField(28);
+        buscar.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Inicio del nombre del paciente o propietario");
+        javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(
+                new Object[]{"ID", "Paciente", "Propietario", "Especie"}, 0) {
+            @Override public boolean isCellEditable(int fila, int columna) { return false; }
+        };
+        javax.swing.JTable tabla = new javax.swing.JTable(modelo);
+        tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        tabla.setRowHeight(29);
+        java.util.List<Mascota> visibles = new java.util.ArrayList<>();
+        Runnable filtrar = () -> {
+            String prefijo = normalizarInicio(buscar.getText());
+            modelo.setRowCount(0);
+            visibles.clear();
+            for (Mascota mascota : pacientesBusqueda) {
+                if (mascota == null) continue;
+                String nombre = nullToEmpty(mascota.getNombre());
+                String propietario = nombrePropietario(mascota);
+                if (!prefijo.isEmpty() && !normalizarInicio(nombre).startsWith(prefijo)
+                        && !normalizarInicio(propietario).startsWith(prefijo)) continue;
+                visibles.add(mascota);
+                modelo.addRow(new Object[]{mascota.getIdMascota(), nombre,
+                        propietario, nullToEmpty(mascota.getEspecie())});
+            }
+        };
+        buscar.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { filtrar.run(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { filtrar.run(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { filtrar.run(); }
+        });
+        filtrar.run();
+        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(0, 10));
+        contenido.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        contenido.add(buscar, java.awt.BorderLayout.NORTH);
+        javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+        scroll.setPreferredSize(new java.awt.Dimension(750, 360));
+        contenido.add(scroll, java.awt.BorderLayout.CENTER);
+        javax.swing.JOptionPane opciones = new javax.swing.JOptionPane(contenido,
+                javax.swing.JOptionPane.PLAIN_MESSAGE, javax.swing.JOptionPane.OK_CANCEL_OPTION);
+        javax.swing.JDialog dialogo = opciones.createDialog(this, "Seleccionar paciente");
+        tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (e.getClickCount() == 2 && tabla.getSelectedRow() >= 0) {
+                    opciones.setValue(javax.swing.JOptionPane.OK_OPTION);
+                    dialogo.dispose();
+                }
+            }
+        });
+        dialogo.setVisible(true);
+        if (!Integer.valueOf(javax.swing.JOptionPane.OK_OPTION).equals(opciones.getValue())) return;
+        int fila = tabla.getSelectedRow();
+        if (fila < 0 || fila >= visibles.size()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Seleccioná un paciente de la lista.");
+            return;
+        }
+        Integer id = visibles.get(fila).getIdMascota();
+        for (int i = 0; i < listaMascotas.size(); i++) {
+            if (id != null && id.equals(listaMascotas.get(i).getKey())) {
+                jcbPaciente.setSelectedIndex(i + 1);
+                cargarHistoria();
+                return;
+            }
+        }
+    }
+
+    private String nombrePropietario(Mascota m) {
+        if (m == null || m.getCliente() == null) return "";
+        veterinaria.entidad.Persona persona = m.getCliente().getPersona();
+        if (persona == null) return nullToEmpty(m.getCliente().getRazonSocial());
+        return (nullToEmpty(persona.getNombre()) + " "
+                + nullToEmpty(persona.getApellido())).trim();
+    }
+
+    private String normalizarInicio(String valor) {
+        return java.text.Normalizer.normalize(valor == null ? "" : valor.trim(),
+                java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(java.util.Locale.ROOT);
     }
 
     private void mostrarDetalleMascota() {
