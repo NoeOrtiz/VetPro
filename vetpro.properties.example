@@ -1,0 +1,7 @@
+# Copie este archivo como vetpro.properties en la raíz del proyecto.
+# Mantenga la copia privada, fuera de Git.
+vetpro.db.url=jdbc:mysql://localhost:3306/veterinaria_prueba?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+vetpro.db.user=USUARIO_LOCAL
+vetpro.db.password=
+vetpro.hibernate.hbm2ddl=validate
+vetpro.hibernate.show_sql=false

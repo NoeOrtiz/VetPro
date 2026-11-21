@@ -80,6 +80,7 @@ public class RecuperacionClaveTokenDAO {
             em.getTransaction().begin();
             Usuario usuarioManaged = em.find(Usuario.class, usuario.getIdUsuario());
             usuarioManaged.setContrasena(PasswordSecurityUtil.normalizeForPersist(nuevaContrasena));
+            usuarioManaged.setPrimerLogin(false);
             em.merge(usuarioManaged);
             em.createNativeQuery("UPDATE usuario_recuperacion_clave SET usado = 1 WHERE id = ?")
                     .setParameter(1, tokenId.longValue())
