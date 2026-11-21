@@ -34,6 +34,8 @@ public class FormUsuario extends javax.swing.JPanel {
     private javax.swing.JPanel panelVistasUsuario;
     private javax.swing.JLabel tituloEditorUsuario;
     private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar");
+    private final javax.swing.JButton btnVerFicha = new javax.swing.JButton("Ver ficha");
+    private final javax.swing.JButton btnLimpiarBusqueda = new javax.swing.JButton("Limpiar");
     private javax.swing.JButton btnVerContrasena;
     private char caracterOcultoContrasena;
 
@@ -104,12 +106,9 @@ public class FormUsuario extends javax.swing.JPanel {
             }
         });
 
-        // Botones de impresión (patrón similar a FormHospitalizaciones)
-        btnImprimir.setVisible(
-                false); // solo visible si hay un registro seleccionado
-        btnImprimir.setEnabled(
-                true);
-        // El botón ya tiene el evento registrado por initComponents().
+        // Los cinco botones de acciones permanecen visibles; su disponibilidad
+        // sigue la selección, permisos y estado del usuario.
+        actualizarAccionesSeleccionUsuario();
 
         btnImprimirLista.setVisible(
                 true);
@@ -700,14 +699,18 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private veterinaria.util.PaginacionTablas paginacionCompartida;
 
+    /**
+     * Barra y acciones como en la referencia, con los componentes y listeners
+     * originales de la versión de Noelia. No modifica los métodos del negocio.
+     */
     private void instalarFiltroEstado() {
-        // Mismo patrón visual de Clientes: las etiquetas arriba y los campos
-        // de búsqueda y estado alineados horizontalmente.
         filtroEstado.setSelectedItem("Activos");
         filtroEstado.addActionListener(e -> cargarUsuariosEnTabla());
 
         jpHeader.removeAll();
-        jpHeader.setLayout(new java.awt.BorderLayout(0, 12));
+        jpHeader.setOpaque(false);
+        jpHeader.setLayout(new java.awt.BorderLayout(0, 10));
+        jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 2, 7, 2));
 
         javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 7));
         titulo.setOpaque(false);
@@ -715,56 +718,55 @@ public class FormUsuario extends javax.swing.JPanel {
         titulo.add(jSeparator2, java.awt.BorderLayout.SOUTH);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
 
-        javax.swing.JPanel centro = new javax.swing.JPanel(new java.awt.BorderLayout(15, 0));
-        centro.setOpaque(false);
+        javax.swing.JPanel filas = new javax.swing.JPanel();
+        filas.setOpaque(false);
+        filas.setLayout(new javax.swing.BoxLayout(filas, javax.swing.BoxLayout.Y_AXIS));
 
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
         filtros.setOpaque(false);
-        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-        c.anchor = java.awt.GridBagConstraints.WEST;
-        c.fill = java.awt.GridBagConstraints.NONE;
-        c.insets = new java.awt.Insets(0, 0, 6, 8);
+        filtros.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        javax.swing.JPanel izquierda = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 9, 0));
+        izquierda.setOpaque(false);
+        lbUsuarioBusqueda.setText("Buscar usuario:");
+        izquierda.add(lbUsuarioBusqueda);
+        // Se mantiene el ícono original de búsqueda.
+        izquierda.add(lbBuscar);
+        txtBusqueda.setPreferredSize(new java.awt.Dimension(415, 34));
+        izquierda.add(txtBusqueda);
+        btnLimpiarBusqueda.setToolTipText("Limpiar la búsqueda y volver a la primera página");
+        btnLimpiarBusqueda.addActionListener(e -> {
+            if (paginacionCompartida != null) paginacionCompartida.limpiarBusqueda();
+            else txtBusqueda.setText("");
+        });
+        izquierda.add(btnLimpiarBusqueda);
+        izquierda.add(new javax.swing.JLabel("Estado:"));
+        filtroEstado.setPreferredSize(new java.awt.Dimension(135, 34));
+        izquierda.add(filtroEstado);
+        filtros.add(izquierda, java.awt.BorderLayout.WEST);
+        filtros.add(btnNuevo, java.awt.BorderLayout.EAST);
+        filas.add(filtros);
+        filas.add(javax.swing.Box.createVerticalStrut(9));
 
-        c.gridx = 0; c.gridy = 0;
-        filtros.add(lbUsuarioBusqueda, c);
-        lbUsuarioBusqueda.setText("BUSCAR USUARIO");
-        c.gridx = 1;
-        filtros.add(new javax.swing.JLabel("Estado:"), c);
-
-        javax.swing.JPanel buscador = new javax.swing.JPanel(new java.awt.BorderLayout(7, 0));
-        buscador.setOpaque(false);
-        buscador.add(lbBuscar, java.awt.BorderLayout.WEST);
-        buscador.add(txtBusqueda, java.awt.BorderLayout.CENTER);
-        buscador.setPreferredSize(new java.awt.Dimension(285, 30));
-        c.gridx = 0; c.gridy = 1; c.insets = new java.awt.Insets(0, 0, 0, 8);
-        filtros.add(buscador, c);
-        filtroEstado.setPreferredSize(new java.awt.Dimension(140, 28));
-        c.gridx = 1;
-        filtros.add(filtroEstado, c);
-        centro.add(filtros, java.awt.BorderLayout.WEST);
-
-        javax.swing.JPanel acciones = new javax.swing.JPanel();
+        javax.swing.JPanel acciones = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
-        acciones.setLayout(new javax.swing.BoxLayout(acciones, javax.swing.BoxLayout.Y_AXIS));
-        btnImprimir.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
-        acciones.add(btnImprimir);
-        acciones.add(javax.swing.Box.createVerticalStrut(8));
-        javax.swing.JPanel botones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
-        botones.setOpaque(false);
-        for (javax.swing.JButton boton : new javax.swing.JButton[]{btnNuevo, btnEditar, btnEliminar}) {
-            boton.setPreferredSize(new java.awt.Dimension(90, 28));
-            botones.add(boton);
-        }
-        botones.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
-        btnCancelarSeleccion.setEnabled(false);
-        btnCancelarSeleccion.setToolTipText("Desmarcar el usuario seleccionado");
+        acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        btnVerFicha.addActionListener(e -> mostrarFichaUsuarioSeleccionado());
+        btnVerFicha.setToolTipText("Mostrar los datos del usuario seleccionado");
+        btnCancelarSeleccion.setToolTipText("Quitar la selección");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionUsuario());
-        botones.add(btnCancelarSeleccion);
-        acciones.add(botones);
-        centro.add(acciones, java.awt.BorderLayout.EAST);
-        jpHeader.add(centro, java.awt.BorderLayout.CENTER);
+        btnCancelarSeleccion.setText("");
+        acciones.add(btnVerFicha);
+        acciones.add(btnEditar);
+        acciones.add(btnEliminar);
+        acciones.add(btnImprimir);
+        acciones.add(btnImprimirLista);
+        acciones.add(btnCancelarSeleccion);
+        filas.add(acciones);
+
+        jpHeader.add(filas, java.awt.BorderLayout.CENTER);
         jpHeader.add(jSeparator1, java.awt.BorderLayout.SOUTH);
-        jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 10));
         jpHeader.revalidate();
         jpHeader.repaint();
     }
@@ -793,47 +795,102 @@ public class FormUsuario extends javax.swing.JPanel {
         repaint();
     }
 
-    /** Los estilos cambian únicamente la presentación, no permisos ni eventos. */
+    /** Iconos SVG y estilos visuales sin cambiar los ActionListener de VetPRO. */
     private void aplicarEstiloVisualUsuarios() {
         veterinaria.util.ui.EstiloHibrido.titulos(lblGestionUsuarios, jLabel2);
         veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnNuevo, btnGuardar);
         veterinaria.util.ui.EstiloHibrido.botonesSecundarios(
-                btnEditar, btnImprimir, btnImprimirLista);
+                btnVerFicha, btnEditar, btnImprimir, btnImprimirLista);
         veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
         veterinaria.util.ui.EstiloHibrido.botonesSutiles(
-                btnCancelarSeleccion, btnCancelar, btnLimpiar);
+                btnLimpiarBusqueda, btnCancelarSeleccion, btnCancelar, btnLimpiar);
+
         btnNuevo.setText("Nuevo usuario");
+        btnVerFicha.setText("Ver ficha");
+        btnEditar.setText("Editar");
+        btnEliminar.setText("Desactivar");
+        btnImprimir.setText("Imprimir ficha");
         btnImprimirLista.setText("Imprimir listado");
+
+        iconoUsuario(btnNuevo, "nuevo_usuario.svg");
+        iconoUsuario(btnVerFicha, "ver_recibo.svg");
+        iconoUsuario(btnEditar, "editar_usuario.svg");
+        iconoUsuario(btnEliminar, "desactivar_usuario.svg");
+        iconoUsuario(btnImprimir, "imprimir_recibo.svg");
+        iconoUsuario(btnImprimirLista, "imprimir_recibo.svg");
+        iconoUsuario(btnLimpiarBusqueda, "limpiar_usuario.svg");
+        iconoUsuario(btnCancelarSeleccion, "limpiar_usuario.svg");
+        btnCancelarSeleccion.setToolTipText("Quitar selección del usuario");
+
         txtBusqueda.putClientProperty(
                 com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
-                "Nombre, apellido o DNI");
+                "Nombre, apellido, DNI, usuario o rol");
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnEliminar, btnImprimir,
-                btnImprimirLista, btnGuardar, btnCancelar, btnLimpiar}) {
-            java.awt.Dimension tam = boton.getPreferredSize();
-            if (tam == null) tam = new java.awt.Dimension(96, 32);
+                btnNuevo, btnVerFicha, btnEditar, btnEliminar, btnImprimir,
+                btnImprimirLista, btnLimpiarBusqueda, btnCancelarSeleccion}) {
+            boton.setFocusable(false);
+            int minWidth = boton == btnNuevo ? 138
+                    : boton == btnImprimirLista ? 152
+                    : boton == btnImprimir ? 140
+                    : boton == btnVerFicha ? 115
+                    : boton == btnEliminar ? 122
+                    : boton == btnLimpiarBusqueda ? 95
+                    : boton == btnCancelarSeleccion ? 35 : 92;
             boton.setPreferredSize(new java.awt.Dimension(
-                    Math.max(tam.width, boton == btnNuevo ? 123 : 93),
-                    Math.max(tam.height, 32)));
+                    Math.max(minWidth, boton.getPreferredSize().width), 34));
         }
-        // Solo la columna de estado cambia de renderer. Conserva los checkboxes
-        // y la paginación del listado original.
+        // Conserva columnas, casillas, filtros, paginación y badges.
         veterinaria.util.ui.EstiloHibrido.tablaClientes(table, 9);
+        // Hace coincidir el fondo de todas las celdas con el degradado del checkbox.
+        table.putClientProperty("vetpro.gradienteCompanero", Boolean.TRUE);
+    }
+
+    private void iconoUsuario(javax.swing.JButton boton, String archivo) {
+        String carpeta = "veterinaria/icon/svg/";
+        // El ojo y la impresora ya existen: no se duplican sus recursos.
+        try {
+            boton.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon(carpeta + archivo, 0.70f));
+            boton.setIconTextGap(6);
+            boton.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+        } catch (RuntimeException e) {
+            boton.setToolTipText("Acción: " + boton.getText());
+        }
+    }
+
+    /** Vista de solo lectura, sin exponer contraseñas ni modificar el usuario. */
+    private void mostrarFichaUsuarioSeleccionado() {
+        int fila = operarTablas.comprobarElementoSeleccionado(table);
+        if (fila < 0) return;
+        String[] campos = {"Nombre", "Apellido", "DNI", "Teléfono",
+                "Dirección", "Rol", "Usuario", "E-mail", "Estado"};
+        javax.swing.JPanel ficha = new javax.swing.JPanel(
+                new java.awt.GridLayout(campos.length, 2, 12, 7));
+        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        for (int i = 0; i < campos.length; i++) {
+            javax.swing.JLabel label = new javax.swing.JLabel(campos[i] + ":");
+            label.setFont(label.getFont().deriveFont(java.awt.Font.BOLD));
+            ficha.add(label);
+            Object valor = table.getValueAt(fila, i + 1);
+            ficha.add(new javax.swing.JLabel(valor == null ? "—" : String.valueOf(valor)));
+        }
+        JOptionPane.showMessageDialog(this, ficha, "Ficha de usuario",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private void instalarPaginacionCompartida() {
-        // El contenedor se instala fuera del código generado por NetBeans.
-        javax.swing.JPanel contenedor = new javax.swing.JPanel(new java.awt.BorderLayout());
-        ((javax.swing.GroupLayout) jpListaUsuarios.getLayout()).replace(scroll, contenedor);
-        contenedor.add(scroll, java.awt.BorderLayout.CENTER);
+        // El listado queda bajo la barra de acciones: sin encabezados duplicados
+        // ni botón de impresión fuera de su fila.
+        jpListaUsuarios.removeAll();
+        jpListaUsuarios.setLayout(new java.awt.BorderLayout(0, 4));
+        jpListaUsuarios.add(scroll, java.awt.BorderLayout.CENTER);
+
         paginacionCompartida = veterinaria.util.GestorTablas.paginar(
                 table, txtBusqueda,
                 new veterinaria.util.GestorTablas.Configuracion(
                         new int[]{1, 2, 3, 6, 7}, new int[]{1, 2, 3, 6, 7}, 15));
         paginacionCompartida.activarBusquedaPorPrefijo();
-        contenedor.add(paginacionCompartida.getControles(), java.awt.BorderLayout.SOUTH);
-        txtBusqueda.setLayout(new java.awt.BorderLayout());
-        txtBusqueda.add(paginacionCompartida.getBotonLimpiar(), java.awt.BorderLayout.EAST);
+        jpListaUsuarios.add(paginacionCompartida.getControles(), java.awt.BorderLayout.SOUTH);
+        // La acción limpiar está en la fila de filtros; no hay una X superpuesta.
         table.getColumnModel().getColumn(0).setCellRenderer(
                 new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         paginacionCompartida.actualizar();
@@ -938,20 +995,42 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void actualizarAccionesSeleccionUsuario() {
         boolean haySeleccion = veterinaria.util.GestorTablas.haySeleccion(table);
-        btnEditar.setVisible(haySeleccion);
-        btnEliminar.setVisible(haySeleccion);
+        // Los botones permanecen en su posición como en el compañero:
+        // sin saltos de la interfaz cuando se marca/desmarca una fila.
+        btnVerFicha.setVisible(true);
+        btnEditar.setVisible(true);
+        btnEliminar.setVisible(true);
+        btnImprimir.setVisible(true);
+        btnImprimirLista.setVisible(true);
         btnCancelarSeleccion.setVisible(haySeleccion);
-        btnImprimir.setVisible(haySeleccion);
-        btnNuevo.setEnabled(!haySeleccion);
-        btnEditar.setEnabled(haySeleccion);
-        btnEliminar.setEnabled(haySeleccion);
+        btnVerFicha.setEnabled(haySeleccion);
+        btnNuevo.setEnabled(!haySeleccion && permisoUsuario("NUEVO"));
+        btnEditar.setEnabled(haySeleccion && permisoUsuario("EDITAR"));
+        btnEliminar.setEnabled(haySeleccion && permisoUsuario("ELIMINAR"));
+        btnImprimir.setEnabled(haySeleccion && permisoUsuario("IMPRIMIR"));
+        btnImprimirLista.setEnabled(permisoUsuario("IMPRIMIR"));
         btnCancelarSeleccion.setEnabled(haySeleccion);
         actualizarTextoEstadoSeleccionado();
         if (haySeleccion) {
-            boolean reactivar = "Reactivar".equals(btnEliminar.getText());
-            if (reactivar) veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnEliminar);
-            else veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+            if ("Reactivar".equals(btnEliminar.getText())) {
+                veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnEliminar);
+            } else {
+                veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+            }
         }
+        java.awt.Color borde = javax.swing.UIManager.getColor("Component.borderColor");
+        if (borde == null) borde = new java.awt.Color(64, 82, 95);
+        scroll.setBorder(javax.swing.BorderFactory.createLineBorder(
+                haySeleccion ? new java.awt.Color(238, 153, 45) : borde, 1, true));
+        table.repaint();
+    }
+
+    /** Conserva los permisos reales del módulo al habilitar acciones. */
+    private boolean permisoUsuario(String accion) {
+        veterinaria.util.SesionUsuario sesion =
+                veterinaria.util.SesionUsuario.getInstancia();
+        return sesion == null || sesion.getUsuario() == null
+                || sesion.puede("FormUsuario." + accion);
     }
 
     private Usuario obtenerUsuarioSeleccionadoDesdeTabla() {
