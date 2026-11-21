@@ -62,6 +62,8 @@ public class FormUsuario extends javax.swing.JPanel {
 
     public FormUsuario() {
         initComponents();
+        veterinaria.util.ui.EstiloHibrido.superficies(jpDatosPersonales, jpAcceso, jpDatosCuenta, jpListaUsuarios);
+        veterinaria.util.ui.EstiloHibrido.titulos(lbDatosPersonales, lbDatosDeCuenta, lblGestionUsuarios);
         // Centramos cualquier contenido o icono que se cargue
         // Centramos cualquier contenido o icono que se cargue
        // lbFotoPerfil.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);

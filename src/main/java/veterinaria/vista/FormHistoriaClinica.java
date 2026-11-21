@@ -38,6 +38,8 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
 
     public FormHistoriaClinica() {
         initComponents();
+        veterinaria.util.ui.EstiloHibrido.superficies(jPanel1, jPanel2, jPanel3);
+        veterinaria.util.ui.EstiloHibrido.titulos(lbListaServicios);
         PermisoUI.aplicar(this);
         inicializarTabla();
         configurarCabeceraHistoria();

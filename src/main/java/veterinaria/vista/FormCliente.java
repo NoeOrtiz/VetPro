@@ -72,6 +72,8 @@ public class FormCliente extends javax.swing.JPanel {
 
     public FormCliente() {
         initComponents();
+        veterinaria.util.ui.EstiloHibrido.superficies(jpDatosPersonales, panelLista);
+        veterinaria.util.ui.EstiloHibrido.titulos(lbDatosPersonales, lbListCli);
         PermisoUI.aplicar(this);
         btnImprimir.setVisible(false);
         initListeners();

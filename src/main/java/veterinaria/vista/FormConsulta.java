@@ -93,6 +93,8 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
 
     public FormConsulta() {
         initComponents();
+        veterinaria.util.ui.EstiloHibrido.superficies(jpDatos, jpListaVisitas);
+        veterinaria.util.ui.EstiloHibrido.titulos(lbDatos, lbListaDeVisitas);
         configurarPresentacionConsultas();
         PermisoUI.aplicar(this);
         configurarAccionesPorRol();

@@ -12,7 +12,7 @@ La rama `integracion/estetica-companero-funciones-noe` parte de `redisenio-vetpr
 
 ## Qué cambia
 - Se incorporan colores para tarjetas, superficies, ayudas y estados desde el diseño del compañero.
-- El Inicio se presenta con tres métricas separadas dentro de la tarjeta de resumen; mantiene exactamente sus accesos originales y sus permisos.
+- El Inicio se presenta con tres métricas separadas dentro de la tarjeta de resumen; mantiene exactamente sus accesos originales y sus permisos. Se aplican además superficies y títulos visuales de forma selectiva en Clientes, Mascotas, Consultas, Historia Clínica y Usuarios, sin cambiar sus archivos .form ni sus handlers.
 - Se añaden clases de estilo optativas que podrán adoptarse por formulario sin alterar todo el sistema.
 - Se suma una prueba básica de preservación de campos clínicos.
 

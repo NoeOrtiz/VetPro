@@ -61,6 +61,8 @@ public class FormMascota extends javax.swing.JPanel {
 
     public FormMascota() {
         initComponents();
+        veterinaria.util.ui.EstiloHibrido.superficies(panelDatos, jpListaPacientes);
+        veterinaria.util.ui.EstiloHibrido.titulos(lbListaDePacientes);
         PermisoUI.aplicar(this);
         cargarDatosComboBoxes();
         List<Integer> columnasObjetivo = Arrays.asList(2, 3, 4, 5, 6, 7, 9, 10, 11);
