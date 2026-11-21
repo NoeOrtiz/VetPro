@@ -172,11 +172,13 @@ public class FormBienvenida extends JPanel {
             if (Boolean.TRUE.equals(jc.getClientProperty("vetpro.home.card"))) {
                 jc.setBackground(card);
                 jc.setForeground(UIManager.getColor("Label.foreground"));
-                jc.setBorder(new CompoundBorder(
-                        new LineBorder(UIManager.getColor("Component.borderColor") != null
-                                ? UIManager.getColor("Component.borderColor")
-                                : new Color(110, 125, 138), 1, true),
-                        new EmptyBorder(18, 20, 18, 20)));
+                if (jc instanceof JButton) {
+                    jc.putClientProperty("FlatLaf.styleClass", "hibridoAcceso");
+                    jc.setBorder(new EmptyBorder(20, 20, 20, 20));
+                } else {
+                    // El panel pinta sus propias esquinas redondeadas.
+                    jc.setBorder(new EmptyBorder(18, 20, 18, 20));
+                }
             }
             if (componente instanceof JLabel etiqueta) {
                 if (Boolean.TRUE.equals(jc.getClientProperty("vetpro.home.title"))) {
@@ -266,11 +268,29 @@ public class FormBienvenida extends JPanel {
     }
 
     private JPanel panelTarjeta(LayoutManager layout) {
-        JPanel p = new JPanel(layout);
+        JPanel p = new JPanel(layout) {
+            @Override
+            protected void paintComponent(Graphics graphics) {
+                Graphics2D g2 = (Graphics2D) graphics.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(1, 1, Math.max(0, getWidth() - 2),
+                        Math.max(0, getHeight() - 2), 16, 16);
+                Color borde = UIManager.getColor("App.borderColor");
+                if (borde != null) {
+                    g2.setColor(borde);
+                    g2.drawRoundRect(1, 1, Math.max(0, getWidth() - 3),
+                            Math.max(0, getHeight() - 3), 16, 16);
+                }
+                g2.dispose();
+                super.paintComponent(graphics);
+            }
+        };
+        p.setOpaque(false);
         p.putClientProperty("vetpro.home.card", Boolean.TRUE);
         p.setBackground(card);
-        p.setBorder(new CompoundBorder(new LineBorder(new Color(69, 82, 96), 1, true),
-                new EmptyBorder(18, 20, 18, 20)));
+        p.setBorder(new EmptyBorder(18, 20, 18, 20));
         return p;
     }
 
@@ -310,8 +330,8 @@ public class FormBienvenida extends JPanel {
         b.putClientProperty("vetpro.home.card", Boolean.TRUE);
         b.setBackground(card);
         b.setOpaque(true);
-        b.setBorder(new CompoundBorder(new LineBorder(new Color(69, 82, 96), 1, true),
-                new EmptyBorder(20, 20, 20, 20)));
+        b.putClientProperty("FlatLaf.styleClass", "hibridoAcceso");
+        b.setBorder(new EmptyBorder(20, 20, 20, 20));
         b.setForeground(UIManager.getColor("Label.foreground"));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setFocusPainted(false);

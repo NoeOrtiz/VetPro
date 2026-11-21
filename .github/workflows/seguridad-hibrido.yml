@@ -6,6 +6,7 @@ on:
       - integracion/estetica-companero-funciones-noe
       - integracion/pdf-sobrio-historia
       - integracion/historia-clinica-tarjeta
+      - integracion/clientes-y-home-estilo-companero
   workflow_dispatch:
 
 permissions:
