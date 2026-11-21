@@ -33,8 +33,8 @@ class PerfilCabeceraHibridaTest {
         assertTrue(src.contains("datos.add(rol)"));
         assertTrue(src.contains("new FlechaPerfil()"));
         assertTrue(src.contains("instalarMenuPerfil(controles"));
-        assertTrue(src.contains("actual.puede(\"FormUsuario\")"));
-        assertTrue(src.contains("showFormConPermiso(new FormUsuario())"));
+        assertTrue(src.contains("new javax.swing.JMenuItem(\"Mi perfil\")"));
+        assertTrue(src.contains("new MiPerfilDialog(ventana, Application.getSesionUsuario())"));
         assertTrue(src.contains("new RecuperarContrasenaDialog("));
         assertTrue(src.contains("Application.logout()"));
     }

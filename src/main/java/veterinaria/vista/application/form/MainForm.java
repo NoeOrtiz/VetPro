@@ -583,20 +583,22 @@ public class MainForm extends JLayeredPane {
                 if (!javax.swing.SwingUtilities.isLeftMouseButton(e)) return;
                 javax.swing.JPopupMenu opciones = new javax.swing.JPopupMenu();
                 SesionUsuario actual = Application.getSesionUsuario();
-                if (actual != null && actual.getUsuario() != null
-                        && actual.puede("FormUsuario")) {
-                    javax.swing.JMenuItem usuarios = new javax.swing.JMenuItem("Gestión de usuarios");
-                    usuarios.addActionListener(a -> {
-                        showFormConPermiso(new FormUsuario());
-                        setSelectedMenu(1, 1);
+                if (actual != null && actual.getUsuario() != null) {
+                    // La consulta del perfil no equivale a administrar otros usuarios.
+                    javax.swing.JMenuItem perfil = new javax.swing.JMenuItem("Mi perfil");
+                    perfil.addActionListener(a -> {
+                        java.awt.Window ventana = javax.swing.SwingUtilities.getWindowAncestor(MainForm.this);
+                        MiPerfilDialog dialogo = new MiPerfilDialog(ventana, Application.getSesionUsuario());
+                        dialogo.setLocationRelativeTo(MainForm.this);
+                        dialogo.setVisible(true);
                     });
-                    opciones.add(usuarios);
+                    opciones.add(perfil);
                 }
                 javax.swing.JMenuItem clave = new javax.swing.JMenuItem("Cambiar contraseña");
                 clave.addActionListener(a -> {
                     java.awt.Window ventana = javax.swing.SwingUtilities.getWindowAncestor(MainForm.this);
                     RecuperarContrasenaDialog dialogo = new RecuperarContrasenaDialog(
-                            ventana, usuario == null ? "" : usuario.getNombreUsuario());
+                            ventana, usuario == null ? "" : usuario.getNombreUsuario(), true);
                     dialogo.setLocationRelativeTo(MainForm.this);
                     dialogo.setVisible(true);
                 });
