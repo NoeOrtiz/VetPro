@@ -80,8 +80,10 @@ public class FormUsuario extends javax.swing.JPanel {
         initListeners();
 
         instalarFiltroEstado();
+        organizarVistasUsuario();
         actualizarForm();
         instalarPaginacionCompartida();
+        aplicarEstiloVisualUsuarios();
         // En Usuarios solo se permite una selección a la vez, incluso
         // cuando el usuario marca directamente la casilla de otra fila.
         table.getModel().addTableModelListener(e -> {
@@ -767,6 +769,58 @@ public class FormUsuario extends javax.swing.JPanel {
         jpHeader.repaint();
     }
 
+    /** Reutiliza los tres paneles generados por NetBeans, pero evita el alto fijo de 390px. */
+    private void organizarVistasUsuario() {
+        removeAll();
+        setLayout(new java.awt.BorderLayout(0, 8));
+        panelVistasUsuario = new javax.swing.JPanel();
+        panelVistasUsuario.setOpaque(false);
+        vistasUsuario = new java.awt.CardLayout();
+        panelVistasUsuario.setLayout(vistasUsuario);
+        panelVistasUsuario.add(jpListaUsuarios, "LISTA");
+        panelVistasUsuario.add(jpCamposFormularioUsuario, "EDITOR");
+        add(jpHeader, java.awt.BorderLayout.NORTH);
+        add(panelVistasUsuario, java.awt.BorderLayout.CENTER);
+        setBorder(javax.swing.BorderFactory.createEmptyBorder(9, 12, 9, 12));
+    }
+
+    private void mostrarVistaUsuario(boolean editor) {
+        jpHeader.setVisible(!editor);
+        if (vistasUsuario != null) {
+            vistasUsuario.show(panelVistasUsuario, editor ? "EDITOR" : "LISTA");
+        }
+        revalidate();
+        repaint();
+    }
+
+    /** Los estilos cambian únicamente la presentación, no permisos ni eventos. */
+    private void aplicarEstiloVisualUsuarios() {
+        veterinaria.util.ui.EstiloHibrido.titulos(lblGestionUsuarios, jLabel2);
+        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnNuevo, btnGuardar);
+        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(
+                btnEditar, btnImprimir, btnImprimirLista);
+        veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+        veterinaria.util.ui.EstiloHibrido.botonesSutiles(
+                btnCancelarSeleccion, btnCancelar, btnLimpiar);
+        btnNuevo.setText("Nuevo usuario");
+        btnImprimirLista.setText("Imprimir listado");
+        txtBusqueda.putClientProperty(
+                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Nombre, apellido o DNI");
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnNuevo, btnEditar, btnEliminar, btnImprimir,
+                btnImprimirLista, btnGuardar, btnCancelar, btnLimpiar}) {
+            java.awt.Dimension tam = boton.getPreferredSize();
+            if (tam == null) tam = new java.awt.Dimension(96, 32);
+            boton.setPreferredSize(new java.awt.Dimension(
+                    Math.max(tam.width, boton == btnNuevo ? 123 : 93),
+                    Math.max(tam.height, 32)));
+        }
+        // Solo la columna de estado cambia de renderer. Conserva los checkboxes
+        // y la paginación del listado original.
+        veterinaria.util.ui.EstiloHibrido.tablaClientes(table, 9);
+    }
+
     private void instalarPaginacionCompartida() {
         // El contenedor se instala fuera del código generado por NetBeans.
         javax.swing.JPanel contenedor = new javax.swing.JPanel(new java.awt.BorderLayout());
@@ -872,8 +926,7 @@ public class FormUsuario extends javax.swing.JPanel {
         limpiarCamposFormulario();
         cargarRolesEnComboBox();
         cargarUsuariosEnTabla();
-        jpCamposFormularioUsuario.setVisible(false);
-        jpListaUsuarios.setVisible(true);
+        mostrarVistaUsuario(false);
         actualizarBotonImprimir();
         revalidate();
         repaint();
@@ -894,6 +947,11 @@ public class FormUsuario extends javax.swing.JPanel {
         btnEliminar.setEnabled(haySeleccion);
         btnCancelarSeleccion.setEnabled(haySeleccion);
         actualizarTextoEstadoSeleccionado();
+        if (haySeleccion) {
+            boolean reactivar = "Reactivar".equals(btnEliminar.getText());
+            if (reactivar) veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnEliminar);
+            else veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+        }
     }
 
     private Usuario obtenerUsuarioSeleccionadoDesdeTabla() {
@@ -1049,8 +1107,7 @@ public class FormUsuario extends javax.swing.JPanel {
             originalNombreUsuario = usuario.getNombreUsuario();
             originalRolNombre = (rolUsuario != null) ? rolUsuario.getNombreRol() : null;
 
-            jpCamposFormularioUsuario.setVisible(true);
-            jpListaUsuarios.setVisible(false);
+            mostrarVistaUsuario(true);
             habilitarCamposPersonales(true);
             habilitarDatosDeCuenta(true);
             bRetorno = true;
@@ -1219,9 +1276,10 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void btnNuevoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNuevoActionPerformed
         Application.actualizarEstadoUsuario("CreandoUsuario");
+        if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
+        btnGuardar.setText("Crear usuario");
         limpiarCamposFormulario();
-        jpCamposFormularioUsuario.setVisible(true);
-        jpListaUsuarios.setVisible(false);
+        mostrarVistaUsuario(true);
         mostrarFoto(null);
         habilitarCamposPersonales(true);
         cargarRolesEnComboBox();
@@ -1502,6 +1560,8 @@ public class FormUsuario extends javax.swing.JPanel {
 
         if (selectedRow != -1) {
             if (editarUsuarioSeleccionado()) {
+                if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Editar usuario");
+                btnGuardar.setText("Guardar cambios");
                 btnNuevo.setEnabled(false);
                 btnEditar.setEnabled(false);
                 btnEliminar.setEnabled(false);
@@ -1633,6 +1693,8 @@ public class FormUsuario extends javax.swing.JPanel {
     }
 
     private void volverAModoLista() {
+        if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
+        if (btnGuardar != null) btnGuardar.setText("Crear usuario");
         actualizarForm();
         btnNuevo.setEnabled(true);
         actualizarAccionesSeleccionUsuario();
