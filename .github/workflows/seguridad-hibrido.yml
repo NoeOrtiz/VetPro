@@ -39,3 +39,10 @@ jobs:
           name: informes-surefire
           path: target/surefire-reports/
           if-no-files-found: ignore
+      - name: Guardar ejemplos PDF sin datos reales
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vetpro-pdf-sobrio-demo
+          path: target/pdf-preview/
+          if-no-files-found: ignore
