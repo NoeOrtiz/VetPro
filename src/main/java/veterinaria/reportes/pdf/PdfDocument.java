@@ -61,6 +61,8 @@ public class PdfDocument implements Closeable {
         currentPage++;
 
         cs = new PDPageContentStream(doc, page);
+        cs.setNonStrokingColor(PdfStyle.INK);
+        cs.setStrokingColor(PdfStyle.HAIR);
 
         pageW = page.getMediaBox().getWidth();
         pageH = page.getMediaBox().getHeight();
@@ -106,7 +108,29 @@ public class PdfDocument implements Closeable {
         cs.setNonStrokingColor(color);
         cs.addRect(x, y, w, h);
         cs.fill();
-        cs.setNonStrokingColor(java.awt.Color.BLACK);
+        cs.setNonStrokingColor(PdfStyle.INK);
+    }
+
+    /** Línea horizontal sin cambiar la posición del cursor de texto. */
+    public void hline(float a, float b, float atY, java.awt.Color color, float size)
+            throws IOException {
+        cs.saveGraphicsState();
+        cs.setStrokingColor(color);
+        cs.setLineWidth(size);
+        cs.moveTo(a, atY);
+        cs.lineTo(b, atY);
+        cs.stroke();
+        cs.restoreGraphicsState();
+    }
+
+    public void text(PDFont font, int size, float x, float atY, String value,
+            java.awt.Color color) throws IOException {
+        cs.setNonStrokingColor(color == null ? PdfStyle.INK : color);
+        try {
+            text(font, size, x, atY, value);
+        } finally {
+            cs.setNonStrokingColor(PdfStyle.INK);
+        }
     }
 
     public void rect(float x, float y, float w, float h) throws IOException {

@@ -106,15 +106,20 @@ public class ClienteListadoPdfReporte extends AbstractPdfReporte {
             x += w[i];
         }
 
-        // Encabezados
+        // Banda de encabezado y línea fina, según el PDF de referencia.
+        pdf.fillRect(pdf.getMargin(), pdf.getY() - 17f,
+                pdf.getUsableWidth(), 26f, PdfStyle.ACCENT_SOFT);
         for (int i = 0; i < headers.length; i++) {
-            pdf.text(PDType1Font.HELVETICA_BOLD, fontSize, cx[i], pdf.getY(), headers[i]);
+            pdf.text(PDType1Font.HELVETICA_BOLD, fontSize,
+                    cx[i] + 2f, pdf.getY() - 7f,
+                    headers[i], PdfStyle.ACCENT_DARK);
         }
-        pdf.down(10f);
-        pdf.line();
-        pdf.down(6f);
+        pdf.hline(pdf.getMargin(), pdf.getPageW() - pdf.getMargin(),
+                pdf.getY() - 19f, PdfStyle.ACCENT, 0.9f);
+        pdf.down(34f);
 
-        // Renderizado de filas
+        // Filas alternadas, sin alterar filtro, contenido ni orden.
+        int indiceVisual = 0;
         for (int r : filasFiltradas) {
             String[] data = new String[cols.length];
             for (int c = 0; c < cols.length; c++) {
@@ -133,6 +138,11 @@ public class ClienteListadoPdfReporte extends AbstractPdfReporte {
             pdf.ensureSpace(neededSpace);
 
             float yTop = pdf.getY();
+            if ((indiceVisual++ % 2) == 1) {
+                pdf.fillRect(pdf.getMargin() - 1f,
+                        yTop - neededSpace + 6f,
+                        pdf.getUsableWidth() + 2f, neededSpace, PdfStyle.ZEBRA);
+            }
             for (int i = 0; i < maxLines; i++) {
                 float yy = yTop - (i * lineH);
                 for (int col = 0; col < w.length; col++) {

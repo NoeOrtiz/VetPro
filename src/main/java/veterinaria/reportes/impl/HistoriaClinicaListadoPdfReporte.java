@@ -20,28 +20,10 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
     @Override protected String titulo() { return "RESUMEN DE ATENCIONES CLÍNICAS"; }
     @Override protected boolean isLandscape() { return true; }
 
-    /**
-     * Encabezado exclusivo de Historia Clínica: logo protagonista,
-     * sin modificar la presentación de los demás reportes de VetPRO.
-     */
+    /** Encabezado institucional compartido; conserva el formato del detalle clínico. */
     @Override
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
-        float top = pdf.getY();
-        float margen = pdf.getMargin();
-        boolean primeraPagina = pdf.getCurrentPage() == 1;
-        // Encabezado institucional horizontal: logo original sin márgenes
-        // transparentes y sin estirar la imagen.
-        float anchoLogo = primeraPagina ? 115f : 72f;
-        float altoLogo = primeraPagina ? 88f : 53f;
-        LogoHistoriaClinica.dibujar(pdf, margen, top, anchoLogo, altoLogo);
-
-        int tamanioTitulo = primeraPagina ? 14 : 11;
-        float xTitulo = margen + anchoLogo + 17f;
-        float yTitulo = top - (altoLogo / 2f) + 4f;
-        pdf.text(PdfStyle.H2_FONT, tamanioTitulo, xTitulo, yTitulo, titulo());
-        pdf.setY(top - altoLogo - 13f);
-        pdf.line();
-        pdf.down(12f);
+        super.renderHeader(pdf, request);
     }
 
     @Override
@@ -61,11 +43,14 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
         float ancho = pdf.getUsableWidth();
 
         pdf.down(6f);
-        pdf.text(PDType1Font.HELVETICA_BOLD, 11, margen, pdf.getY(),
-                "Paciente: " + (mascota == null ? "No registrado" : safe(mascota.getNombre())));
-        pdf.text(PdfStyle.TXT_FONT, 9, margen + ancho - 95f, pdf.getY(),
-                "Registros: " + m.getRowCount());
-        pdf.down(26f);
+        pdf.fillRect(margen, pdf.getY() - 16f, Math.min(ancho, 420f), 26f,
+                PdfStyle.ACCENT_SOFT);
+        pdf.text(PdfStyle.TXT_BOLD_FONT, 9, margen + 10f, pdf.getY() - 6f,
+                "PACIENTE   " + (mascota == null ? "No registrado" : safe(mascota.getNombre())),
+                PdfStyle.ACCENT_DARK);
+        pdf.text(PdfStyle.TXT_BOLD_FONT, 9, margen + 270f, pdf.getY() - 6f,
+                "EVENTOS   " + m.getRowCount(), PdfStyle.ACCENT_DARK);
+        pdf.down(42f);
 
         float[] proporciones = {0.16f, 0.14f, 0.17f, 0.23f, 0.30f};
         float[] x = new float[5];
@@ -103,6 +88,10 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
                 encabezadoTabla(pdf, x);
             }
             float arriba = pdf.getY();
+            if ((fila % 2) == 1) {
+                pdf.fillRect(margen, arriba - alto + 7f, ancho,
+                        alto + 2f, PdfStyle.ZEBRA);
+            }
             for (int col = 0; col < celdas.size(); col++) {
                 java.util.List<String> lineas = celdas.get(col);
                 for (int i = 0; i < lineas.size(); i++) {
@@ -111,19 +100,22 @@ public class HistoriaClinicaListadoPdfReporte extends AbstractPdfReporte {
                 }
             }
             pdf.down(alto);
-            pdf.line();
-            pdf.down(3f);
+            pdf.hline(margen, margen + ancho, pdf.getY() + 3f,
+                    PdfStyle.HAIR, 0.55f);
+            pdf.down(10f);
         }
     }
 
     private void encabezadoTabla(PdfDocument pdf, float[] x) throws Exception {
         String[] titulos = {"FECHA", "TIPO", "PROFESIONAL", "RESUMEN", "OBSERVACIONES"};
         pdf.fillRect(pdf.getMargin(), pdf.getY() - 20f,
-                pdf.getUsableWidth(), 29f, new java.awt.Color(231, 236, 241));
+                pdf.getUsableWidth(), 29f, PdfStyle.ACCENT_SOFT);
         for (int i = 0; i < titulos.length; i++) {
             pdf.text(PDType1Font.HELVETICA_BOLD, 9,
-                    x[i] + 7f, pdf.getY() - 8f, titulos[i]);
+                    x[i] + 7f, pdf.getY() - 8f, titulos[i], PdfStyle.ACCENT_DARK);
         }
+        pdf.hline(pdf.getMargin(), pdf.getPageW() - pdf.getMargin(),
+                pdf.getY() - 22f, PdfStyle.ACCENT, 0.9f);
         pdf.down(37f);
     }
 
