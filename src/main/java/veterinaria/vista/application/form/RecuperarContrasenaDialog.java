@@ -52,9 +52,18 @@ public class RecuperarContrasenaDialog extends JDialog {
     private JButton btnAccion;
     private JPanel panelFormulario;
     private JLabel lblAyuda;
+    private final boolean desdePerfil;
 
     public RecuperarContrasenaDialog(Window owner, String usuarioInicial) {
-        super(owner instanceof Frame ? (Frame) owner : null, "Recuperar Contraseña", ModalityType.APPLICATION_MODAL);
+        this(owner, usuarioInicial, false);
+    }
+
+    /** Se reutiliza el circuito de recuperación por código también desde Mi perfil. */
+    public RecuperarContrasenaDialog(Window owner, String usuarioInicial, boolean desdePerfil) {
+        super(owner instanceof Frame ? (Frame) owner : null,
+                desdePerfil ? "Cambiar contraseña" : "Recuperar contraseña",
+                ModalityType.APPLICATION_MODAL);
+        this.desdePerfil = desdePerfil;
         initComponents(usuarioInicial);
     }
 
@@ -87,11 +96,18 @@ public class RecuperarContrasenaDialog extends JDialog {
         panelCabecera.add(lblTitulo, "gapy 2"); // Espacio mínimo entre el logo y el título
         panelCabecera.add(lblAyuda, "gapy 2");  // Espacio mínimo entre el título y el texto explicativo
 
+        // Formulario centrado con dos columnas, como el de la versión de referencia.
+        // Se reutilizan los seis campos y todos sus listeners, sin cambios de lógica.
         panelFormulario = new JPanel(new MigLayout(
-                "fillx, insets 0, hidemode 3, gapx 14, gapy 10",
-                "[120!][grow,fill]",
+                "fillx, insets 0, hidemode 3, gapx 14, gapy 13",
+                "[116!][grow,fill]",
                 ""
         ));
+        panelFormulario.setOpaque(false);
+        panelFormulario.setPreferredSize(new Dimension(525, 205));
+        JPanel formularioCentrado = new JPanel(new java.awt.GridBagLayout());
+        formularioCentrado.setOpaque(false);
+        formularioCentrado.add(panelFormulario);
 
         configurarCampo(txtUsuario, "Usuario");
         configurarCampo(txtEmail, "E-mail registrado");
@@ -99,6 +115,11 @@ public class RecuperarContrasenaDialog extends JDialog {
 
         if (usuarioInicial != null) {
             txtUsuario.setText(usuarioInicial.trim());
+        }
+        if (desdePerfil) {
+            // Identifica la cuenta autenticada, pero mantiene la verificación
+            // obligatoria del email, DNI y código recibido por correo.
+            txtUsuario.setEditable(false);
         }
 
         cargarPaso1();
@@ -109,9 +130,10 @@ public class RecuperarContrasenaDialog extends JDialog {
         JButton btnCancelar = new JButton("Cancelar");
         btnAccion = new JButton("Enviar Código");
 
-        String estiloBotones = "borderWidth:1; focusWidth:0; innerFocusWidth:0";
-        btnCancelar.putClientProperty(FlatClientProperties.STYLE, estiloBotones);
-        btnAccion.putClientProperty(FlatClientProperties.STYLE, estiloBotones);
+        // Botones sobrios como en la versión del compañero; mismos eventos.
+        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnCancelar, btnAccion);
+        btnAccion.setPreferredSize(new Dimension(120, 34));
+        btnCancelar.setPreferredSize(new Dimension(91, 34));
 
         btnCancelar.addActionListener(e -> dispose());
         btnAccion.addActionListener(e -> {
@@ -126,7 +148,7 @@ public class RecuperarContrasenaDialog extends JDialog {
         panelBotones.add(btnAccion);
 
         panelPrincipal.add(panelCabecera, BorderLayout.NORTH);
-        panelPrincipal.add(panelFormulario, BorderLayout.CENTER);
+        panelPrincipal.add(formularioCentrado, BorderLayout.CENTER);
 
         add(panelPrincipal, BorderLayout.CENTER);
         add(panelBotones, BorderLayout.SOUTH);

@@ -9,6 +9,7 @@ on:
       - integracion/clientes-y-home-estilo-companero
       - integracion/menu-usuarios-estilo-companero
       - integracion/home-perfil-capsula
+      - integracion/mi-perfil-clave-estilo
   workflow_dispatch:
 
 permissions:
