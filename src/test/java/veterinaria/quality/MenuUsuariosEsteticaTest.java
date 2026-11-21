@@ -38,6 +38,8 @@ class MenuUsuariosEsteticaTest {
         assertTrue(u.contains("new java.awt.CardLayout()"));
         assertTrue(u.contains("mostrarVistaUsuario(true)"));
         assertTrue(u.contains("EstiloHibrido.tablaClientes(table, 9)"));
+        assertTrue(u.contains("new int[]{1, 2, 3, 6, 7}"));
+        assertTrue(u.contains("paginacionCompartida.activarBusquedaPorPrefijo()"));
         assertTrue(u.contains("new java.awt.GridLayout(3, 2, 14, 11)"));
     }
 
@@ -100,6 +102,9 @@ class MenuUsuariosEsteticaTest {
                     {Boolean.TRUE, "Otro usuario", "Inactivo"}
                 }, new Object[]{"Seleccionar","Nombre","Estado"});
                 EstiloHibrido.tablaClientes(t, 2);
+                // El texto recibe degradado de selección y el estado su badge.
+                assertTrue(t.getColumnModel().getColumn(1).getCellRenderer()
+                        instanceof veterinaria.vista.table.TableGradientCell);
                 SwingUtilities.updateComponentTreeUI(t);
                 assertNotNull(t.getColumnModel().getColumn(2).getCellRenderer());
             });
