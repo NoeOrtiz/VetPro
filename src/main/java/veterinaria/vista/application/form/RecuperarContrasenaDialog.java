@@ -71,11 +71,14 @@ public class RecuperarContrasenaDialog extends JDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        JPanel panelPrincipal = new JPanel(new BorderLayout(0, 16));
+        JPanel panelPrincipal = new JPanel(new BorderLayout(0, 10));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 28, 18, 28));
 
-        // Cabecera más compacta para liberar espacio vertical abajo
-        JPanel panelCabecera = new JPanel(new MigLayout("insets 0, alignx center, wrap 1, gapy 2", "[center]", "[]0[]2[]"));
+        // Distribución de la primera imagen: logo, título y ayuda agrupados arriba.
+        JPanel panelCabecera = new JPanel(new MigLayout(
+                "insets 0, wrap 1, gapy 2, alignx center, filly",
+                "[center,fill]",
+                "[]2[]2[]"));
 
         JLabel lblLogo = new JLabel();
         try {
@@ -96,18 +99,15 @@ public class RecuperarContrasenaDialog extends JDialog {
         panelCabecera.add(lblTitulo, "gapy 2"); // Espacio mínimo entre el logo y el título
         panelCabecera.add(lblAyuda, "gapy 2");  // Espacio mínimo entre el título y el texto explicativo
 
-        // Formulario centrado con dos columnas, como el de la versión de referencia.
-        // Se reutilizan los seis campos y todos sus listeners, sin cambios de lógica.
+        // Como en la PRIMERA imagen: campos a todo el ancho, desde debajo
+        // del subtítulo. Sin GridBagLayout, que centraba la ficha verticalmente.
+        // Los controles, listeners y validaciones son los de VetPRO original.
         panelFormulario = new JPanel(new MigLayout(
-                "fillx, insets 0, hidemode 3, gapx 14, gapy 13",
-                "[116!][grow,fill]",
+                "fillx, insets 0, hidemode 3, gapx 13, gapy 12, aligny top",
+                "[60!][grow,fill]",
                 ""
         ));
         panelFormulario.setOpaque(false);
-        panelFormulario.setPreferredSize(new Dimension(525, 205));
-        JPanel formularioCentrado = new JPanel(new java.awt.GridBagLayout());
-        formularioCentrado.setOpaque(false);
-        formularioCentrado.add(panelFormulario);
 
         configurarCampo(txtUsuario, "Usuario");
         configurarCampo(txtEmail, "E-mail registrado");
@@ -130,8 +130,10 @@ public class RecuperarContrasenaDialog extends JDialog {
         JButton btnCancelar = new JButton("Cancelar");
         btnAccion = new JButton("Enviar Código");
 
-        // Botones sobrios como en la versión del compañero; mismos eventos.
-        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnCancelar, btnAccion);
+        // Botones grises del primer modelo, sin cambiar sus acciones.
+        String estiloBoton = "borderWidth:1; focusWidth:0; innerFocusWidth:0";
+        btnCancelar.putClientProperty(FlatClientProperties.STYLE, estiloBoton);
+        btnAccion.putClientProperty(FlatClientProperties.STYLE, estiloBoton);
         btnAccion.setPreferredSize(new Dimension(120, 34));
         btnCancelar.setPreferredSize(new Dimension(91, 34));
 
@@ -148,7 +150,7 @@ public class RecuperarContrasenaDialog extends JDialog {
         panelBotones.add(btnAccion);
 
         panelPrincipal.add(panelCabecera, BorderLayout.NORTH);
-        panelPrincipal.add(formularioCentrado, BorderLayout.CENTER);
+        panelPrincipal.add(panelFormulario, BorderLayout.CENTER);
 
         add(panelPrincipal, BorderLayout.CENTER);
         add(panelBotones, BorderLayout.SOUTH);
@@ -251,7 +253,7 @@ public class RecuperarContrasenaDialog extends JDialog {
 
     private void configurarCampo(JTextField campo, String placeholder) {
         campo.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, placeholder);
-        campo.setPreferredSize(new Dimension(380, 34));
+        campo.setPreferredSize(new Dimension(475, 34));
     }
 
     private void enviarCodigoRecuperacion() {
