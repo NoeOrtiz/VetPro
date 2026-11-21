@@ -11,6 +11,7 @@ on:
       - integracion/home-perfil-capsula
       - integracion/mi-perfil-clave-estilo
       - integracion/mi-perfil-compacto-sin-scroll
+      - integracion/cambiar-clave-diseno-original-compacto
   workflow_dispatch:
 
 permissions:
