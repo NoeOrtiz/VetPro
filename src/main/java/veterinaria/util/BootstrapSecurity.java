@@ -27,10 +27,16 @@ public final class BootstrapSecurity {
     public static boolean esEmailValido(String email) {
         if (email == null || email.length() > 254) return false;
         String valor = email.trim();
-        if (valor.isEmpty() || valor.contains(" ") || valor.contains("\\t")
-                || valor.contains("\\r") || valor.contains("\\n")
-                || valor.endsWith("@local")) return false;
-        return valor.matches("^[^@\\\\s]+@[^@\\\\s]+\\\\.[^@\\\\s]+$");
+        if (valor.isEmpty() || valor.endsWith("@local")) return false;
+        for (int i = 0; i < valor.length(); i++) {
+            if (Character.isWhitespace(valor.charAt(i))
+                    || Character.isISOControl(valor.charAt(i))) return false;
+        }
+        String[] partes = valor.split("@", -1);
+        if (partes.length != 2 || partes[0].isEmpty() || partes[1].isEmpty()) return false;
+        if (partes[0].contains("..") || partes[1].contains("..")) return false;
+        int ultimoPunto = partes[1].lastIndexOf('.');
+        return ultimoPunto > 0 && ultimoPunto < partes[1].length() - 1;
     }
 
     public static boolean esContrasenaSegura(String password) {
