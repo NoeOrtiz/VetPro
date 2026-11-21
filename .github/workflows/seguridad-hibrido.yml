@@ -15,6 +15,7 @@ on:
       - integracion/corregir-errores-flatlaf-borderwidth
       - integracion/auditoria-flatlaf-temas
       - integracion/clave-cabecera-centrada
+      - integracion/usuarios-toolbar-iconos-gradiente
   workflow_dispatch:
 
 permissions:
