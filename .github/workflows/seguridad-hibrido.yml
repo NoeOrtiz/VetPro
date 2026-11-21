@@ -5,6 +5,7 @@ on:
       - seguridad/auditoria-hibrido
       - integracion/estetica-companero-funciones-noe
       - integracion/pdf-sobrio-historia
+      - integracion/historia-clinica-tarjeta
   workflow_dispatch:
 
 permissions:

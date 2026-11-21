@@ -174,26 +174,37 @@ public class FormHistoriaClinica extends javax.swing.JPanel {
         titulo.add(acciones, java.awt.BorderLayout.EAST);
         jPanel1.add(titulo, java.awt.BorderLayout.NORTH);
 
+        // Selección del paciente como en el diseño original: mantiene la búsqueda del combo
+        // y la carga automática de eventos, sin copiar el buscador del compañero.
         javax.swing.JPanel campos = new javax.swing.JPanel();
         campos.setOpaque(false);
         campos.setLayout(new javax.swing.BoxLayout(campos, javax.swing.BoxLayout.Y_AXIS));
-        javax.swing.JPanel principales = new javax.swing.JPanel(new java.awt.GridLayout(1, 2, 12, 0));
-        principales.setOpaque(false);
-        principales.add(campoFicha(lbPaciente, jcbPaciente));
-        principales.add(campoFicha(lbDueño, txtDueño));
-        principales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 58));
-        campos.add(principales);
-        campos.add(javax.swing.Box.createVerticalStrut(9));
 
-        javax.swing.JPanel caracteristicas = new javax.swing.JPanel(new java.awt.GridLayout(1, 5, 12, 0));
-        caracteristicas.setOpaque(false);
-        caracteristicas.add(campoFicha(lbEspecie, txtEspecie));
-        caracteristicas.add(campoFicha(lbRaza, txtRaza));
-        caracteristicas.add(campoFicha(lbRaza1, txtSexo));
-        caracteristicas.add(campoFicha(lbEdad, txtEdad));
-        caracteristicas.add(campoFicha(lbPeso, txtPeso));
-        caracteristicas.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 58));
-        campos.add(caracteristicas);
+        javax.swing.JPanel selector = new javax.swing.JPanel(new java.awt.GridLayout(1, 1));
+        selector.setOpaque(false);
+        selector.add(campoFicha(lbPaciente, jcbPaciente));
+        selector.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 57));
+        campos.add(selector);
+        campos.add(javax.swing.Box.createVerticalStrut(11));
+
+        // Presentación del compañero: ficha clínica de seis datos en dos columnas.
+        // No modifica los componentes, sus eventos ni sus reglas de lectura.
+        javax.swing.JPanel ficha = new javax.swing.JPanel(new java.awt.GridLayout(3, 2, 13, 8));
+        java.awt.Color fondoFicha = javax.swing.UIManager.getColor("App.surface.background");
+        if (fondoFicha != null) ficha.setBackground(fondoFicha);
+        java.awt.Color bordeFicha = javax.swing.UIManager.getColor("Component.borderColor");
+        if (bordeFicha == null) bordeFicha = new java.awt.Color(80, 99, 112);
+        ficha.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(bordeFicha, 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(11, 13, 11, 13)));
+        ficha.add(campoFicha(lbDueño, txtDueño));
+        ficha.add(campoFicha(lbEspecie, txtEspecie));
+        ficha.add(campoFicha(lbRaza, txtRaza));
+        ficha.add(campoFicha(lbRaza1, txtSexo));
+        ficha.add(campoFicha(lbEdad, txtEdad));
+        ficha.add(campoFicha(lbPeso, txtPeso));
+        ficha.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 217));
+        campos.add(ficha);
         jPanel1.add(campos, java.awt.BorderLayout.CENTER);
         jPanel1.add(jSeparator1, java.awt.BorderLayout.SOUTH);
     }
