@@ -29,7 +29,7 @@ import veterinaria.util.SesionUsuario;
  * ni visualizar usuarios ajenos y no expone contraseñas.
  */
 public final class MiPerfilDialog extends JDialog {
-    private final JLabel estado = new JLabel("Cargando...");
+    private final EstadoBadge estado = new EstadoBadge();
     private final JLabel nombre = new JLabel("Cargando mis datos...");
     private final JLabel usuario = new JLabel("");
     private final JLabel rol = new JLabel("");
@@ -40,7 +40,7 @@ public final class MiPerfilDialog extends JDialog {
     private final JLabel error = new JLabel(" ");
 
     public MiPerfilDialog(Window owner, SesionUsuario sesion) {
-        super(owner, "Mi perfil", Dialog.ModalityType.APPLICATION_MODAL);
+        super(owner, "Ficha de usuario", Dialog.ModalityType.APPLICATION_MODAL);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         construir();
         if (sesion == null || sesion.getUsuario() == null
@@ -51,23 +51,48 @@ public final class MiPerfilDialog extends JDialog {
         }
     }
 
+    /**
+     * Diseño compacto de la ficha del compañero, sin JScrollPane.
+     * Conserva los mismos datos provenientes de la sesión autenticada.
+     */
     private void construir() {
-        JPanel base = new JPanel(new BorderLayout(0, 14));
-        base.setBorder(BorderFactory.createEmptyBorder(18, 22, 15, 22));
+        JPanel base = new JPanel(new BorderLayout(0, 12));
+        base.setBorder(BorderFactory.createEmptyBorder(15, 20, 13, 20));
 
-        JLabel encabezado = new JLabel("Mi perfil");
-        encabezado.setFont(encabezado.getFont().deriveFont(Font.BOLD, 19f));
-        base.add(encabezado, BorderLayout.NORTH);
+        // Primera fila: etiqueta de estado y nombre de usuario.
+        JPanel filaEstado = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        filaEstado.setOpaque(false);
+        filaEstado.add(estado);
+        Color muted = UIManager.getColor("App.muted.foreground");
+        if (muted != null) usuario.setForeground(muted);
+        filaEstado.add(usuario);
+        filaEstado.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        filaEstado.setMaximumSize(new Dimension(Integer.MAX_VALUE, 29));
 
-        JPanel tarjeta = new JPanel(new BorderLayout(0, 14)) {
+        nombre.setFont(nombre.getFont().deriveFont(Font.BOLD, 18f));
+        nombre.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        rol.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+
+        JPanel identidad = new JPanel();
+        identidad.setOpaque(false);
+        identidad.setLayout(new javax.swing.BoxLayout(identidad, javax.swing.BoxLayout.Y_AXIS));
+        identidad.add(filaEstado);
+        identidad.add(javax.swing.Box.createVerticalStrut(5));
+        identidad.add(nombre);
+        identidad.add(javax.swing.Box.createVerticalStrut(2));
+        identidad.add(rol);
+        base.add(identidad, BorderLayout.NORTH);
+
+        // Tarjeta diferenciada: título y datos organizados como en la referencia.
+        JPanel tarjeta = new JPanel(new BorderLayout(0, 12)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 try {
                     g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                             RenderingHints.VALUE_ANTIALIAS_ON);
-                    Color c = UIManager.getColor("App.surface.background");
-                    g2.setColor(c == null ? new Color(37, 49, 61) : c);
-                    g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 16, 16);
+                    Color fondo = UIManager.getColor("App.surface.background");
+                    g2.setColor(fondo == null ? new Color(37, 49, 61) : fondo);
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
                 } finally {
                     g2.dispose();
                 }
@@ -75,59 +100,53 @@ public final class MiPerfilDialog extends JDialog {
             }
         };
         tarjeta.setOpaque(false);
-        tarjeta.setBorder(BorderFactory.createEmptyBorder(17, 17, 17, 17));
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(13, 16, 14, 16));
 
-        JPanel cabecera = new JPanel(new BorderLayout(0, 6));
-        cabecera.setOpaque(false);
-        estado.setForeground(new Color(130, 214, 167));
-        estado.setFont(estado.getFont().deriveFont(Font.BOLD, 12f));
-        nombre.setFont(nombre.getFont().deriveFont(Font.BOLD, 19f));
-        JPanel identificacion = new JPanel(new GridLayout(3, 1, 0, 3));
-        identificacion.setOpaque(false);
-        identificacion.add(estado);
-        identificacion.add(usuario);
-        identificacion.add(nombre);
-        cabecera.add(identificacion, BorderLayout.CENTER);
-        cabecera.add(rol, BorderLayout.SOUTH);
-        tarjeta.add(cabecera, BorderLayout.NORTH);
+        JLabel tituloDatos = new JLabel("Datos personales");
+        tituloDatos.setFont(tituloDatos.getFont().deriveFont(Font.BOLD, 14f));
+        tarjeta.add(tituloDatos, BorderLayout.NORTH);
 
-        JPanel datos = new JPanel(new BorderLayout(0, 12));
-        datos.setOpaque(false);
-        JLabel titulo = new JLabel("Datos personales");
-        titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 14f));
-        datos.add(titulo, BorderLayout.NORTH);
-        JPanel campos = new JPanel(new GridLayout(2, 2, 24, 22));
+        JPanel campos = new JPanel(new GridLayout(3, 2, 18, 9));
         campos.setOpaque(false);
         campos.add(campo("DNI", dni));
         campos.add(campo("Teléfono", telefono));
         campos.add(campo("Dirección", direccion));
+        campos.add(espacio());
         campos.add(campo("Correo electrónico", correo));
-        datos.add(campos, BorderLayout.CENTER);
-        tarjeta.add(datos, BorderLayout.CENTER);
+        campos.add(espacio());
+        tarjeta.add(campos, BorderLayout.CENTER);
         base.add(tarjeta, BorderLayout.CENTER);
 
-        JPanel abajo = new JPanel(new BorderLayout());
-        abajo.setOpaque(false);
+        JPanel pie = new JPanel(new BorderLayout(8, 0));
+        pie.setOpaque(false);
         error.setForeground(new Color(222, 115, 115));
-        abajo.add(error, BorderLayout.CENTER);
+        pie.add(error, BorderLayout.CENTER);
         JPanel acciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         acciones.setOpaque(false);
         JButton cerrar = new JButton("Cerrar");
-        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(cerrar);
+        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(cerrar);
+        cerrar.setPreferredSize(new Dimension(96, 34));
         cerrar.addActionListener(e -> dispose());
         acciones.add(cerrar);
-        abajo.add(acciones, BorderLayout.EAST);
-        base.add(abajo, BorderLayout.SOUTH);
+        pie.add(acciones, BorderLayout.EAST);
+        base.add(pie, BorderLayout.SOUTH);
 
-        add(base);
-        setMinimumSize(new Dimension(575, 410));
-        setSize(590, 420);
+        setContentPane(base);
+        // pack() respeta fuentes/escalado del sistema y evita barras innecesarias.
+        pack();
+        setSize(Math.max(640, getWidth()), Math.max(385, getHeight()));
         setResizable(false);
         setLocationRelativeTo(getOwner());
     }
 
+    private static JPanel espacio() {
+        JPanel p = new JPanel();
+        p.setOpaque(false);
+        return p;
+    }
+
     private static JPanel campo(String titulo, JLabel valor) {
-        JPanel panel = new JPanel(new BorderLayout(0, 5));
+        JPanel panel = new JPanel(new BorderLayout(0, 4));
         panel.setOpaque(false);
         JLabel etiqueta = new JLabel(titulo);
         Color muted = UIManager.getColor("App.muted.foreground");
@@ -135,6 +154,37 @@ public final class MiPerfilDialog extends JDialog {
         panel.add(etiqueta, BorderLayout.NORTH);
         panel.add(valor, BorderLayout.CENTER);
         return panel;
+    }
+
+    /** Chip real de estado; no usa glifos que aparecen como cuadrados en Windows. */
+    private static final class EstadoBadge extends JLabel {
+        private boolean activo;
+        EstadoBadge() {
+            super("Cargando...");
+            setOpaque(false);
+            setFont(getFont().deriveFont(Font.BOLD, 11f));
+            setBorder(BorderFactory.createEmptyBorder(3, 11, 3, 11));
+        }
+
+        void setActivo(boolean valor) {
+            activo = valor;
+            repaint();
+        }
+
+        @Override protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(activo ? new Color(29, 76, 59) : new Color(88, 53, 58));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(),
+                        getHeight(), getHeight());
+            } finally {
+                g2.dispose();
+            }
+            setForeground(activo ? new Color(146, 233, 185) : new Color(242, 167, 167));
+            super.paintComponent(g);
+        }
     }
 
     /**
@@ -176,9 +226,8 @@ public final class MiPerfilDialog extends JDialog {
                         mostrarError("No se pudo encontrar tu cuenta.");
                         return;
                     }
-                    estado.setText(perfil.activo() ? "●  Activo" : "●  Inactivo");
-                    estado.setForeground(perfil.activo()
-                            ? new Color(130, 214, 167) : new Color(235, 141, 141));
+                    estado.setText(perfil.activo() ? "Activo" : "Inactivo");
+                    estado.setActivo(perfil.activo());
                     usuario.setText("Usuario " + perfil.usuario());
                     String completo = (perfil.nombre() + " " + perfil.apellido()).trim();
                     nombre.setText(completo.isBlank() ? perfil.usuario() : completo);
@@ -187,6 +236,10 @@ public final class MiPerfilDialog extends JDialog {
                     telefono.setText(mostrar(perfil.telefono()));
                     direccion.setText(mostrar(perfil.direccion()));
                     correo.setText(mostrar(perfil.correo()));
+                    dni.setToolTipText(dni.getText());
+                    telefono.setToolTipText(telefono.getText());
+                    direccion.setToolTipText(direccion.getText());
+                    correo.setToolTipText(correo.getText());
                     error.setText(" ");
                 } catch (Exception ex) {
                     mostrarError("No se pudieron cargar tus datos. Revisá la conexión.");
@@ -197,6 +250,7 @@ public final class MiPerfilDialog extends JDialog {
 
     private void mostrarError(String mensaje) {
         estado.setText("No disponible");
+        estado.setActivo(false);
         nombre.setText("Mi perfil");
         error.setText(mensaje);
     }
