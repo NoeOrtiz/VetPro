@@ -10,6 +10,7 @@ on:
       - integracion/menu-usuarios-estilo-companero
       - integracion/home-perfil-capsula
       - integracion/mi-perfil-clave-estilo
+      - integracion/mi-perfil-compacto-sin-scroll
   workflow_dispatch:
 
 permissions:
