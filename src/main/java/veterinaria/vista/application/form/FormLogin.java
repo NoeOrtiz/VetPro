@@ -99,7 +99,6 @@ public class FormLogin extends javax.swing.JPanel {
                 + "showRevealButton:true;"
                 + "showCapsLock:true");
         cmdLogin.putClientProperty(FlatClientProperties.STYLE, ""
-                + "borderWidth:0;"
                 + "focusWidth:0");
         txtUser.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Usuario");
         txtPass.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Contraseña");
