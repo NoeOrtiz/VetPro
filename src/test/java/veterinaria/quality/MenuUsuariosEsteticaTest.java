@@ -60,6 +60,9 @@ class MenuUsuariosEsteticaTest {
                 "src/main/resources/veterinaria/theme/FlatLaf.properties"));
         assertFalse(p.contains("foreground: $Label.foreground; arc: 16"));
         assertFalse(p.contains("alternateRowColor: $App.surfaceAlt.background"));
+        assertFalse(p.contains("borderWidth:"), "Los botones FlatLaf no aceptan borderWidth en STYLE");
+        String dialogo = source("vista/application/form/RecuperarContrasenaDialog.java");
+        assertFalse(dialogo.contains("borderWidth:"), "El diálogo también debe omitir ese estilo");
         String menuItem = source("vista/menu/MenuItem.java");
         assertFalse(menuItem.contains("+ \"arc:10;\""));
     }
