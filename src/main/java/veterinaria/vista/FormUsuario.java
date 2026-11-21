@@ -30,6 +30,9 @@ import veterinaria.reportes.pdf.ReporteSelectorUtil;
 public class FormUsuario extends javax.swing.JPanel {
 
     private boolean ajustandoSeleccionUsuario;
+    private java.awt.CardLayout vistasUsuario;
+    private javax.swing.JPanel panelVistasUsuario;
+    private javax.swing.JLabel tituloEditorUsuario;
     private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar");
     private javax.swing.JButton btnVerContrasena;
     private char caracterOcultoContrasena;
@@ -1654,81 +1657,125 @@ public class FormUsuario extends javax.swing.JPanel {
         mostrarFoto(null);
     }
 
+
+    /** Diseño inspirado en el compañero con los campos y eventos originales. */
     private void instalarPanelFotografia() {
-        // El panel de datos se mantiene compacto y los botones quedan fuera del área de foto.
         jpCamposFormularioUsuario.removeAll();
-        jpCamposFormularioUsuario.setLayout(new java.awt.BorderLayout(14, 10));
+        jpCamposFormularioUsuario.setLayout(new java.awt.BorderLayout());
+        javax.swing.JPanel pagina = new javax.swing.JPanel();
+        pagina.setOpaque(false);
+        pagina.setLayout(new javax.swing.BoxLayout(pagina, javax.swing.BoxLayout.Y_AXIS));
+        pagina.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 7, 13, 7));
 
-        javax.swing.JPanel izquierda = new javax.swing.JPanel();
-        izquierda.setOpaque(false);
-        izquierda.setLayout(new javax.swing.BoxLayout(izquierda, javax.swing.BoxLayout.Y_AXIS));
-        for (javax.swing.JPanel seccion : new javax.swing.JPanel[]{jpDatosPersonales, jpAcceso, jpDatosCuenta}) {
-            seccion.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-            izquierda.add(seccion);
-            izquierda.add(javax.swing.Box.createVerticalStrut(6));
-        }
+        tituloEditorUsuario = new javax.swing.JLabel("Nuevo usuario");
+        tituloEditorUsuario.setFont(tituloEditorUsuario.getFont().deriveFont(java.awt.Font.BOLD, 20f));
+        tituloEditorUsuario.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pagina.add(tituloEditorUsuario);
+        pagina.add(javax.swing.Box.createVerticalStrut(15));
 
-        // Los botones pertenecen al pie del formulario, no a la sección de credenciales.
-        // El GroupLayout generado aún reservaba espacio para los botones extraídos.
-        // Se reemplaza el layout de esta sección por uno compacto y estable.
-        jpDatosCuenta.removeAll();
-        jpDatosCuenta.setLayout(new java.awt.BorderLayout(0, 6));
-        jpDatosCuenta.add(lbDatosDeCuenta, java.awt.BorderLayout.NORTH);
-        javax.swing.JPanel camposCuenta = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
-        camposCuenta.setOpaque(false);
-        for (javax.swing.JComponent[] par : new javax.swing.JComponent[][]{
-                {lbNombreUsuario, txtUsuario}, {lbEmail, txtEmail}, {lbDireccion1, txtContraseña}}) {
-            javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
-            campo.setOpaque(false);
-            campo.add(par[0], java.awt.BorderLayout.NORTH);
-            campo.add(par[1], java.awt.BorderLayout.CENTER);
-            campo.setPreferredSize(new java.awt.Dimension(140, 52));
-            camposCuenta.add(campo);
-        }
-        camposCuenta.add(btnVerContrasena);
-        jpDatosCuenta.add(camposCuenta, java.awt.BorderLayout.CENTER);
-        jpDatosCuenta.setPreferredSize(new java.awt.Dimension(550, 92));
-        jpDatosCuenta.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 92));
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 6));
-        acciones.setOpaque(false);
-        acciones.add(btnGuardar);
-        acciones.add(btnCancelar);
-        acciones.add(btnLimpiar);
+        jpDatosPersonales.removeAll();
+        jpDatosPersonales.setLayout(new java.awt.BorderLayout(16, 10));
+        jpDatosPersonales.setOpaque(true);
+        jpDatosPersonales.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 16, 15, 16));
+        lbDatosPersonales.setText("Datos personales y contacto");
+        lbDatosPersonales.setFont(lbDatosPersonales.getFont().deriveFont(java.awt.Font.BOLD));
+        jpDatosPersonales.add(lbDatosPersonales, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel personales = new javax.swing.JPanel(new java.awt.GridLayout(3, 2, 14, 11));
+        personales.setOpaque(false);
+        personales.add(campoUsuario(lbNombre, txtNombre));
+        personales.add(campoUsuario(lbApellido, txtApellido));
+        personales.add(campoUsuario(lbCuilCuit, txtDNI));
+        personales.add(campoUsuario(lbTelefono, txtTelefono));
+        personales.add(campoUsuario(lbDireccion, txtDireccion));
+        personales.add(campoUsuario(lbEmail, txtEmail));
+        jpDatosPersonales.add(personales, java.awt.BorderLayout.CENTER);
 
         javax.swing.JPanel foto = new javax.swing.JPanel();
         foto.setOpaque(false);
-        foto.setPreferredSize(new java.awt.Dimension(175, 250));
         foto.setLayout(new javax.swing.BoxLayout(foto, javax.swing.BoxLayout.Y_AXIS));
-        javax.swing.JLabel titulo = new javax.swing.JLabel("Foto de perfil");
-        titulo.setFont(titulo.getFont().deriveFont(java.awt.Font.BOLD, 13f));
-        titulo.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        foto.add(titulo);
-        foto.add(javax.swing.Box.createVerticalStrut(8));
+        foto.setPreferredSize(new java.awt.Dimension(150, 0));
         visorFoto = new javax.swing.JLabel();
         visorFoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visorFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        visorFoto.setPreferredSize(new java.awt.Dimension(115, 115));
-        visorFoto.setMinimumSize(new java.awt.Dimension(115, 115));
-        visorFoto.setMaximumSize(new java.awt.Dimension(115, 115));
+        visorFoto.setPreferredSize(new java.awt.Dimension(110, 110));
+        visorFoto.setMinimumSize(new java.awt.Dimension(110, 110));
+        visorFoto.setMaximumSize(new java.awt.Dimension(110, 110));
         foto.add(visorFoto);
         foto.add(javax.swing.Box.createVerticalStrut(10));
-        javax.swing.JButton elegir = new javax.swing.JButton("Seleccionar imagen");
-        elegir.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        elegir.addActionListener(e -> seleccionarFotografia());
-        foto.add(elegir);
-        foto.add(javax.swing.Box.createVerticalStrut(6));
-        javax.swing.JLabel ayuda = new javax.swing.JLabel("JPG o PNG (opcional)");
-        ayuda.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        foto.add(ayuda);
+        javax.swing.JButton elegirFoto = new javax.swing.JButton("Agregar foto");
+        elegirFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        elegirFoto.addActionListener(e -> seleccionarFotografia());
+        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(elegirFoto);
+        foto.add(elegirFoto);
+        foto.add(javax.swing.Box.createVerticalStrut(8));
+        javax.swing.JLabel ayudaFoto = new javax.swing.JLabel("JPG o PNG - opcional");
+        ayudaFoto.setFont(ayudaFoto.getFont().deriveFont(11f));
+        ayudaFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        foto.add(ayudaFoto);
+        jpDatosPersonales.add(foto, java.awt.BorderLayout.EAST);
+        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 280));
+        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 280));
+        jpDatosPersonales.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pagina.add(jpDatosPersonales);
+        pagina.add(javax.swing.Box.createVerticalStrut(14));
 
-        javax.swing.JPanel cuerpo = new javax.swing.JPanel(new java.awt.BorderLayout(14, 0));
-        cuerpo.setOpaque(false);
-        cuerpo.add(izquierda, java.awt.BorderLayout.CENTER);
-        cuerpo.add(foto, java.awt.BorderLayout.EAST);
-        jpCamposFormularioUsuario.add(cuerpo, java.awt.BorderLayout.CENTER);
-        acciones.setPreferredSize(new java.awt.Dimension(0, 44));
-        jpCamposFormularioUsuario.add(acciones, java.awt.BorderLayout.SOUTH);
+        jpAcceso.removeAll();
+        jpAcceso.setLayout(new java.awt.BorderLayout(0, 10));
+        jpAcceso.setOpaque(true);
+        jpAcceso.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 16, 15, 16));
+        lbNivelDeAcceso.setText("Datos de acceso");
+        lbNivelDeAcceso.setFont(lbNivelDeAcceso.getFont().deriveFont(java.awt.Font.BOLD));
+        jpAcceso.add(lbNivelDeAcceso, java.awt.BorderLayout.NORTH);
+        jpDatosCuenta.removeAll();
+        jpDatosCuenta.setLayout(new java.awt.GridLayout(2, 2, 14, 11));
+        jpDatosCuenta.setOpaque(false);
+        jpDatosCuenta.add(campoUsuario(lbRol, jcbRol));
+        jpDatosCuenta.add(campoUsuario(lbNombreUsuario, txtUsuario));
+        javax.swing.JPanel clave = new javax.swing.JPanel(new java.awt.BorderLayout(6, 0));
+        clave.setOpaque(false);
+        clave.add(txtContraseña, java.awt.BorderLayout.CENTER);
+        clave.add(btnVerContrasena, java.awt.BorderLayout.EAST);
+        jpDatosCuenta.add(campoUsuario(lbDireccion1, clave));
+        javax.swing.JLabel info = new javax.swing.JLabel(
+                "<html>El usuario cambiará la contraseña<br>al ingresar por primera vez.</html>");
+        java.awt.Color atenuado = javax.swing.UIManager.getColor("App.muted.foreground");
+        if (atenuado != null) info.setForeground(atenuado);
+        jpDatosCuenta.add(info);
+        jpAcceso.add(jpDatosCuenta, java.awt.BorderLayout.CENTER);
+        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 190));
+        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 190));
+        jpAcceso.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pagina.add(jpAcceso);
+        pagina.add(javax.swing.Box.createVerticalStrut(11));
+
+        javax.swing.JPanel acciones = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 9, 0));
+        acciones.setOpaque(false);
+        acciones.add(btnLimpiar);
+        acciones.add(btnCancelar);
+        acciones.add(btnGuardar);
+        acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 54));
+        acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        pagina.add(acciones);
         mostrarFoto(null);
+
+        javax.swing.JScrollPane scroller = new javax.swing.JScrollPane(pagina);
+        scroller.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        scroller.getVerticalScrollBar().setUnitIncrement(15);
+        scroller.setHorizontalScrollBarPolicy(
+                javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scroller.getViewport().setOpaque(false);
+        scroller.setOpaque(false);
+        jpCamposFormularioUsuario.add(scroller, java.awt.BorderLayout.CENTER);
+    }
+
+    private javax.swing.JPanel campoUsuario(javax.swing.JComponent rotulo,
+            javax.swing.JComponent control) {
+        javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        campo.setOpaque(false);
+        campo.add(rotulo, java.awt.BorderLayout.NORTH);
+        campo.add(control, java.awt.BorderLayout.CENTER);
+        return campo;
     }
 
     private void seleccionarFotografia() {
