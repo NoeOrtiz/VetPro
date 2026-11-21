@@ -50,6 +50,7 @@ public class LightDarkMode extends JPanel {
     private void init() {
         setBorder(new EmptyBorder(2, 2, 2, 2));
         setLayout(new LightDarkModeLayout());
+        // Esta propiedad arc sí es válida para JPanel y conserva la píldora.
         putClientProperty(FlatClientProperties.STYLE, ""
                 + "arc:999;"
                 + "background:$Menu.lightdark.background");
@@ -57,11 +58,9 @@ public class LightDarkMode extends JPanel {
         buttonDark = new JButton("Dark", new FlatSVGIcon("veterinaria/menu/mode/dark.svg"));
         buttonLighDark = new JButton();
         buttonLighDark.putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:999;"
                 + "background:$Menu.lightdark.button.background;"
                 + "foreground:$Menu.foreground;"
                 + "focusWidth:0;"
-                + "borderWidth:0;"
                 + "innerFocusWidth:0");
         buttonLighDark.addActionListener((ActionEvent e) -> {
             changeMode(!FlatLaf.isLafDark());
@@ -121,20 +120,16 @@ public class LightDarkMode extends JPanel {
     private void addStyle(JButton button, boolean style) {
         if (style) {
             button.putClientProperty(FlatClientProperties.STYLE, ""
-                    + "arc:999;"
-                    + "background:$Menu.lightdark.button.background;"
+                        + "background:$Menu.lightdark.button.background;"
                     + "foreground:$Menu.foreground;"
                     + "focusWidth:0;"
-                    + "borderWidth:0;"
-                    + "innerFocusWidth:0");
+                        + "innerFocusWidth:0");
         } else {
             button.putClientProperty(FlatClientProperties.STYLE, ""
-                    + "arc:999;"
-                    + "background:$Menu.lightdark.button.background;"
+                        + "background:$Menu.lightdark.button.background;"
                     + "foreground:$Menu.foreground;"
                     + "focusWidth:0;"
-                    + "borderWidth:0;"
-                    + "innerFocusWidth:0;"
+                        + "innerFocusWidth:0;"
                     + "background:null");
         }
     }
