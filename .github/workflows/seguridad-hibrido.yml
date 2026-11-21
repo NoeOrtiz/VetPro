@@ -12,6 +12,7 @@ on:
       - integracion/mi-perfil-clave-estilo
       - integracion/mi-perfil-compacto-sin-scroll
       - integracion/cambiar-clave-diseno-original-compacto
+      - integracion/corregir-errores-flatlaf-borderwidth
   workflow_dispatch:
 
 permissions:
