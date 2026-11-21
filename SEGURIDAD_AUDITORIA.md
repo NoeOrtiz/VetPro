@@ -28,3 +28,11 @@ mvn clean test
 Después, usar MySQL **solo de prueba**, validar login de administrador inicial configurando `VETPRO_BOOTSTRAP_ADMIN_PASSWORD`, recuperación de contraseñas por código, autorización, backups y restauración.
 
 **No se deben ejecutar migraciones ni pruebas destructivas contra la base real** sin copia de seguridad.
+
+## Revisión posterior de controles originales
+
+- Se verificó que `FormLogin` y `CambiarContrasenaDialog` exigen cambio en primer ingreso, con código enviado por `EmailUtil` y validado en `RecuperacionClaveTokenDAO`.
+- Se mantiene el tiempo de bloqueo de **15 minutos**, ajustando el umbral al requisito original de **3 intentos**.
+- El bootstrap ahora requiere `VETPRO_BOOTSTRAP_ADMIN_EMAIL` válido además de `VETPRO_BOOTSTRAP_ADMIN_PASSWORD` para permitir el cambio obligatorio de la primera cuenta. No se usa el correo ficticio `admin@local`. El envío depende también de `VETPRO_EMAIL` y `VETPRO_EMAIL_PASSWORD`.
+- JasperReports figuraba en `pom.xml`, pero la usuaria confirmó que no lo utiliza. Se retiró la dependencia de esta rama híbrida; la compilación completa debe validar que no se necesita.
+- Las cuentas que ya existen en la base conservan su estado `primerLogin` y contraseñas. El cambio de bootstrap se aplica únicamente a instalaciones nuevas sin usuarios.

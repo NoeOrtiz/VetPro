@@ -16,6 +16,8 @@ import veterinaria.util.SesionUsuario;
 
 public class AutenticacionService {
 
+    private static final int MAX_INTENTOS_LOGIN = 3;
+
     private final AuditoriaService auditoriaService = new AuditoriaService();
     private final RecuperacionClaveTokenDAO recuperacionClaveTokenDAO = new RecuperacionClaveTokenDAO();
 
@@ -61,19 +63,19 @@ public class AutenticacionService {
                 int intentosActuales = usuario.getIntentosFallidos() + 1;
                 usuario.setIntentosFallidos(intentosActuales);
 
-                if (intentosActuales >= 5) {
+                if (intentosActuales >= MAX_INTENTOS_LOGIN) {
                     LocalDateTime tiempoBloqueo = ahora.plusMinutes(15);
                     usuario.setBloqueadoHasta(tiempoBloqueo);
                     em.merge(usuario);
                     em.getTransaction().commit();
 
-                    registrarLoginFallido(usuario, nombreUsuario, "Cuenta bloqueada por 15 minutos tras 5 intentos fallidos.");
+                    registrarLoginFallido(usuario, nombreUsuario, "Cuenta bloqueada por 15 minutos tras " + MAX_INTENTOS_LOGIN + " intentos fallidos.");
                     throw new SecurityException("Demasiados intentos fallidos. Su cuenta ha sido bloqueada temporalmente por 15 minutos.");
                 } else {
                     em.merge(usuario);
                     em.getTransaction().commit();
 
-                    registrarLoginFallido(usuario, nombreUsuario, "Credenciales inválidas (Intento " + intentosActuales + "/5)");
+                    registrarLoginFallido(usuario, nombreUsuario, "Credenciales inválidas (Intento " + intentosActuales + "/" + MAX_INTENTOS_LOGIN + ")");
                 }
                 return false;
             }
@@ -168,7 +170,13 @@ public class AutenticacionService {
             return false;
         }
 
-        Usuario admin = bootstrapCrearPrimerAdmin(em, passwordInicial);
+        String emailInicial = BootstrapSecurity.emailConfigurado();
+        if (emailInicial == null) {
+            throw new SecurityException("Configuración inicial requerida: establezca "
+                    + BootstrapSecurity.ENV_EMAIL
+                    + " con un correo real, para recibir el código de cambio obligatorio.");
+        }
+        Usuario admin = bootstrapCrearPrimerAdmin(em, passwordInicial, emailInicial);
         asegurarRol(admin, rolDAO);
         SesionUsuario.getInstancia().iniciarSesion(admin);
         auditoriaService.registrar(
@@ -248,7 +256,7 @@ public class AutenticacionService {
         );
     }
 
-    private Usuario bootstrapCrearPrimerAdmin(EntityManager em, String passwordInicial) {
+    private Usuario bootstrapCrearPrimerAdmin(EntityManager em, String passwordInicial, String emailInicial) {
         em.getTransaction().begin();
         try {
             Rol rolAdmin = em.createQuery("SELECT r FROM Rol r WHERE r.nombreRol = :nombre", Rol.class)
@@ -266,10 +274,10 @@ public class AutenticacionService {
 
             Usuario usuario = new Usuario();
             usuario.setPersona(persona);
-            usuario.setEmail("admin@local");
+            usuario.setEmail(emailInicial);
             usuario.setNombreUsuario("admin");
             usuario.setContrasena(PasswordSecurityUtil.hashPassword(passwordInicial));
-            usuario.setPrimerLogin(false); // Contraseña inicial personalizada; no depende de admin@local.
+            usuario.setPrimerLogin(true); // Exigir código por correo y nueva contraseña en el primer acceso.
             usuario.setRol(rolAdmin);
             usuario.setActivo(true);
             em.persist(usuario);

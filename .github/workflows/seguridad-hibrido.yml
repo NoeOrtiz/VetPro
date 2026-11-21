@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - seguridad/auditoria-hibrido
+      - integracion/estetica-companero-funciones-noe
   workflow_dispatch:
 
 permissions:

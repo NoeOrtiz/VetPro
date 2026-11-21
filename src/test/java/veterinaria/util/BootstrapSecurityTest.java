@@ -15,6 +15,14 @@ class BootstrapSecurityTest {
     }
 
     @Test
+    void exigeCorreoRealParaCambioInicial() {
+        assertFalse(BootstrapSecurity.esEmailValido(null));
+        assertFalse(BootstrapSecurity.esEmailValido("admin@local"));
+        assertFalse(BootstrapSecurity.esEmailValido("correo_invalido"));
+        assertTrue(BootstrapSecurity.esEmailValido("admin@veterinaria.example"));
+    }
+
+    @Test
     void aceptaClaveInicialRobusta() {
         assertTrue(BootstrapSecurity.esContrasenaSegura("Veterinaria!Seguro2026"));
     }

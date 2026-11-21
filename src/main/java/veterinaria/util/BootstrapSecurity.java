@@ -7,6 +7,7 @@ package veterinaria.util;
 public final class BootstrapSecurity {
 
     public static final String ENV_PASSWORD = "VETPRO_BOOTSTRAP_ADMIN_PASSWORD";
+    public static final String ENV_EMAIL = "VETPRO_BOOTSTRAP_ADMIN_EMAIL";
 
     private BootstrapSecurity() {}
 
@@ -16,6 +17,20 @@ public final class BootstrapSecurity {
             return null;
         }
         return valor;
+    }
+
+    public static String emailConfigurado() {
+        String valor = System.getenv(ENV_EMAIL);
+        return esEmailValido(valor) ? valor.trim() : null;
+    }
+
+    public static boolean esEmailValido(String email) {
+        if (email == null || email.length() > 254) return false;
+        String valor = email.trim();
+        if (valor.isEmpty() || valor.contains(" ") || valor.contains("\\t")
+                || valor.contains("\\r") || valor.contains("\\n")
+                || valor.endsWith("@local")) return false;
+        return valor.matches("^[^@\\\\s]+@[^@\\\\s]+\\\\.[^@\\\\s]+$");
     }
 
     public static boolean esContrasenaSegura(String password) {

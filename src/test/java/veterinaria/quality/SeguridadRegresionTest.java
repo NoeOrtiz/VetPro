@@ -30,6 +30,28 @@ class SeguridadRegresionTest {
     }
 
     @Test
+    void protegeTresIntentosYCambioEnPrimerIngreso() throws Exception {
+        String auth = source("servicio/AutenticacionService.java");
+        assertTrue(auth.contains("MAX_INTENTOS_LOGIN = 3"));
+        assertTrue(auth.contains("intentosActuales >= MAX_INTENTOS_LOGIN"));
+        assertTrue(auth.contains("usuario.setPrimerLogin(true)"));
+        assertTrue(auth.contains("bootstrapCrearPrimerAdmin(em, passwordInicial, emailInicial)"));
+        String login = source("vista/application/form/FormLogin.java");
+        assertTrue(login.contains("usuarioLogueado.isPrimerLogin()"));
+        assertTrue(login.contains("dialog.isContraseñaCambiada()"));
+        assertTrue(login.contains("cerrarSesion()"));
+        String code = source("persistencia/RecuperacionClaveTokenDAO.java");
+        assertTrue(code.contains("LockModeType.PESSIMISTIC_WRITE"));
+        assertTrue(code.contains("PasswordSecurityUtil.matches("));
+    }
+
+    @Test
+    void noDependeDeJasperReports() throws Exception {
+        String pom = Files.readString(Path.of("pom.xml"));
+        assertFalse(pom.contains("<artifactId>jasperreports</artifactId>"));
+    }
+
+    @Test
     void backupsNoContienenClavesNiShell() throws Exception {
         String backup = source("util/BackupUtil.java");
         assertTrue(backup.contains("PersistenceConfig.getDbUrl()"));
