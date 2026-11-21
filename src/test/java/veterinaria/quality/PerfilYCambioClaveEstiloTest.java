@@ -42,6 +42,9 @@ class PerfilYCambioClaveEstiloTest {
         assertTrue(s.contains("EmailUtil.enviarCodigo(email, codigoPlano)"));
         assertTrue(s.contains("restablecerConCodigo(usuario, email, dni, codigo, nuevaContrasena)"));
         assertTrue(s.contains("validaciones.validarComplejidadContrasena(nuevaContrasena)"));
-        assertTrue(s.contains("formularioCentrado"));
+        assertFalse(s.contains("formularioCentrado"));
+        assertTrue(s.contains("panelPrincipal.add(panelFormulario, BorderLayout.CENTER)"));
+        assertTrue(s.contains("[60!][grow,fill]"));
+        assertTrue(s.contains("btnCancelar.putClientProperty(FlatClientProperties.STYLE, estiloBoton)"));
     }
 }
