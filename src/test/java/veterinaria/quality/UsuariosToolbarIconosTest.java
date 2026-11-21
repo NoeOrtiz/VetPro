@@ -55,7 +55,7 @@ class UsuariosToolbarIconosTest {
         assertTrue(s.contains("paginacionCompartida.limpiarBusqueda()"));
         assertTrue(s.contains("new veterinaria.vista.table.TableGradientCheckBoxRenderer()"));
         assertTrue(s.contains("table.putClientProperty(\"vetpro.gradienteCompanero\", Boolean.TRUE)"));
-        assertTrue(s.contains("columnaCheckbox"));
+        assertTrue(s.contains("table.getColumnModel().getColumn(0).setCellRenderer("));
     }
 
     @Test
