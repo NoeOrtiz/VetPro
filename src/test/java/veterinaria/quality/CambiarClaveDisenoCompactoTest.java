@@ -33,6 +33,28 @@ class CambiarClaveDisenoCompactoTest {
                 JTextField dni = campo(dialog, "txtDni");
                 JPanel form = panel(dialog, "panelFormulario");
                 JLabel ayuda = label(dialog, "lblAyuda");
+                JLabel titulo = buscarLabel(dialog.getContentPane(), "Restablecer acceso");
+                JLabel logo = buscarLogo(dialog.getContentPane());
+                assertNotNull(titulo, "Debe existir el título principal");
+                assertNotNull(logo, "Debe existir el logo centrado");
+
+                Rectangle bLogo = SwingUtilities.convertRectangle(
+                        logo.getParent(), logo.getBounds(), dialog.getContentPane());
+                Rectangle bTitulo = SwingUtilities.convertRectangle(
+                        titulo.getParent(), titulo.getBounds(), dialog.getContentPane());
+                Rectangle bAyuda = SwingUtilities.convertRectangle(
+                        ayuda.getParent(), ayuda.getBounds(), dialog.getContentPane());
+                assertEquals(JLabel.CENTER, titulo.getHorizontalAlignment(),
+                        "El título no debe aparecer alineado a la izquierda");
+                assertEquals(JLabel.CENTER, ayuda.getHorizontalAlignment());
+                assertTrue(Math.abs(bLogo.getCenterX() - dialog.getContentPane().getWidth() / 2.0) < 24,
+                        "Logo desplazado del centro: " + bLogo);
+                assertTrue(Math.abs(bTitulo.getCenterX() - dialog.getContentPane().getWidth() / 2.0) < 24,
+                        "Título desplazado del centro: " + bTitulo);
+                assertTrue(bTitulo.y - (bLogo.y + bLogo.height) <= 22,
+                        "Demasiado hueco entre logo y título: " + bLogo + " / " + bTitulo);
+                assertTrue(bAyuda.y - (bTitulo.y + bTitulo.height) <= 22,
+                        "Demasiado hueco entre título y explicación: " + bTitulo + " / " + bAyuda);
                 Point posCampo = SwingUtilities.convertPoint(
                         usuario.getParent(), usuario.getLocation(), dialog.getContentPane());
                 Point posAyuda = SwingUtilities.convertPoint(
@@ -67,6 +89,29 @@ class CambiarClaveDisenoCompactoTest {
             }
         });
         if (fallo.get() != null) throw new AssertionError(fallo.get());
+    }
+
+    private static JLabel buscarLabel(Component root, String text) {
+        if (root instanceof JLabel label && text.equals(label.getText())) return label;
+        if (root instanceof Container container) {
+            for (Component c : container.getComponents()) {
+                JLabel found = buscarLabel(c, text);
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    private static JLabel buscarLogo(Component root) {
+        if (root instanceof JLabel label && label.getIcon() != null
+                && label.getIcon().getIconWidth() >= 80) return label;
+        if (root instanceof Container container) {
+            for (Component c : container.getComponents()) {
+                JLabel found = buscarLogo(c);
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     private static JTextField campo(JDialog dialog, String name) throws Exception {
