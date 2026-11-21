@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import veterinaria.util.ui.EstiloHibrido;
 import veterinaria.vista.menu.MenuItem;
 import veterinaria.vista.menu.PopupSubmenu;
+import veterinaria.vista.menu.mode.LightDarkMode;
+import veterinaria.vista.componentes.ButtonAction;
 
 /**
  * Verifica que los estilos efectivamente usados en Swing se instalen
@@ -87,6 +89,13 @@ class FlatLafTemasRegresionTest {
                             ComponentOrientation.LEFT_TO_RIGHT, null, 0, categorias);
                     SwingUtilities.updateComponentTreeUI(submenu);
 
+                    LightDarkMode selectorTema = new LightDarkMode();
+                    SwingUtilities.updateComponentTreeUI(selectorTema);
+                    assertNotNull(selectorTema.getPreferredSize());
+                    ButtonAction accion = new ButtonAction();
+                    SwingUtilities.updateComponentTreeUI(accion);
+                    assertNotNull(accion.getPreferredSize());
+
                     JTable tabla = new JTable(new Object[][]{
                         {false,"Usuaria de prueba","Activo"},
                         {true,"Otro usuario","Inactivo"}
@@ -116,6 +125,15 @@ class FlatLafTemasRegresionTest {
         assertFalse(a.contains("\"borderWidth:"));
         assertFalse(b.contains("\"borderWidth:"));
         assertFalse(b.contains("\"arc:10;\""));
+        for (String ruta : new String[]{
+                "src/main/java/veterinaria/vista/application/form/MainForm.java",
+                "src/main/java/veterinaria/vista/application/form/FormLogin.java",
+                "src/main/java/veterinaria/vista/componentes/ButtonAction.java",
+                "src/main/java/veterinaria/vista/menu/mode/LightDarkMode.java"}) {
+            String codigo = Files.readString(Path.of(ruta));
+            assertFalse(codigo.contains("\"borderWidth:"),
+                    "Estilo no válido en " + ruta);
+        }
         assertFalse(tema.contains("borderWidth:"));
         assertTrue(tema.contains("[style]Button.hibridoPrimario"));
     }
