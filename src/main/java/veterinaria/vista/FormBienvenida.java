@@ -28,7 +28,9 @@ public class FormBienvenida extends JPanel {
     private final JLabel fecha = new JLabel();
     private final JLabel hora = new JLabel();
     private final Timer reloj;
-    private final JLabel indicadores = new JLabel("Cargando indicadores...");
+    private final JLabel consultasHoy = new JLabel("—");
+    private final JLabel enEspera = new JLabel("—");
+    private final JLabel turnosHoy = new JLabel("—");
     private boolean cargandoIndicadores;
 
     public FormBienvenida() {
@@ -69,15 +71,11 @@ public class FormBienvenida extends JPanel {
         contenido.add(subtitulo);
         contenido.add(Box.createVerticalStrut(8));
 
-        JPanel resumen = panelTarjeta(new BorderLayout(20, 0));
-        JPanel resumenIzq = new JPanel();
-        resumenIzq.setOpaque(false);
-        resumenIzq.setLayout(new BoxLayout(resumenIzq, BoxLayout.Y_AXIS));
-        resumenIzq.add(titulo("Resumen del día", 19));
-        resumenIzq.add(Box.createVerticalStrut(8));
-        indicadores.setForeground(muted);
-        resumenIzq.add(indicadores);
-        resumen.add(resumenIzq, BorderLayout.CENTER);
+        // Aspecto renovado sin alterar los accesos originales ni sus permisos.
+        JPanel resumen = panelTarjeta(new BorderLayout(12, 12));
+        JPanel cabeceraResumen = new JPanel(new BorderLayout(16, 0));
+        cabeceraResumen.setOpaque(false);
+        cabeceraResumen.add(titulo("Resumen del día", 19), BorderLayout.WEST);
         JPanel fechaPanel = new JPanel();
         fechaPanel.setOpaque(false);
         fechaPanel.setLayout(new BoxLayout(fechaPanel, BoxLayout.Y_AXIS));
@@ -85,10 +83,17 @@ public class FormBienvenida extends JPanel {
         fecha.setForeground(accent);
         hora.setForeground(muted);
         fechaPanel.add(fecha);
-        fechaPanel.add(Box.createVerticalStrut(6));
+        fechaPanel.add(Box.createVerticalStrut(5));
         fechaPanel.add(hora);
-        resumen.add(fechaPanel, BorderLayout.EAST);
-        resumen.setMaximumSize(new Dimension(Integer.MAX_VALUE, 88));
+        cabeceraResumen.add(fechaPanel, BorderLayout.EAST);
+        resumen.add(cabeceraResumen, BorderLayout.NORTH);
+        JPanel metricas = new JPanel(new GridLayout(1, 3, 12, 0));
+        metricas.setOpaque(false);
+        metricas.add(metrica("Consultas de hoy", consultasHoy, false));
+        metricas.add(metrica("En espera", enEspera, true));
+        metricas.add(metrica("Turnos de peluquería", turnosHoy, false));
+        resumen.add(metricas, BorderLayout.CENTER);
+        resumen.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
         contenido.add(resumen);
         contenido.add(Box.createVerticalStrut(10));
 
@@ -134,16 +139,16 @@ public class FormBienvenida extends JPanel {
                 cargandoIndicadores = false;
                 try {
                     ResumenInicioService.Indicadores datos = get();
-                    indicadores.setText("Consultas de hoy: " + datos.consultasHoy
-                            + "    |    En espera: " + datos.pacientesEnEspera
-                            + "    |    Turnos de peluquería hoy: " + datos.turnosPeluqueriaHoy);
+                    consultasHoy.setText(Integer.toString(datos.consultasHoy));
+                    enEspera.setText(Integer.toString(datos.pacientesEnEspera));
+                    turnosHoy.setText(Integer.toString(datos.turnosPeluqueriaHoy));
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
-                    indicadores.setText("No se pudieron cargar los indicadores.");
+                    mostrarIndicadoresNoDisponibles("No se pudieron cargar los indicadores.");
                 } catch (ExecutionException ex) {
                     Logger.getLogger(FormBienvenida.class.getName()).log(Level.WARNING,
                             "Error al consultar indicadores del inicio", ex.getCause());
-                    indicadores.setText("Indicadores no disponibles. Verificá la conexión a la base de datos.");
+                    mostrarIndicadoresNoDisponibles("Indicadores no disponibles. Verificá la conexión a la base de datos.");
                 }
             }
         }.execute();
@@ -156,6 +161,10 @@ public class FormBienvenida extends JPanel {
                 + fondo.getBlue() * 114) / 1000 < 128;
         card = oscuro ? new Color(38, 49, 61) : new Color(246, 248, 250);
         muted = oscuro ? new Color(185, 195, 205) : new Color(83, 96, 110);
+        Color superficie = UIManager.getColor("App.surface.background");
+        Color secundario = UIManager.getColor("App.muted.foreground");
+        if (superficie != null) card = superficie;
+        if (secundario != null) muted = secundario;
     }
 
     private void aplicarPaleta(Component componente) {
@@ -263,6 +272,27 @@ public class FormBienvenida extends JPanel {
         p.setBorder(new CompoundBorder(new LineBorder(new Color(69, 82, 96), 1, true),
                 new EmptyBorder(18, 20, 18, 20)));
         return p;
+    }
+
+    private JPanel metrica(String etiqueta, JLabel valor, boolean destacada) {
+        JPanel panel = new JPanel(new BorderLayout(0, 5));
+        panel.setOpaque(false);
+        panel.setBorder(new EmptyBorder(8, 6, 8, 6));
+        valor.setFont(valor.getFont().deriveFont(Font.BOLD, 27f));
+        valor.putClientProperty(destacada ? "vetpro.home.accent" : "vetpro.home.title", Boolean.TRUE);
+        valor.setForeground(destacada ? accent : UIManager.getColor("Label.foreground"));
+        JLabel texto = new JLabel(etiqueta);
+        texto.setForeground(muted);
+        panel.add(valor, BorderLayout.CENTER);
+        panel.add(texto, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private void mostrarIndicadoresNoDisponibles(String motivo) {
+        for (JLabel valor : new JLabel[]{consultasHoy, enEspera, turnosHoy}) {
+            valor.setText("—");
+            valor.setToolTipText(motivo);
+        }
     }
 
     private JPanel info(String titulo, String detalle) {
