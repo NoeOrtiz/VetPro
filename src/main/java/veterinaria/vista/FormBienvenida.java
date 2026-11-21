@@ -139,9 +139,9 @@ public class FormBienvenida extends JPanel {
                 cargandoIndicadores = false;
                 try {
                     ResumenInicioService.Indicadores datos = get();
-                    consultasHoy.setText(Integer.toString(datos.consultasHoy));
-                    enEspera.setText(Integer.toString(datos.pacientesEnEspera));
-                    turnosHoy.setText(Integer.toString(datos.turnosPeluqueriaHoy));
+                    consultasHoy.setText(Long.toString(datos.consultasHoy));
+                    enEspera.setText(Long.toString(datos.pacientesEnEspera));
+                    turnosHoy.setText(Long.toString(datos.turnosPeluqueriaHoy));
                 } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                     mostrarIndicadoresNoDisponibles("No se pudieron cargar los indicadores.");
