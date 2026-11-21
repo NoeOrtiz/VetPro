@@ -11,6 +11,7 @@ import veterinaria.persistencia.JPAUtil;
 import veterinaria.persistencia.RecuperacionClaveTokenDAO;
 import veterinaria.persistencia.UsuarioRolDAO;
 import veterinaria.util.PasswordSecurityUtil;
+import veterinaria.util.BootstrapSecurity;
 import veterinaria.util.SesionUsuario;
 
 public class AutenticacionService {
@@ -114,77 +115,14 @@ public class AutenticacionService {
         }
     }
 
-    public boolean actualizarContrasenaPorRecuperacion(String nombreUsuario, String emailUsuario, String dni, String nuevaContrasena) {
-        EntityManager em = JPAUtil.getEntityManager();
-        try {
-            Usuario usuario = em.createQuery(
-                    "SELECT u FROM Usuario u "
-                    + "LEFT JOIN u.persona p "
-                    + "WHERE lower(trim(u.nombreUsuario)) = :nombreUsuario "
-                    + "AND lower(trim(u.email)) = :emailUsuario "
-                    + "AND trim(p.dni) = :dni",
-                    Usuario.class)
-                    .setParameter("nombreUsuario", nombreUsuario.trim().toLowerCase())
-                    .setParameter("emailUsuario", emailUsuario.trim().toLowerCase())
-                    .setParameter("dni", dni.trim())
-                    .getResultStream()
-                    .findFirst()
-                    .orElse(null);
-
-            if (usuario == null) {
-                auditoriaService.registrarSinSesion(
-                        "PASSWORD_RESET_FAIL",
-                        "Usuario",
-                        null,
-                        "RecuperarContrasenaDialog",
-                        "Intento de recuperación de contraseña sin coincidencia. usuario=" + nombreUsuario,
-                        AuditoriaService.RESULT_ERROR,
-                        null,
-                        null,
-                        "Usuario/e-mail/DNI no coinciden"
-                );
-                return false;
-            }
-
-            em.getTransaction().begin();
-            usuario.setContrasena(PasswordSecurityUtil.normalizeForPersist(nuevaContrasena));
-            usuario.setPrimerLogin(false); // Apagamos la bandera al recuperar
-            em.merge(usuario);
-            em.getTransaction().commit();
-
-            auditoriaService.registrarSinSesion(
-                    "PASSWORD_RESET",
-                    "Usuario",
-                    Long.valueOf(usuario.getIdUsuario()),
-                    "RecuperarContrasenaDialog",
-                    "Contraseña restablecida para el usuario " + usuario.getNombreUsuario(),
-                    AuditoriaService.RESULT_OK,
-                    null,
-                    null,
-                    null
-            );
-            return true;
-        } catch (Exception ex) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            auditoriaService.registrarSinSesion(
-                    "PASSWORD_RESET_ERROR",
-                    "Usuario",
-                    null,
-                    "RecuperarContrasenaDialog",
-                    "Error al restablecer contraseña. usuario=" + nombreUsuario,
-                    AuditoriaService.RESULT_ERROR,
-                    null,
-                    null,
-                    ex.getMessage()
-            );
-            return false;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
+    /**
+     * Método legacy inseguro: no permite restablecer la clave mediante
+     * datos personales sin un código de un solo uso.
+     */
+    @Deprecated
+    public boolean actualizarContrasenaPorRecuperacion(String nombreUsuario, String emailUsuario,
+            String dni, String nuevaContrasena) {
+        throw new SecurityException("Utilice restablecerConCodigo, con verificación de código vigente.");
     }
 
     public String generarCodigoCambioObligatorio(int idUsuario) {
@@ -195,34 +133,13 @@ public class AutenticacionService {
         return recuperacionClaveTokenDAO.confirmarCambioObligatorio(idUsuario, codigo, nuevaContrasena);
     }
 
+    /**
+     * API anterior deshabilitada. La ruta segura verifica código y cuenta
+     * dentro de una misma transacción en RecuperacionClaveTokenDAO.
+     */
+    @Deprecated
     public boolean actualizarContrasenaObligatoria(int idUsuario, String nuevaContrasena) {
-        EntityManager em = JPAUtil.getEntityManager();
-        try {
-            em.getTransaction().begin();
-
-            Usuario usuario = em.find(Usuario.class, idUsuario);
-            if (usuario == null) {
-                em.getTransaction().rollback();
-                return false;
-            }
-
-            usuario.setContrasena(PasswordSecurityUtil.normalizeForPersist(nuevaContrasena));
-            usuario.setPrimerLogin(false);
-
-            em.merge(usuario);
-            em.getTransaction().commit();
-
-            return true;
-        } catch (Exception ex) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            return false;
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
+        throw new SecurityException("El cambio obligatorio requiere código de verificación.");
     }
 
     public String generarCodigoRecuperacion(String nombreUsuario, String email, String dni) {
@@ -233,43 +150,25 @@ public class AutenticacionService {
         return recuperacionClaveTokenDAO.restablecerConCodigo(nombreUsuario, email, dni, codigo, nuevaContrasena);
     }
 
-    // NUEVO MÉTODO AGREGADO PARA ACTUALIZAR LA BANDERA DE PRIMER LOGIN
+    /** La marca primerLogin solo puede cambiarse en un flujo de recuperación validado. */
+    @Deprecated
     public void actualizarPrimerLogin(String nombreUsuario, boolean valor) {
-        EntityManager em = JPAUtil.getEntityManager();
-        try {
-            Usuario usuario = em.createQuery(
-                    "SELECT u FROM Usuario u WHERE lower(trim(u.nombreUsuario)) = :nombreUsuario",
-                    Usuario.class)
-                    .setParameter("nombreUsuario", nombreUsuario.trim().toLowerCase())
-                    .getResultStream()
-                    .findFirst()
-                    .orElse(null);
-
-            if (usuario != null) {
-                em.getTransaction().begin();
-                usuario.setPrimerLogin(valor);
-                em.merge(usuario);
-                em.getTransaction().commit();
-            }
-        } catch (Exception ex) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
-            }
-            ex.printStackTrace();
-        } finally {
-            if (em != null) {
-                em.close();
-            }
-        }
+        throw new SecurityException("La marca de primer ingreso no puede actualizarse sin autorización.");
     }
 
     private boolean validarBootstrapInicial(EntityManager em, UsuarioRolDAO rolDAO, String nombreUsuario, String contrasena) {
-        if (!"admin".equalsIgnoreCase(nombreUsuario) || !"admin".equals(contrasena)) {
+        String passwordInicial = BootstrapSecurity.passwordConfigurada();
+        if (passwordInicial == null) {
+            throw new SecurityException("Configuración inicial requerida: establezca "
+                    + BootstrapSecurity.ENV_PASSWORD
+                    + " con una contraseña robusta de al menos 14 caracteres.");
+        }
+        if (!"admin".equalsIgnoreCase(nombreUsuario) || !passwordInicial.equals(contrasena)) {
             registrarLoginFallido(null, nombreUsuario, "Credenciales inválidas");
             return false;
         }
 
-        Usuario admin = bootstrapCrearPrimerAdmin(em);
+        Usuario admin = bootstrapCrearPrimerAdmin(em, passwordInicial);
         asegurarRol(admin, rolDAO);
         SesionUsuario.getInstancia().iniciarSesion(admin);
         auditoriaService.registrar(
@@ -349,7 +248,7 @@ public class AutenticacionService {
         );
     }
 
-    private Usuario bootstrapCrearPrimerAdmin(EntityManager em) {
+    private Usuario bootstrapCrearPrimerAdmin(EntityManager em, String passwordInicial) {
         em.getTransaction().begin();
         try {
             Rol rolAdmin = em.createQuery("SELECT r FROM Rol r WHERE r.nombreRol = :nombre", Rol.class)
@@ -369,7 +268,8 @@ public class AutenticacionService {
             usuario.setPersona(persona);
             usuario.setEmail("admin@local");
             usuario.setNombreUsuario("admin");
-            usuario.setContrasena(PasswordSecurityUtil.normalizeForPersist("admin"));
+            usuario.setContrasena(PasswordSecurityUtil.hashPassword(passwordInicial));
+            usuario.setPrimerLogin(false); // Contraseña inicial personalizada; no depende de admin@local.
             usuario.setRol(rolAdmin);
             usuario.setActivo(true);
             em.persist(usuario);

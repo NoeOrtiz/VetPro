@@ -23,3 +23,7 @@
 Thumbs.db
 
 /imagen_perfil/
+# Nunca versionar credenciales de la base local
+/vetpro.properties
+/src/main/resources/vetpro.properties
+/config/vetpro.properties

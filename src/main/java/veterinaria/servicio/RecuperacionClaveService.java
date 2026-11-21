@@ -37,14 +37,7 @@ public class RecuperacionClaveService {
     public boolean restablecerConCodigo(String nombreUsuario, String email, String dni, String codigo, String nuevaContrasena) {
         boolean actualizado = autenticacionService.restablecerConCodigo(nombreUsuario, email, dni, codigo, nuevaContrasena);
 
-        // Si se actualizó correctamente con código, nos aseguramos de apagar la bandera de primer login
-        if (actualizado) {
-            try {
-                autenticacionService.actualizarPrimerLogin(nombreUsuario, false);
-            } catch (Exception e) {
-                // Si el método en autenticacionService ya lo maneja por dentro, puedes omitir este bloque o dejarlo controlado
-            }
-        }
+        // La marca primerLogin se actualiza en la misma transacción que consume el código.
 
         // 3. Registramos el resultado del cambio de contraseña
         if (actualizado) {
