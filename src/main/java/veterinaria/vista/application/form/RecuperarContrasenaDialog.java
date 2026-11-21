@@ -131,7 +131,7 @@ public class RecuperarContrasenaDialog extends JDialog {
         btnAccion = new JButton("Enviar Código");
 
         // Botones grises del primer modelo, sin cambiar sus acciones.
-        String estiloBoton = "borderWidth:1; focusWidth:0; innerFocusWidth:0";
+        String estiloBoton = "focusWidth:0; innerFocusWidth:0";
         btnCancelar.putClientProperty(FlatClientProperties.STYLE, estiloBoton);
         btnAccion.putClientProperty(FlatClientProperties.STYLE, estiloBoton);
         btnAccion.setPreferredSize(new Dimension(120, 34));
