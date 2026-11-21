@@ -14,6 +14,7 @@ on:
       - integracion/cambiar-clave-diseno-original-compacto
       - integracion/corregir-errores-flatlaf-borderwidth
       - integracion/auditoria-flatlaf-temas
+      - integracion/clave-cabecera-centrada
   workflow_dispatch:
 
 permissions:
