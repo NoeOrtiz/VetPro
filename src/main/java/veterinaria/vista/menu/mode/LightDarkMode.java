@@ -50,7 +50,9 @@ public class LightDarkMode extends JPanel {
     private void init() {
         setBorder(new EmptyBorder(2, 2, 2, 2));
         setLayout(new LightDarkModeLayout());
+        // Esta propiedad arc sí es válida para JPanel y conserva la píldora.
         putClientProperty(FlatClientProperties.STYLE, ""
+                + "arc:999;"
                 + "background:$Menu.lightdark.background");
         buttonLight = new JButton("Light", new FlatSVGIcon("veterinaria/menu/mode/light.svg"));
         buttonDark = new JButton("Dark", new FlatSVGIcon("veterinaria/menu/mode/dark.svg"));
