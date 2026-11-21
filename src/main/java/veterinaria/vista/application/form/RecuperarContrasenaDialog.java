@@ -74,11 +74,12 @@ public class RecuperarContrasenaDialog extends JDialog {
         JPanel panelPrincipal = new JPanel(new BorderLayout(0, 10));
         panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 28, 18, 28));
 
-        // Distribución de la primera imagen: logo, título y ayuda agrupados arriba.
-        JPanel panelCabecera = new JPanel(new MigLayout(
-                "insets 0, wrap 1, gapy 2, alignx center, filly",
-                "[center,fill]",
-                "[]2[]2[]"));
+        // La cabecera debe conservar su altura natural: MigLayout con "filly"
+        // estiraba las tres filas y separaba el logo, título y subtítulo.
+        JPanel panelCabecera = new JPanel();
+        panelCabecera.setOpaque(false);
+        panelCabecera.setLayout(new javax.swing.BoxLayout(
+                panelCabecera, javax.swing.BoxLayout.Y_AXIS));
 
         JLabel lblLogo = new JLabel();
         try {
@@ -95,17 +96,32 @@ public class RecuperarContrasenaDialog extends JDialog {
         lblAyuda = new JLabel("<html><div style='text-align: center;'>Complete los datos registrados para recibir un código de verificación en su correo.</div></html>");
         lblAyuda.putClientProperty(FlatClientProperties.STYLE, "foreground:lighten(@foreground,40%); font:$regular.font");
 
-        panelCabecera.add(lblLogo);
-        panelCabecera.add(lblTitulo, "gapy 2"); // Espacio mínimo entre el logo y el título
-        panelCabecera.add(lblAyuda, "gapy 2");  // Espacio mínimo entre el título y el texto explicativo
+        lblLogo.setHorizontalAlignment(JLabel.CENTER);
+        lblLogo.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        lblLogo.setPreferredSize(new Dimension(110, 105));
+        lblLogo.setMinimumSize(new Dimension(110, 105));
+        lblLogo.setMaximumSize(new Dimension(110, 105));
 
-        // Como en la PRIMERA imagen: campos a todo el ancho, desde debajo
-        // del subtítulo. Sin GridBagLayout, que centraba la ficha verticalmente.
-        // Los controles, listeners y validaciones son los de VetPRO original.
+        lblTitulo.setHorizontalAlignment(JLabel.CENTER);
+        lblTitulo.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        lblTitulo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+
+        lblAyuda.setHorizontalAlignment(JLabel.CENTER);
+        lblAyuda.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
+        lblAyuda.setMaximumSize(new Dimension(Integer.MAX_VALUE, 31));
+
+        panelCabecera.add(lblLogo);
+        panelCabecera.add(javax.swing.Box.createVerticalStrut(5));
+        panelCabecera.add(lblTitulo);
+        panelCabecera.add(javax.swing.Box.createVerticalStrut(4));
+        panelCabecera.add(lblAyuda);
+
+        // Alineación superior real: sin llenar la altura sobrante con filas
+        // distribuidas verticalmente ni introducir un panel centrador.
         panelFormulario = new JPanel(new MigLayout(
                 "fillx, insets 0, hidemode 3, gapx 13, gapy 12, aligny top",
                 "[60!][grow,fill]",
-                ""
+                "[top]"
         ));
         panelFormulario.setOpaque(false);
 
