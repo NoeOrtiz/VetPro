@@ -7,6 +7,7 @@ on:
       - integracion/pdf-sobrio-historia
       - integracion/historia-clinica-tarjeta
       - integracion/clientes-y-home-estilo-companero
+      - integracion/menu-usuarios-estilo-companero
   workflow_dispatch:
 
 permissions:

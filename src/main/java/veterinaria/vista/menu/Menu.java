@@ -297,6 +297,16 @@ public class Menu extends JPanel {
         runEvent(index, subIndex);
     }
 
+    /** Un solo submenú desplegado al mismo tiempo, como en la UI del compañero. */
+    protected void toggleMenu(MenuItem selected) {
+        for (Component component : panelMenu.getComponents()) {
+            if (component instanceof MenuItem item && item != selected) {
+                item.hideMenuItem();
+            }
+        }
+        MenuAnimation.animate(selected, !selected.isMenuShow());
+    }
+
     protected void setSelected(int index, int subIndex) {
         int size = panelMenu.getComponentCount();
         for (int i = 0; i < size; i++) {
@@ -305,8 +315,14 @@ public class Menu extends JPanel {
                 MenuItem item = (MenuItem) com;
                 if (item.getMenuIndex() == index) {
                     item.setSelectedIndex(subIndex);
+                    if (menuFull && subIndex > 0 && !item.isMenuShow()) {
+                        MenuAnimation.animate(item, true);
+                    } else if (subIndex == 0) {
+                        item.hideMenuItem();
+                    }
                 } else {
                     item.setSelectedIndex(-1);
+                    item.hideMenuItem();
                 }
             }
         }

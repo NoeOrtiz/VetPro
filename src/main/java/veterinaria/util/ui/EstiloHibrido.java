@@ -85,7 +85,14 @@ public final class EstiloHibrido {
         }
         for (int i = 0; i < tabla.getColumnModel().getColumnCount(); i++) {
             TableColumn columna = tabla.getColumnModel().getColumn(i);
-            if (columna.getModelIndex() == columnaEstadoModelo) {
+            int modelo = columna.getModelIndex();
+            // Degradado de selección: sólo si no existe un renderer personalizado.
+            // No sobreescribe el checkbox, los badges ni el resaltado del buscador.
+            if (modelo != 0 && modelo != columnaEstadoModelo
+                    && columna.getCellRenderer() == null) {
+                columna.setCellRenderer(new veterinaria.vista.table.TableGradientCell(0));
+            }
+            if (modelo == columnaEstadoModelo) {
                 columna.setCellRenderer(new EstadoClienteRenderer());
                 break;
             }

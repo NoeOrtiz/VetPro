@@ -21,6 +21,7 @@ import java.util.List;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 public class MenuItem extends JPanel {
 
@@ -130,7 +131,7 @@ public class MenuItem extends JPanel {
                 menuItem.addActionListener((ActionEvent e) -> {
                     if (menus.length > 1) {
                         if (menu.isMenuFull()) {
-                            MenuAnimation.animate(MenuItem.this, !menuShow);
+                            menu.toggleMenu(MenuItem.this);
                         } else {
                             popup.show(MenuItem.this, (int) MenuItem.this.getWidth() + UIScale.scale(5), UIScale.scale(menuItemHeight) / 2);
                         }
@@ -192,15 +193,19 @@ public class MenuItem extends JPanel {
                 + "borderWidth:0;"
                 + "focusWidth:0;"
                 + "innerFocusWidth:0;"
-                + "arc:10;"
+                // El redondeo lo define Button.arc, no un estilo inválido 'arc'.
+                + ""
                 + "iconTextGap:10;"
                 + "margin:3,11,3,11");
         return button;
     }
 
     public void hideMenuItem() {
+        MenuAnimation.stop(this);
         animate = 0;
         menuShow = false;
+        revalidate();
+        repaint();
     }
 
     public void setFull(boolean full) {
@@ -259,6 +264,7 @@ public class MenuItem extends JPanel {
     @Override
     public void paint(Graphics g) {
         super.paint(g);
+        paintActiveBar(g);
         if (menus.length > 1) {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -296,6 +302,27 @@ public class MenuItem extends JPanel {
                 g2.translate(ax, ay);
                 g2.draw(p);
             }
+            g2.dispose();
+        }
+    }
+
+    /** Línea verde en el menú activo, sin cambiar permisos ni navegación. */
+    private void paintActiveBar(Graphics graphics) {
+        if (getComponentCount() == 0 || !(getComponent(0) instanceof JButton principal)
+                || !principal.isSelected() || !principal.isVisible()) return;
+        Graphics2D g2 = (Graphics2D) graphics.create();
+        try {
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
+            Color green = UIManager.getColor("App.brandColor");
+            g2.setColor(green == null ? new Color(132, 191, 78) : green);
+            int w = UIScale.scale(3);
+            int h = UIScale.scale(20);
+            boolean ltr = getComponentOrientation().isLeftToRight();
+            int x = ltr ? principal.getX() : principal.getX() + principal.getWidth() - w;
+            int y = principal.getY() + (principal.getHeight() - h) / 2;
+            g2.fillRoundRect(x, y, w, h, w, w);
+        } finally {
             g2.dispose();
         }
     }

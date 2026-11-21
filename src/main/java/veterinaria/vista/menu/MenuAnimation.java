@@ -8,6 +8,12 @@ public class MenuAnimation {
 
     private static final HashMap<MenuItem, Animator> hash = new HashMap<>();
 
+    /** Detiene una animación pendiente para evitar que un submenú cerrado reaparezca. */
+    public static void stop(MenuItem item) {
+        Animator old = hash.remove(item);
+        if (old != null && old.isRunning()) old.stop();
+    }
+
     public static void animate(MenuItem menu, boolean show) {
         if (hash.containsKey(menu) && hash.get(menu).isRunning()) {
             hash.get(menu).stop();
