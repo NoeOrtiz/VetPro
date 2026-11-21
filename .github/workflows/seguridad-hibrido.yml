@@ -4,6 +4,7 @@ on:
     branches:
       - seguridad/auditoria-hibrido
       - integracion/estetica-companero-funciones-noe
+      - integracion/pdf-sobrio-historia
   workflow_dispatch:
 
 permissions:
