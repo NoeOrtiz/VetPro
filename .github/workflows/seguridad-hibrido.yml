@@ -8,6 +8,7 @@ on:
       - integracion/historia-clinica-tarjeta
       - integracion/clientes-y-home-estilo-companero
       - integracion/menu-usuarios-estilo-companero
+      - integracion/home-perfil-capsula
   workflow_dispatch:
 
 permissions:
