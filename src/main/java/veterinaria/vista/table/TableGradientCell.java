@@ -45,15 +45,17 @@ public class TableGradientCell extends DefaultTableCellRenderer {
         super.getTableCellRendererComponent(table, value,
                 highlighted, hasFocus && highlighted, row, column);
         if (!highlighted) {
-            setBackground(table.getBackground());
+            Color alternate = UIManager.getColor("Table.alternateRowColor");
+            setBackground(row % 2 == 1 && alternate != null
+                    ? alternate : table.getBackground());
         }
         Rectangle bounds = table.getCellRect(row, column, true);
         offsetX = -bounds.x;
         tableWidth = Math.max(1, table.getWidth());
         boolean dark = UIManager.getColor("Panel.background") != null
                 && luminance(UIManager.getColor("Panel.background")) < 128;
-        start = dark ? new Color(169, 65, 44) : new Color(255, 210, 157);
-        end = dark ? new Color(44, 105, 177) : new Color(174, 207, 245);
+        start = dark ? new Color(42, 88, 104) : new Color(192, 223, 226);
+        end = dark ? new Color(54, 110, 137) : new Color(205, 229, 240);
         if (highlighted) {
             setForeground(dark ? Color.WHITE : new Color(35, 39, 45));
         } else {
