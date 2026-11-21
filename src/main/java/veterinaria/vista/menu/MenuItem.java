@@ -190,7 +190,6 @@ public class MenuItem extends JPanel {
                 + "foreground:$Menu.foreground;"
                 + "selectedBackground:$Menu.button.selectedBackground;"
                 + "selectedForeground:$Menu.button.selectedForeground;"
-                + "borderWidth:0;"
                 + "focusWidth:0;"
                 + "innerFocusWidth:0;"
                 // El redondeo lo define Button.arc, no un estilo inválido 'arc'.
