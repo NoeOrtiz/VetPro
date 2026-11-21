@@ -54,8 +54,15 @@ public class TableGradientCell extends DefaultTableCellRenderer {
         tableWidth = Math.max(1, table.getWidth());
         boolean dark = UIManager.getColor("Panel.background") != null
                 && luminance(UIManager.getColor("Panel.background")) < 128;
-        start = dark ? new Color(42, 88, 104) : new Color(192, 223, 226);
-        end = dark ? new Color(54, 110, 137) : new Color(205, 229, 240);
+        // Usuarios solicita el degradado del compañero, de cobrizo a azul.
+        // La preferencia pertenece a la tabla, no afecta los demás módulos.
+        if (Boolean.TRUE.equals(table.getClientProperty("vetpro.gradienteCompanero"))) {
+            start = dark ? new Color(169, 65, 44) : new Color(255, 210, 157);
+            end = dark ? new Color(44, 105, 177) : new Color(174, 207, 245);
+        } else {
+            start = dark ? new Color(42, 88, 104) : new Color(192, 223, 226);
+            end = dark ? new Color(54, 110, 137) : new Color(205, 229, 240);
+        }
         if (highlighted) {
             setForeground(dark ? Color.WHITE : new Color(35, 39, 45));
         } else {
