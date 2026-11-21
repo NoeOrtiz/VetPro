@@ -79,6 +79,7 @@ public class FormCliente extends javax.swing.JPanel {
         initListeners();
         initCombos();
         configurarAccionesClientes();
+        aplicarEstiloVisualClientes();
         SwingUtilities.invokeLater(() -> {
             cargarClientesEnTabla();
             instalarPaginacionCompartida();
@@ -176,6 +177,37 @@ public class FormCliente extends javax.swing.JPanel {
         actualizarAccionesCliente();
     }
 
+    /**
+     * El formulario, los permisos y el listado son de la versión original;
+     * solo adoptamos botones, tipografía, espaciado y chips del compañero.
+     * No modificar los bloques generados de NetBeans.
+     */
+    private void aplicarEstiloVisualClientes() {
+        veterinaria.util.ui.EstiloHibrido.titulos(jLabel1, lbListCli);
+        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnNuevo, btnGuardar);
+        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(
+                btnEditar, btnImprimir, btnImprimirLista, btnVerInfo);
+        veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+        veterinaria.util.ui.EstiloHibrido.botonesSutiles(
+                btnCancelarSeleccion, btnCancelar, btnLimpiar);
+
+        btnNuevo.setText("Nuevo cliente");
+        btnImprimirLista.setText("Imprimir listado");
+        txtBusqueda.putClientProperty(
+                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Nombre, apellido o DNI");
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnNuevo, btnEditar, btnEliminar, btnImprimirLista, btnVerInfo,
+                btnImprimir, btnGuardar}) {
+            java.awt.Dimension tam = boton.getPreferredSize();
+            if (tam != null) {
+                boton.setPreferredSize(new java.awt.Dimension(
+                        Math.max(tam.width, boton == btnNuevo ? 118 : 96),
+                        Math.max(tam.height, 32)));
+            }
+        }
+    }
+
     /** Respeta roles y permisos aun cuando se selecciona una fila. */
     private boolean puedeCambiarEstadoCliente() {
         return sesion != null && sesion.getRol() != null
@@ -204,6 +236,11 @@ public class FormCliente extends javax.swing.JPanel {
         Cliente elegido = obtenerClienteSeleccionadoDesdeTabla();
         if (elegido != null) {
             btnEliminar.setText(elegido.isActivo() ? "Desactivar" : "Reactivar");
+            if (elegido.isActivo()) {
+                veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+            } else {
+                veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnEliminar);
+            }
         }
     }
 
@@ -1072,6 +1109,7 @@ public class FormCliente extends javax.swing.JPanel {
         btnVerInfo.setVisible(false);
 
         instalarDegradadoSeleccionClientes();
+        veterinaria.util.ui.EstiloHibrido.tablaClientes(tableClientes, COL_ESTADO);
         actualizarTabla();
         if (paginacionCompartida != null) paginacionCompartida.actualizar();
     }
