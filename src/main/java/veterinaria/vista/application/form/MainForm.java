@@ -89,23 +89,48 @@ public class MainForm extends JLayeredPane {
         add(menuButton);
         add(menu);
         notificationBell = new NotificationBell();
+        // Cápsula de perfil del compañero con los datos, la foto y la campana
+        // de esta versión. El contenido del Home y los permisos no se alteran.
         JPanel header = new JPanel(new BorderLayout());
-        header.setBorder(new EmptyBorder(19, 14, 4, 14));
-        header.setPreferredSize(new Dimension(0, UIScale.scale(64)));
-        JPanel controles = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 12, 0));
-        controles.setOpaque(false);
+        header.setOpaque(false);
+        header.setBorder(new EmptyBorder(16, 14, 6, 30));
+        header.setPreferredSize(new Dimension(0, UIScale.scale(76)));
+        JPanel controles = new TarjetaPerfil();
         controles.add(notificationBell);
+        controles.add(javax.swing.Box.createHorizontalStrut(3));
+        JPanel separador = new JPanel() {
+            @Override protected void paintComponent(java.awt.Graphics g) {
+                java.awt.Color borde = javax.swing.UIManager.getColor("App.borderColor");
+                g.setColor(borde == null ? new java.awt.Color(70, 85, 98) : borde);
+                g.fillRect(0, 9, 1, Math.max(0, getHeight() - 18));
+            }
+        };
+        separador.setOpaque(false);
+        separador.setPreferredSize(new Dimension(1, 40));
+        separador.setMaximumSize(new Dimension(1, 40));
+        controles.add(separador);
+        controles.add(javax.swing.Box.createHorizontalStrut(12));
         avatarPerfil = new JLabel();
+        avatarPerfil.setToolTipText("Opciones de cuenta");
         refrescarFotoPerfil();
         controles.add(avatarPerfil);
+        controles.add(javax.swing.Box.createHorizontalStrut(9));
         JPanel datos = new JPanel();
         datos.setOpaque(false);
         datos.setLayout(new javax.swing.BoxLayout(datos, javax.swing.BoxLayout.Y_AXIS));
         JLabel cuenta = new JLabel(usuario == null ? "Usuario" : usuario.getNombreUsuario());
         cuenta.setFont(cuenta.getFont().deriveFont(java.awt.Font.BOLD));
+        JLabel rol = new JLabel(rolUsuario == null ? "" : rolUsuario.getNombreRol());
+        datos.add(javax.swing.Box.createVerticalGlue());
         datos.add(cuenta);
-        datos.add(new JLabel(rolUsuario == null ? "" : rolUsuario.getNombreRol()));
+        datos.add(rol);
+        datos.add(javax.swing.Box.createVerticalGlue());
         controles.add(datos);
+        controles.add(javax.swing.Box.createHorizontalStrut(11));
+        javax.swing.JComponent flecha = new FlechaPerfil();
+        flecha.setToolTipText("Opciones de cuenta");
+        controles.add(flecha);
+        instalarMenuPerfil(controles, avatarPerfil, datos, cuenta, rol, flecha);
         header.add(controles, BorderLayout.EAST);
         contenedorPrincipal = new JPanel(new BorderLayout());
         contenedorPrincipal.add(header, BorderLayout.NORTH);
@@ -489,6 +514,107 @@ public class MainForm extends JLayeredPane {
         avatarPerfil.setIcon(icono);
         avatarPerfil.revalidate();
         avatarPerfil.repaint();
+    }
+
+    /** Cápsula del perfil que se pinta una sola vez alrededor de los controles existentes. */
+    private static final class TarjetaPerfil extends JPanel {
+        TarjetaPerfil() {
+            setOpaque(false);
+            setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
+            setBorder(new EmptyBorder(3, 6, 3, 14));
+            setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        }
+
+        @Override protected void paintComponent(java.awt.Graphics g) {
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                        java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                java.awt.Color superficie = javax.swing.UIManager.getColor("App.surface.background");
+                java.awt.Color borde = javax.swing.UIManager.getColor("App.borderColor");
+                g2.setColor(superficie == null ? new java.awt.Color(35, 47, 59) : superficie);
+                g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1,
+                        getHeight(), getHeight());
+                g2.setColor(borde == null ? new java.awt.Color(58, 75, 89) : borde);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1,
+                        getHeight(), getHeight());
+            } finally {
+                g2.dispose();
+            }
+            super.paintComponent(g);
+        }
+    }
+
+    /** Flecha discreta que identifica el menú de cuenta, sin caracteres de fuente. */
+    private static final class FlechaPerfil extends javax.swing.JComponent {
+        FlechaPerfil() {
+            setPreferredSize(new Dimension(14, 30));
+            setMinimumSize(new Dimension(14, 30));
+            setMaximumSize(new Dimension(14, 30));
+            setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        }
+
+        @Override protected void paintComponent(java.awt.Graphics g) {
+            java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+            try {
+                g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                        java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                java.awt.Color color = javax.swing.UIManager.getColor("App.muted.foreground");
+                g2.setColor(color == null ? new java.awt.Color(180, 193, 203) : color);
+                g2.setStroke(new java.awt.BasicStroke(1.6f,
+                        java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND));
+                int x = getWidth() / 2;
+                int y = getHeight() / 2;
+                g2.drawLine(x - 4, y - 2, x, y + 2);
+                g2.drawLine(x, y + 2, x + 4, y - 2);
+            } finally {
+                g2.dispose();
+            }
+        }
+    }
+
+    /**
+     * El menú de cuenta utiliza acciones existentes y respeta los permisos.
+     * La campanita conserva su propio popup de notificaciones.
+     */
+    private void instalarMenuPerfil(JPanel tarjeta, Component... activadores) {
+        java.awt.event.MouseAdapter desplegar = new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (!javax.swing.SwingUtilities.isLeftMouseButton(e)) return;
+                javax.swing.JPopupMenu opciones = new javax.swing.JPopupMenu();
+                SesionUsuario actual = Application.getSesionUsuario();
+                if (actual != null && actual.getUsuario() != null
+                        && actual.puede("FormUsuario")) {
+                    javax.swing.JMenuItem usuarios = new javax.swing.JMenuItem("Gestión de usuarios");
+                    usuarios.addActionListener(a -> {
+                        showFormConPermiso(new FormUsuario());
+                        setSelectedMenu(1, 1);
+                    });
+                    opciones.add(usuarios);
+                }
+                javax.swing.JMenuItem clave = new javax.swing.JMenuItem("Cambiar contraseña");
+                clave.addActionListener(a -> {
+                    java.awt.Window ventana = javax.swing.SwingUtilities.getWindowAncestor(MainForm.this);
+                    RecuperarContrasenaDialog dialogo = new RecuperarContrasenaDialog(
+                            ventana, usuario == null ? "" : usuario.getNombreUsuario());
+                    dialogo.setLocationRelativeTo(MainForm.this);
+                    dialogo.setVisible(true);
+                });
+                opciones.add(clave);
+                opciones.addSeparator();
+                javax.swing.JMenuItem salir = new javax.swing.JMenuItem("Cerrar sesión");
+                salir.addActionListener(a -> Application.logout());
+                opciones.add(salir);
+                opciones.show(tarjeta,
+                        Math.max(0, tarjeta.getWidth() - opciones.getPreferredSize().width),
+                        tarjeta.getHeight() + 6);
+            }
+        };
+        tarjeta.addMouseListener(desplegar);
+        for (Component componente : activadores) {
+            componente.addMouseListener(desplegar);
+            componente.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        }
     }
 
     private class MainFormLayout implements LayoutManager {
