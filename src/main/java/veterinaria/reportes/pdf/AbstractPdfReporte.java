@@ -76,25 +76,35 @@ public abstract class AbstractPdfReporte implements Reporte {
         return veterinaria.reportes.core.ReportePaths.enDescargas(fileName);
     }
 
+    /**
+     * Encabezado uniforme con marca, logo, fecha y acento azul petróleo,
+     * inspirado en el informe compartido por la usuaria.
+     */
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
-        float pageW = pdf.getPageW();
-        float y = pdf.getY();
-
-        // 🌟 Logo redimensionado para ganar espacio vertical
-        float logoW = 100f;
-        float logoH = 80f;
-        float logoX = (pageW - logoW) / 2;
-
-        renderLogo(pdf, logoX, y - logoH, logoW, logoH);
-
-        pdf.setY(y - logoH - 15f);
-
-        String tituloReporte = titulo();
-        float tWidth = pdf.textWidth(PdfStyle.H2_FONT, 14, tituloReporte);
-        pdf.text(PdfStyle.H2_FONT, 14, (pageW - tWidth) / 2, pdf.getY(), tituloReporte);
-        pdf.down(16f);
-
-        pdf.line();
+        float top = pdf.getY();
+        float m = pdf.getMargin();
+        float right = pdf.getPageW() - m;
+        renderLogo(pdf, m, top - 60f, 74f, 60f);
+        float tx = m + 89f;
+        pdf.text(PdfStyle.TXT_BOLD_FONT, 7, tx, top - 11f,
+                "CLÍNICA VETERINARIA DOGTOR CAT", PdfStyle.ACCENT_DARK);
+        int size = 13;
+        while (size > 9 && pdf.textWidth(PdfStyle.H1_FONT, size, titulo()) > right - tx - 117f) {
+            size--;
+        }
+        pdf.text(PdfStyle.H1_FONT, size, tx, top - 28f, titulo(), PdfStyle.INK);
+        pdf.text(PdfStyle.TXT_FONT, 8, tx, top - 43f,
+                "Itaembé Guazú - Sistema de gestión VetPRO", PdfStyle.MUTED);
+        String ts = new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date());
+        String label = "FECHA DE EMISIÓN";
+        pdf.text(PdfStyle.TXT_BOLD_FONT, 7,
+                right - pdf.textWidth(PdfStyle.TXT_BOLD_FONT, 7, label),
+                top - 14f, label, PdfStyle.MUTED);
+        pdf.text(PdfStyle.TXT_BOLD_FONT, 10,
+                right - pdf.textWidth(PdfStyle.TXT_BOLD_FONT, 10, ts),
+                top - 32f, ts, PdfStyle.INK);
+        pdf.hline(m, right, top - 71f, PdfStyle.ACCENT, 1.5f);
+        pdf.setY(top - 93f);
     }
 
     protected void renderTable(
@@ -168,53 +178,44 @@ public abstract class AbstractPdfReporte implements Reporte {
         //pdf.line();
     }
 
-    // 🌟 Genera el pie de página en CADA hoja del documento
+    /** Pie de todas las páginas: emisor, fecha y numeración. */
     private void renderFooterAllPages(PdfDocument pdf, ReporteRequest request) throws Exception {
-        String fechaHora = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date());
-        String emisor = request.get("emisor", String.class);
-        emisor = (emisor == null || emisor.isBlank()) ? "SISTEMA" : emisor.trim();
-
-        int totalPaginas = pdf.getDocument().getNumberOfPages();
-
-        for (int i = 0; i < totalPaginas; i++) {
+        String fecha = new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date());
+        String usuario = request.get("emisor", String.class);
+        if (usuario == null || usuario.isBlank()) usuario = "SISTEMA";
+        int total = pdf.getDocument().getNumberOfPages();
+        for (int i = 0; i < total; i++) {
             var page = pdf.getDocument().getPage(i);
-            try (PDPageContentStream cs = new PDPageContentStream(pdf.getDocument(), page, PDPageContentStream.AppendMode.APPEND, true, true)) {
-                float margin = pdf.getMargin();
-                float pageW = pdf.getPageW();
-                float y = 35f;
-
-                cs.moveTo(margin, y);
-                cs.lineTo(pageW - margin, y);
+            try (PDPageContentStream cs = new PDPageContentStream(
+                    pdf.getDocument(), page, PDPageContentStream.AppendMode.APPEND, true, true)) {
+                float m = pdf.getMargin(), right = pdf.getPageW() - m, y = 33f;
+                cs.setStrokingColor(PdfStyle.HAIR);
+                cs.setLineWidth(0.6f);
+                cs.moveTo(m, y);
+                cs.lineTo(right, y);
                 cs.stroke();
-
-                float footerY = y - 15f;
-
-                // Página X de Y
-                String pagStr = "Pág. " + (i + 1) + " de " + totalPaginas;
-                cs.beginText();
-                cs.setFont(PdfStyle.TXT_FONT, 8);
-                cs.newLineAtOffset(margin, footerY);
-                cs.showText(pagStr);
-                cs.endText();
-
-                // Usuario
-                String usrStr = "Usuario: " + emisor;
-                float usrW = PdfStyle.TXT_FONT.getStringWidth(usrStr) / 1000f * 8;
-                cs.beginText();
-                cs.setFont(PdfStyle.TXT_FONT, 8);
-                cs.newLineAtOffset((pageW - usrW) / 2f, footerY);
-                cs.showText(usrStr);
-                cs.endText();
-
-                // Fecha y Hora
-                float dateW = PdfStyle.TXT_FONT.getStringWidth(fechaHora) / 1000f * 8;
-                cs.beginText();
-                cs.setFont(PdfStyle.TXT_FONT, 8);
-                cs.newLineAtOffset(pageW - margin - dateW, footerY);
-                cs.showText(fechaHora);
-                cs.endText();
+                pie(cs, PdfStyle.TXT_BOLD_FONT, 7.5f, m, y - 15f,
+                        "VetPRO - Dogtor Cat", PdfStyle.ACCENT_DARK);
+                String centro = "Emitido por " + usuario.trim() + " - " + fecha;
+                float wm = PdfStyle.TXT_FONT.getStringWidth(centro) / 1000f * 7.5f;
+                pie(cs, PdfStyle.TXT_FONT, 7.5f, (pdf.getPageW() - wm) / 2f,
+                        y - 15f, centro, PdfStyle.MUTED);
+                String pag = "Página " + (i + 1) + " de " + total;
+                float wp = PdfStyle.TXT_FONT.getStringWidth(pag) / 1000f * 7.5f;
+                pie(cs, PdfStyle.TXT_FONT, 7.5f, right - wp, y - 15f, pag, PdfStyle.MUTED);
             }
         }
+    }
+
+    private static void pie(PDPageContentStream cs,
+            org.apache.pdfbox.pdmodel.font.PDFont font, float size,
+            float x, float y, String content, java.awt.Color color) throws java.io.IOException {
+        cs.beginText();
+        cs.setNonStrokingColor(color);
+        cs.setFont(font, size);
+        cs.newLineAtOffset(x, y);
+        cs.showText(content);
+        cs.endText();
     }
 
     protected abstract String titulo();
