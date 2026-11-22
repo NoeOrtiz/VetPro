@@ -50,13 +50,15 @@ public class LightDarkMode extends JPanel {
     private void init() {
         setBorder(new EmptyBorder(2, 2, 2, 2));
         setLayout(new LightDarkModeLayout());
-        // Esta propiedad arc sí es válida para JPanel y conserva la píldora.
-        putClientProperty(FlatClientProperties.STYLE, ""
-                + "arc:999;"
-                + "background:$Menu.lightdark.background");
-        buttonLight = new JButton("Light", new FlatSVGIcon("veterinaria/menu/mode/light.svg"));
-        buttonDark = new JButton("Dark", new FlatSVGIcon("veterinaria/menu/mode/dark.svg"));
+        // Sin el rectángulo que envolvía los dos botones: se ve el verde
+        // original del menú. Solo la opción activa lleva una pastilla.
+        setOpaque(false);
+        buttonLight = new JButton("Claro", new FlatSVGIcon("veterinaria/menu/mode/light.svg"));
+        buttonDark = new JButton("Oscuro", new FlatSVGIcon("veterinaria/menu/mode/dark.svg"));
+        configurarBotonDeModo(buttonLight);
+        configurarBotonDeModo(buttonDark);
         buttonLighDark = new JButton();
+        configurarBotonDeModo(buttonLighDark);
         buttonLighDark.putClientProperty(FlatClientProperties.STYLE, ""
                 + "background:$Menu.lightdark.button.background;"
                 + "foreground:$Menu.foreground;"
@@ -107,6 +109,8 @@ public class LightDarkMode extends JPanel {
     }
 
     private void checkStyle() {
+        // FlatLaf.updateUI() no debe reconstruir el panel rectangular.
+        setOpaque(false);
         boolean isDark = FlatLaf.isLafDark();
         addStyle(buttonLight, !isDark);
         addStyle(buttonDark, isDark);
@@ -117,21 +121,26 @@ public class LightDarkMode extends JPanel {
         }
     }
 
-    private void addStyle(JButton button, boolean style) {
-        if (style) {
-            button.putClientProperty(FlatClientProperties.STYLE, ""
-                        + "background:$Menu.lightdark.button.background;"
+    private void configurarBotonDeModo(JButton button) {
+        // FlatLaf renderiza la forma redondeada de manera nativa.
+        button.putClientProperty(FlatClientProperties.BUTTON_TYPE, "roundRect");
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setOpaque(false);
+    }
+
+    private void addStyle(JButton button, boolean activo) {
+        // La opción inactiva no tiene fondo ni borde; es texto e ícono
+        // directamente sobre el verde del menú, como en la segunda captura.
+        button.setContentAreaFilled(activo);
+        button.setBorderPainted(false);
+        button.setOpaque(false);
+        button.putClientProperty(FlatClientProperties.STYLE, activo
+                ? "background:$Menu.lightdark.button.background;"
                     + "foreground:$Menu.foreground;"
-                    + "focusWidth:0;"
-                        + "innerFocusWidth:0");
-        } else {
-            button.putClientProperty(FlatClientProperties.STYLE, ""
-                        + "background:$Menu.lightdark.button.background;"
-                    + "foreground:$Menu.foreground;"
-                    + "focusWidth:0;"
-                        + "innerFocusWidth:0;"
-                    + "background:null");
-        }
+                    + "focusWidth:0;innerFocusWidth:0"
+                : "foreground:$Menu.foreground;"
+                    + "focusWidth:0;innerFocusWidth:0");
     }
 
     private JButton buttonLight;

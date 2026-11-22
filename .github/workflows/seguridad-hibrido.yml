@@ -19,6 +19,7 @@ on:
       - integracion/usuarios-ajustes-pdf-sobrios
       - integracion/tema-claro-menu-tablas-uniformes
       - integracion/restaurar-verde-submenus-sin-recuadros
+      - integracion/selector-tema-pastilla-sin-marco
   workflow_dispatch:
 
 permissions:
