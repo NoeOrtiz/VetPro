@@ -73,10 +73,22 @@ public final class GestorTablas {
                 });
             }
         });
-        tabla.getModel().addTableModelListener(e -> SwingUtilities.invokeLater(() -> {
-            tabla.repaint();
-            if (cambioSeleccion != null) cambioSeleccion.run();
-        }));
+        tabla.getModel().addTableModelListener(e -> {
+            // Usuarios opta por repintado sin una cola adicional de invokeLater.
+            // El cambio de checkbox no recalcula páginas ni consulta MySQL.
+            if (Boolean.TRUE.equals(tabla.getClientProperty("vetpro.seleccion.rapida"))
+                    && e.getType() == javax.swing.event.TableModelEvent.UPDATE
+                    && e.getColumn() == columnaSeleccion(tabla)
+                    && SwingUtilities.isEventDispatchThread()) {
+                tabla.repaint();
+                if (cambioSeleccion != null) cambioSeleccion.run();
+            } else {
+                SwingUtilities.invokeLater(() -> {
+                    tabla.repaint();
+                    if (cambioSeleccion != null) cambioSeleccion.run();
+                });
+            }
+        });
     }
 
     public static int columnaSeleccion(JTable tabla) {
