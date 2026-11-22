@@ -53,8 +53,10 @@ class UsuariosDosFilasAlineadasTest {
                         "Dos filas independientes y una separación vertical");
                 JPanel superior = (JPanel) barra.getComponent(0);
                 JPanel inferior = (JPanel) barra.getComponent(2);
-                assertEquals(6, inferior.getComponentCount(),
-                        "Cancelar selección y cinco acciones");
+                assertEquals(5, inferior.getComponentCount(),
+                        "Solo las cinco acciones originales, sin un segundo botón Limpiar");
+                assertFalse(java.util.Arrays.asList(inferior.getComponents()).contains(cancelar),
+                        "Cancelar selección no debe crear un control visual duplicado");
 
                 for (int ancho : new int[]{950, 1100, 1250}) {
                     barra.setSize(ancho, 80);
