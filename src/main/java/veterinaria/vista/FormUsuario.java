@@ -720,10 +720,6 @@ public class FormUsuario extends javax.swing.JPanel {
         titulo.add(jSeparator2, java.awt.BorderLayout.SOUTH);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
 
-        javax.swing.JPanel filas = new javax.swing.JPanel();
-        filas.setOpaque(false);
-        filas.setLayout(new javax.swing.BoxLayout(filas, javax.swing.BoxLayout.Y_AXIS));
-
         javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
         filtros.setOpaque(false);
         filtros.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
@@ -746,13 +742,7 @@ public class FormUsuario extends javax.swing.JPanel {
         filtroEstado.setPreferredSize(new java.awt.Dimension(135, 34));
         izquierda.add(filtroEstado);
         filtros.add(izquierda, java.awt.BorderLayout.WEST);
-        filtros.add(btnNuevo, java.awt.BorderLayout.EAST);
-        filas.add(filtros);
-        filas.add(javax.swing.Box.createVerticalStrut(9));
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
-        acciones.setOpaque(false);
-        acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         javax.swing.JPanel grupoAcciones = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         grupoAcciones.setOpaque(false);
@@ -761,21 +751,70 @@ public class FormUsuario extends javax.swing.JPanel {
         btnCancelarSeleccion.setToolTipText("Quitar la selección");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionUsuario());
         btnCancelarSeleccion.setText("");
-        // El último botón se fija al extremo derecho: mismo borde que "Nuevo usuario".
-        // "Quitar selección" queda antes de las acciones, no después de imprimir.
+        // El botón "Quitar selección" queda con las acciones, antes de imprimir.
         grupoAcciones.add(btnCancelarSeleccion);
         grupoAcciones.add(btnVerFicha);
         grupoAcciones.add(btnEditar);
         grupoAcciones.add(btnEliminar);
         grupoAcciones.add(btnImprimir);
-        acciones.add(grupoAcciones, java.awt.BorderLayout.CENTER);
-        acciones.add(btnImprimirLista, java.awt.BorderLayout.EAST);
-        filas.add(acciones);
 
+        // UNA SOLA grilla de dos columnas para ambas filas. De esta manera
+        // "Nuevo usuario" e "Imprimir listado" tienen exactamente la misma
+        // coordenada X, ancho y borde derecho en cualquier tamaño de ventana.
+        javax.swing.JPanel filas = crearBarraUsuariosAlineada(
+                filtros, btnNuevo, grupoAcciones, btnImprimirLista);
         jpHeader.add(filas, java.awt.BorderLayout.CENTER);
         jpHeader.add(jSeparator1, java.awt.BorderLayout.SOUTH);
         jpHeader.revalidate();
         jpHeader.repaint();
+    }
+
+    /**
+     * Una misma columna derecha, compartida por ambas filas.
+     * La grilla no depende de la selección ni de los textos de los botones.
+     * Sin cambios a acciones, permisos, búsqueda o paginación.
+     */
+    private static javax.swing.JPanel crearBarraUsuariosAlineada(
+            javax.swing.JPanel filtros,
+            javax.swing.JButton nuevo,
+            javax.swing.JPanel acciones,
+            javax.swing.JButton imprimirListado) {
+        int anchoDerecha = Math.max(160, Math.max(
+                nuevo.getPreferredSize().width,
+                imprimirListado.getPreferredSize().width));
+        java.awt.Dimension tamañoDerecha = new java.awt.Dimension(anchoDerecha, 34);
+        nuevo.setPreferredSize(tamañoDerecha);
+        imprimirListado.setPreferredSize(tamañoDerecha);
+
+        javax.swing.JPanel filas = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        filas.setOpaque(false);
+
+        java.awt.GridBagConstraints izq = new java.awt.GridBagConstraints();
+        izq.gridx = 0;
+        izq.gridy = 0;
+        izq.weightx = 1;
+        izq.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        izq.anchor = java.awt.GridBagConstraints.EAST;
+        izq.insets = new java.awt.Insets(0, 0, 8, 8);
+        filas.add(filtros, izq);
+
+        java.awt.GridBagConstraints der = new java.awt.GridBagConstraints();
+        der.gridx = 1;
+        der.gridy = 0;
+        der.weightx = 0;
+        der.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        der.anchor = java.awt.GridBagConstraints.EAST;
+        der.insets = new java.awt.Insets(0, 0, 8, 0);
+        filas.add(nuevo, der);
+
+        izq.gridy = 1;
+        izq.insets = new java.awt.Insets(0, 0, 0, 8);
+        filas.add(acciones, izq);
+
+        der.gridy = 1;
+        der.insets = new java.awt.Insets(0, 0, 0, 0);
+        filas.add(imprimirListado, der);
+        return filas;
     }
 
     /** Reutiliza los tres paneles generados por NetBeans, pero evita el alto fijo de 390px. */
