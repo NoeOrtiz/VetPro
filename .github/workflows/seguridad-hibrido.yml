@@ -17,6 +17,7 @@ on:
       - integracion/clave-cabecera-centrada
       - integracion/usuarios-toolbar-iconos-gradiente
       - integracion/usuarios-ajustes-pdf-sobrios
+      - integracion/tema-claro-menu-tablas-uniformes
   workflow_dispatch:
 
 permissions:

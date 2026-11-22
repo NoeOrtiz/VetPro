@@ -45,28 +45,17 @@ public final class TableGradientCheckBoxRenderer extends JPanel implements Table
         Rectangle cell = table.getCellRect(row, column, true);
         offsetX = -cell.x;
         tableWidth = Math.max(1, table.getWidth());
-        Color alternate = UIManager.getColor("Table.alternateRowColor");
-        background = row % 2 == 1 && alternate != null
-                ? alternate : table.getBackground();
-        Color panel = UIManager.getColor("Panel.background");
-        boolean dark = panel != null
-                && (panel.getRed() * 299 + panel.getGreen() * 587 + panel.getBlue() * 114) / 1000 < 128;
-        start = dark ? new Color(169, 65, 44) : new Color(255, 210, 157);
-        end = dark ? new Color(44, 105, 177) : new Color(174, 207, 245);
+        background = TableRowAppearance.fondo(table, row);
+        start = TableRowAppearance.inicio(table);
+        end = TableRowAppearance.fin(table);
         return this;
     }
 
     @Override
     protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g.create();
-        if (highlighted) {
-            g2.setPaint(new GradientPaint(offsetX, 0, start,
-                    offsetX + tableWidth, 0, end));
-        } else {
-            g2.setColor(background == null ? getBackground() : background);
-        }
-        g2.fillRect(0, 0, getWidth(), getHeight());
-        g2.dispose();
+        TableRowAppearance.pintar(g, getWidth(), getHeight(),
+                highlighted, offsetX, tableWidth, start, end,
+                background == null ? getBackground() : background);
         super.paintComponent(g);
     }
 }
