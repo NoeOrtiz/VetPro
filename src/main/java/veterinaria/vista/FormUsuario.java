@@ -2023,7 +2023,7 @@ public class FormUsuario extends javax.swing.JPanel {
         pagina.add(javax.swing.Box.createVerticalStrut(11));
 
         jpAcceso.removeAll();
-        jpAcceso.setLayout(new java.awt.BorderLayout(0, 10));
+        jpAcceso.setLayout(new java.awt.BorderLayout(16, 10));
         jpAcceso.setOpaque(true);
         jpAcceso.setBorder(javax.swing.BorderFactory.createEmptyBorder(14, 16, 15, 16));
         lbNivelDeAcceso.setText("Datos de acceso");
