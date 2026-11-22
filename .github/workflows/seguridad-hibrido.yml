@@ -21,6 +21,7 @@ on:
       - integracion/restaurar-verde-submenus-sin-recuadros
       - integracion/selector-tema-pastilla-sin-marco
       - integracion/usuarios-dos-filas-alineadas
+      - integracion/usuarios-toolbar-completo-hover
   workflow_dispatch:
 
 permissions:
