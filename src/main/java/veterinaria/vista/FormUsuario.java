@@ -874,9 +874,9 @@ public class FormUsuario extends javax.swing.JPanel {
         iconoUsuario(btnCancelarSeleccion, "limpiar_usuario.svg");
         btnCancelarSeleccion.setToolTipText("Quitar selección del usuario");
 
-        // Campo vacío: la búsqueda se limita exclusivamente a Usuario y Rol.
+        // La ayuda refleja los dos campos incluidos en la búsqueda.
         txtBusqueda.putClientProperty(
-                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "");
+                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "Buscá por usuario o rol.");
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
                 btnNuevo, btnVerFicha, btnEditar, btnEliminar, btnImprimir,
                 btnImprimirLista, btnLimpiarBusqueda, btnCancelarSeleccion}) {
@@ -1035,7 +1035,7 @@ public class FormUsuario extends javax.swing.JPanel {
             }
         });
         jcbRol.setEnabled(false);
-        txtUsuario.setEnabled(false);
+        txtUsuario.setEditable(false);
         habilitarDatosDeCuenta(false);
 
         // En Usuarios el botón debe responder en el mismo ciclo EDT.
@@ -1500,6 +1500,7 @@ public class FormUsuario extends javax.swing.JPanel {
         btnNuevo.setEnabled(false);
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
+        SwingUtilities.invokeLater(txtUsuario::requestFocusInWindow);
     }//GEN-LAST:event_btnNuevoActionPerformed
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed

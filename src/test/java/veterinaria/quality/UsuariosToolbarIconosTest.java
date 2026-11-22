@@ -50,7 +50,7 @@ class UsuariosToolbarIconosTest {
         String s = fuente();
         assertTrue(s.contains("new int[]{7, 6}"));
         assertTrue(s.contains("paginacionCompartida.activarBusquedaPorPrefijo()"));
-        assertTrue(s.contains("FlatClientProperties.PLACEHOLDER_TEXT, \"\""));
+        assertTrue(s.contains("FlatClientProperties.PLACEHOLDER_TEXT, \"Buscá por usuario o rol.\""));
         assertTrue(s.contains("paginacionCompartida.limpiarBusqueda()"));
         assertTrue(s.contains("new veterinaria.vista.table.TableGradientCheckBoxRenderer()"));
         assertTrue(s.contains("table.putClientProperty(\"vetpro.seleccionPlanaUsuarios\", Boolean.TRUE)"));
