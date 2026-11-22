@@ -31,9 +31,9 @@ class UsuariosToolbarIconosTest {
         String s = fuente();
         assertTrue(s.contains("crearBarraUsuariosAlineada("));
         assertTrue(s.contains("btnVerFicha, btnEditar, btnEliminar, btnImprimir, btnImprimirLista"));
-        assertTrue(s.contains("filas.add(acciones[i], celda)"));
-        assertTrue(s.contains("celda.gridx = i + 1"));
-        assertTrue(s.contains("filtrosCelda.gridwidth = 5"));
+        assertTrue(s.contains("inferior.add(accion)"));
+        assertTrue(s.contains("new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0)"));
+        assertTrue(s.contains("new javax.swing.BoxLayout(filas, javax.swing.BoxLayout.Y_AXIS)"));
         assertTrue(s.contains("btnNuevo.setText(\"Nuevo usuario\")"));
         assertTrue(s.contains("btnImprimir.setText(\"Imprimir ficha\")"));
         assertTrue(s.contains("btnImprimirLista.setText(\"Imprimir listado\")"));
