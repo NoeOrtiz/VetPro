@@ -69,4 +69,22 @@ public class ReporteSelectorUtil {
 
         return null; // El usuario cerró o canceló la ventana
     }
+
+    /**
+     * Variante de lista desplegable, igual al selector utilizado en el
+     * informe de usuarios. No cambia las opciones PDF/XLS ni el ejecutor.
+     */
+    public static Formato solicitarFormatoCombo(Component padre, String titulo) {
+        javax.swing.JComboBox<String> formatos =
+                new javax.swing.JComboBox<>(new String[]{"PDF", "Excel (XLS)"});
+        JPanel panel = new JPanel(new java.awt.GridLayout(1, 2, 10, 10));
+        panel.add(new JLabel("Formato:"));
+        panel.add(formatos);
+        int respuesta = JOptionPane.showConfirmDialog(
+                padre, panel,
+                titulo == null || titulo.isBlank() ? "Configurar informe" : titulo,
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (respuesta != JOptionPane.OK_OPTION) return null;
+        return formatos.getSelectedIndex() == 0 ? Formato.PDF : Formato.XLS;
+    }
 }
