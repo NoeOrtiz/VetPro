@@ -1429,6 +1429,7 @@ public class FormUsuario extends javax.swing.JPanel {
         Application.actualizarEstadoUsuario("CreandoUsuario");
         if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
         btnGuardar.setText("Crear usuario");
+        btnGuardar.setIcon(iconoMasCrear());
         limpiarCamposFormulario();
         mostrarVistaUsuario(true);
         mostrarFoto(null);
@@ -1713,6 +1714,7 @@ public class FormUsuario extends javax.swing.JPanel {
             if (editarUsuarioSeleccionado()) {
                 if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Editar usuario");
                 btnGuardar.setText("Guardar cambios");
+        iconoUsuario(btnGuardar, "guardar_usuario.svg");
                 btnNuevo.setEnabled(false);
                 btnEditar.setEnabled(false);
                 btnEliminar.setEnabled(false);
@@ -1845,7 +1847,10 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void volverAModoLista() {
         if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
-        if (btnGuardar != null) btnGuardar.setText("Crear usuario");
+        if (btnGuardar != null) {
+            btnGuardar.setText("Crear usuario");
+            btnGuardar.setIcon(iconoMasCrear());
+        }
         actualizarForm();
         btnNuevo.setEnabled(true);
         actualizarAccionesSeleccionUsuario();
@@ -1878,7 +1883,7 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JPanel pagina = new javax.swing.JPanel();
         pagina.setOpaque(false);
         pagina.setLayout(new javax.swing.BoxLayout(pagina, javax.swing.BoxLayout.Y_AXIS));
-        pagina.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 7, 13, 7));
+        pagina.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 7, 24, 7));
 
         tituloEditorUsuario = new javax.swing.JLabel("Nuevo usuario");
         tituloEditorUsuario.setFont(tituloEditorUsuario.getFont().deriveFont(java.awt.Font.BOLD, 20f));
@@ -1913,7 +1918,7 @@ public class FormUsuario extends javax.swing.JPanel {
         visorFoto = new javax.swing.JLabel();
         visorFoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visorFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        visorFoto.setPreferredSize(new java.awt.Dimension(100, 100));
+        visorFoto.setPreferredSize(new java.awt.Dimension(110, 110));
         visorFoto.setMinimumSize(new java.awt.Dimension(100, 100));
         visorFoto.setMaximumSize(new java.awt.Dimension(100, 100));
         foto.add(visorFoto);
@@ -1929,8 +1934,8 @@ public class FormUsuario extends javax.swing.JPanel {
         ayudaFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         foto.add(ayudaFoto);
         jpDatosPersonales.add(foto, java.awt.BorderLayout.EAST);
-        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 236));
-        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 236));
+        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 248));
+        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 248));
         jpDatosPersonales.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpDatosPersonales);
         pagina.add(javax.swing.Box.createVerticalStrut(11));
@@ -1959,16 +1964,17 @@ public class FormUsuario extends javax.swing.JPanel {
                 "<html>El usuario cambiará la contraseña<br>al ingresar por primera vez.</html>");
         java.awt.Color atenuado = javax.swing.UIManager.getColor("App.muted.foreground");
         if (atenuado != null) info.setForeground(atenuado);
-        jpDatosCuenta.add(info);
+        jpDatosCuenta.add(new javax.swing.JPanel() {{ setOpaque(false); }});
         jpAcceso.add(jpDatosCuenta, java.awt.BorderLayout.CENTER);
-        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 174));
-        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 174));
+        jpAcceso.add(info, java.awt.BorderLayout.SOUTH);
+        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 188));
+        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 188));
         jpAcceso.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpAcceso);
-        pagina.add(javax.swing.Box.createVerticalStrut(8));
+        pagina.add(javax.swing.Box.createVerticalStrut(14));
 
         javax.swing.JPanel acciones = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 9, 0));
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 5));
         acciones.setOpaque(false);
         acciones.add(btnLimpiar);
         acciones.add(btnCancelar);
@@ -1976,13 +1982,15 @@ public class FormUsuario extends javax.swing.JPanel {
         // Acciones del editor en el mismo lenguaje visual de la barra de listado.
         iconoUsuario(btnLimpiar, "limpiar_usuario.svg");
         iconoUsuario(btnCancelar, "cancelar_usuario.svg");
-        iconoUsuario(btnGuardar, "guardar_usuario.svg");
+        btnGuardar.setIcon(iconoMasCrear());
+        btnGuardar.setIconTextGap(8);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
                 btnLimpiar, btnCancelar, btnGuardar}) {
             boton.setPreferredSize(new java.awt.Dimension(
                     boton == btnGuardar ? 150 : 96, 34));
         }
-        acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 54));
+        acciones.setPreferredSize(new java.awt.Dimension(780, 48));
+        acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 48));
         acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(acciones);
         mostrarFoto(null);
@@ -1995,6 +2003,26 @@ public class FormUsuario extends javax.swing.JPanel {
         scroller.getViewport().setOpaque(false);
         scroller.setOpaque(false);
         jpCamposFormularioUsuario.add(scroller, java.awt.BorderLayout.CENTER);
+    }
+
+    /** Signo más dibujado, sin archivos externos ni fuentes especiales. */
+    private javax.swing.Icon iconoMasCrear() {
+        return new javax.swing.Icon() {
+            @Override public int getIconWidth() { return 14; }
+            @Override public int getIconHeight() { return 14; }
+            @Override public void paintIcon(java.awt.Component componente, java.awt.Graphics graphics, int x, int y) {
+                java.awt.Graphics2D g = (java.awt.Graphics2D) graphics.create();
+                try {
+                    g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+                            java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+                    g.setColor(new java.awt.Color(34, 36, 38));
+                    g.setStroke(new java.awt.BasicStroke(2.2f,
+                            java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND));
+                    g.drawLine(x + 7, y + 2, x + 7, y + 12);
+                    g.drawLine(x + 2, y + 7, x + 12, y + 7);
+                } finally { g.dispose(); }
+            }
+        };
     }
 
     private javax.swing.JPanel campoUsuario(javax.swing.JComponent rotulo,
