@@ -61,8 +61,8 @@ class UsuariosDosFilasAlineadasTest {
                 for (int ancho : new int[]{950, 1100, 1250}) {
                     barra.setSize(ancho, 80);
                     distribuir(barra);
-                    assertEquals(120, nuevo.getWidth());
-                    assertEquals(124, listado.getWidth());
+                    assertEquals(nuevo.getPreferredSize().width, nuevo.getWidth());
+                    assertEquals(listado.getPreferredSize().width, listado.getWidth());
                     assertEquals(34, nuevo.getHeight());
                     for (int i = 0; i < acciones.length; i++) {
                         JButton boton = acciones[i];
@@ -81,6 +81,13 @@ class UsuariosDosFilasAlineadasTest {
                     assertEquals(nuevo.getX() - 10, filtros.getWidth());
                     assertTrue(inferior.getY() > superior.getY());
                 }
+                // Un cambio de fuente debe ampliar el botón sin mover su borde derecho.
+                int anchoListado = listado.getWidth();
+                listado.setFont(listado.getFont().deriveFont(18f));
+                distribuir(barra);
+                assertTrue(listado.getWidth() > anchoListado);
+                assertEquals(listado.getPreferredSize().width, listado.getWidth());
+                assertEquals(barra.getWidth(), listado.getX() + listado.getWidth());
                 int xVer = ver.getX();
                 int xImprimir = listado.getX();
                 nuevo.setEnabled(false);

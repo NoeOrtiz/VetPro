@@ -779,13 +779,6 @@ public class FormUsuario extends javax.swing.JPanel {
             javax.swing.JButton desactivar,
             javax.swing.JButton imprimirFicha,
             javax.swing.JButton imprimirListado) {
-        configurarTamanoAccion(nuevo, 120);
-        configurarTamanoAccion(verFicha, 88);
-        configurarTamanoAccion(editar, 70);
-        configurarTamanoAccion(desactivar, 98);
-        configurarTamanoAccion(imprimirFicha, 116);
-        configurarTamanoAccion(imprimirListado, 124);
-
         javax.swing.JPanel filas = new javax.swing.JPanel();
         filas.setOpaque(false);
         filas.setLayout(new javax.swing.BoxLayout(filas, javax.swing.BoxLayout.Y_AXIS));
@@ -799,11 +792,14 @@ public class FormUsuario extends javax.swing.JPanel {
         filas.add(superior);
         filas.add(javax.swing.Box.createVerticalStrut(9));
 
-        javax.swing.JPanel inferior = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        java.awt.GridBagLayout layoutAcciones = new java.awt.GridBagLayout();
+        layoutAcciones.rowHeights = new int[]{34};
+        javax.swing.JPanel inferior = new javax.swing.JPanel(layoutAcciones);
         inferior.setOpaque(false);
         java.awt.GridBagConstraints accion = new java.awt.GridBagConstraints();
         accion.gridy = 0;
         accion.anchor = java.awt.GridBagConstraints.EAST;
+        accion.fill = java.awt.GridBagConstraints.VERTICAL;
         accion.weightx = 1;
         inferior.add(verFicha, accion);
         accion.weightx = 0;
@@ -1156,9 +1152,6 @@ public class FormUsuario extends javax.swing.JPanel {
             } else {
                 veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
             }
-            // Cambiar el estilo altera el tamaño preferido de FlatLaf.
-            // Restaurarlo impide que la fila de botones salte al seleccionar.
-            configurarTamanoAccion(btnEliminar, 114);
             ultimoEstiloAccionUsuario = estilo;
         }
         // El modelo actualiza el renderer; evitar un segundo repintado
