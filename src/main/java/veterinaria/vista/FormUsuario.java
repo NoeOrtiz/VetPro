@@ -1357,6 +1357,7 @@ public class FormUsuario extends javax.swing.JPanel {
         Application.actualizarEstadoUsuario("CreandoUsuario");
         if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
         btnGuardar.setText("Crear usuario");
+        btnGuardar.setIcon(iconoMasCrear());
         limpiarCamposFormulario();
         mostrarVistaUsuario(true);
         mostrarFoto(null);
@@ -1641,6 +1642,7 @@ public class FormUsuario extends javax.swing.JPanel {
             if (editarUsuarioSeleccionado()) {
                 if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Editar usuario");
                 btnGuardar.setText("Guardar cambios");
+        btnGuardar.setIcon(null);
                 btnNuevo.setEnabled(false);
                 btnEditar.setEnabled(false);
                 btnEliminar.setEnabled(false);
@@ -1773,7 +1775,10 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void volverAModoLista() {
         if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
-        if (btnGuardar != null) btnGuardar.setText("Crear usuario");
+        if (btnGuardar != null) {
+            btnGuardar.setText("Crear usuario");
+            btnGuardar.setIcon(iconoMasCrear());
+        }
         actualizarForm();
         btnNuevo.setEnabled(true);
         actualizarAccionesSeleccionUsuario();
@@ -1839,9 +1844,9 @@ public class FormUsuario extends javax.swing.JPanel {
         visorFoto = new javax.swing.JLabel();
         visorFoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visorFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        visorFoto.setPreferredSize(new java.awt.Dimension(104, 104));
-        visorFoto.setMinimumSize(new java.awt.Dimension(104, 104));
-        visorFoto.setMaximumSize(new java.awt.Dimension(104, 104));
+        visorFoto.setPreferredSize(new java.awt.Dimension(110, 110));
+        visorFoto.setMinimumSize(new java.awt.Dimension(110, 110));
+        visorFoto.setMaximumSize(new java.awt.Dimension(110, 110));
         foto.add(visorFoto);
         foto.add(javax.swing.Box.createVerticalStrut(8));
         javax.swing.JButton elegirFoto = new javax.swing.JButton("Agregar foto");
