@@ -1,6 +1,8 @@
 package veterinaria.quality;
 
 import static org.junit.jupiter.api.Assertions.*;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.FlowLayout;
 import java.lang.reflect.Method;
 import java.util.concurrent.atomic.AtomicReference;
@@ -12,11 +14,18 @@ import javax.swing.SwingUtilities;
 import org.junit.jupiter.api.Test;
 import veterinaria.vista.FormUsuario;
 
-/** Prueba posiciones reales de los cinco botones de acción, sin MySQL. */
+/** Comprueba la distribución real basada en la UI del compañero, sin MySQL. */
 class UsuariosDosFilasAlineadasTest {
 
+    private static void distribuir(Container contenedor) {
+        contenedor.doLayout();
+        for (Component hijo : contenedor.getComponents()) {
+            if (hijo instanceof Container sub) distribuir(sub);
+        }
+    }
+
     @Test
-    void cincoAccionesYBotonNuevoMantienenAlturaSeparacionYColumnas() throws Exception {
+    void cincoAccionesConservanTamanosYAlineacionAlSeleccionar() throws Exception {
         AtomicReference<Throwable> fallo = new AtomicReference<>();
         SwingUtilities.invokeAndWait(() -> {
             try {
@@ -40,44 +49,40 @@ class UsuariosDosFilasAlineadasTest {
                 metodo.setAccessible(true);
                 JPanel barra = (JPanel) metodo.invoke(null, filtros, nuevo,
                         cancelar, ver, editar, desactivar, ficha, listado);
-                assertEquals(8, barra.getComponentCount(),
-                        "La barra contiene filtros, Nuevo, cancelar y cinco acciones");
+                assertEquals(3, barra.getComponentCount(),
+                        "Dos filas independientes y una separación vertical");
+                JPanel superior = (JPanel) barra.getComponent(0);
+                JPanel inferior = (JPanel) barra.getComponent(2);
+                assertEquals(6, inferior.getComponentCount(),
+                        "Cancelar selección y cinco acciones");
 
                 for (int ancho : new int[]{950, 1100, 1250}) {
-                    barra.setSize(ancho, 94);
-                    barra.doLayout();
-                    assertEquals(nuevo.getX(), listado.getX(),
-                            "Nuevo e Imprimir listado comparten inicio");
-                    assertEquals(nuevo.getWidth(), listado.getWidth(),
-                            "Nuevo e Imprimir listado comparten ancho");
-                    assertEquals(nuevo.getX() + nuevo.getWidth(),
-                            listado.getX() + listado.getWidth(),
-                            "Sus bordes derechos coinciden");
-                    int altura = acciones[0].getHeight();
-                    int fila = acciones[0].getY();
-                    assertEquals(34, altura);
+                    barra.setSize(ancho, 80);
+                    distribuir(barra);
+                    assertEquals(150, nuevo.getWidth());
+                    assertEquals(150, listado.getWidth());
+                    assertEquals(34, nuevo.getHeight());
                     for (int i = 0; i < acciones.length; i++) {
-                        JButton btn = acciones[i];
-                        assertEquals(altura, btn.getHeight(),
-                                "Todos los botones tienen la misma altura");
-                        assertEquals(fila, btn.getY(),
-                                "Todos los botones comparten línea de base");
-                        assertTrue(btn.getWidth() >= btn.getPreferredSize().width);
+                        JButton boton = acciones[i];
+                        assertEquals(34, boton.getHeight());
+                        assertEquals(boton.getPreferredSize().width, boton.getWidth());
                         if (i > 0) {
-                            assertEquals(8, btn.getX() -
-                                    (acciones[i - 1].getX() + acciones[i - 1].getWidth()),
-                                    "La separación debe ser constante");
+                            assertEquals(8, boton.getX()
+                                    - (acciones[i - 1].getX() + acciones[i - 1].getWidth()));
                         }
                     }
-                    assertTrue(fila > nuevo.getY());
+                    // Ambos botones terminan junto al borde derecho de su fila.
+                    int derechaNuevo = nuevo.getX() + nuevo.getWidth();
+                    int derechaListado = listado.getX() + listado.getWidth();
+                    assertTrue(Math.abs(derechaNuevo - derechaListado) <= 8);
+                    assertTrue(inferior.getY() > superior.getY());
                 }
-                // Los botones no se mueven por habilitar/deshabilitar acciones.
                 int xVer = ver.getX();
                 int xImprimir = listado.getX();
                 nuevo.setEnabled(false);
                 ver.setEnabled(true);
-                cancelar.setVisible(true);
-                barra.doLayout();
+                cancelar.setEnabled(true);
+                distribuir(barra);
                 assertEquals(xVer, ver.getX());
                 assertEquals(xImprimir, listado.getX());
             } catch (Throwable e) {
