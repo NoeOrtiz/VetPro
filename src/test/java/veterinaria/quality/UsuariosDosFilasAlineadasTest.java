@@ -12,56 +12,74 @@ import javax.swing.SwingUtilities;
 import org.junit.jupiter.api.Test;
 import veterinaria.vista.FormUsuario;
 
-/** Comprueba coordenadas reales del layout, sin instanciar el módulo ni consultar MySQL. */
+/** Prueba posiciones reales de los cinco botones de acción, sin MySQL. */
 class UsuariosDosFilasAlineadasTest {
 
     @Test
-    void nuevoEImprimirCompartenColumnaEnDosAnchosYConSeleccion() throws Exception {
+    void cincoAccionesYBotonNuevoMantienenAlturaSeparacionYColumnas() throws Exception {
         AtomicReference<Throwable> fallo = new AtomicReference<>();
         SwingUtilities.invokeAndWait(() -> {
             try {
                 JPanel filtros = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
                 filtros.add(new JLabel("Buscar usuario:"));
-                JTextField buscar = new JTextField(32);
-                filtros.add(buscar);
+                filtros.add(new JTextField(32));
                 filtros.add(new JLabel("Estado:"));
-
-                JPanel grupoAcciones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-                for (String titulo : new String[]{
-                        "Ver ficha", "Editar", "Desactivar", "Imprimir ficha"}) {
-                    grupoAcciones.add(new JButton(titulo));
-                }
                 JButton nuevo = new JButton("Nuevo usuario");
-                JButton imprimir = new JButton("Imprimir listado");
+                JButton cancelar = new JButton();
+                JButton ver = new JButton("Ver ficha");
+                JButton editar = new JButton("Editar");
+                JButton desactivar = new JButton("Desactivar");
+                JButton ficha = new JButton("Imprimir ficha");
+                JButton listado = new JButton("Imprimir listado");
+                JButton[] acciones = {ver, editar, desactivar, ficha, listado};
+
                 Method metodo = FormUsuario.class.getDeclaredMethod(
-                        "crearBarraUsuariosAlineada",
-                        JPanel.class, JButton.class, JPanel.class, JButton.class);
+                        "crearBarraUsuariosAlineada", JPanel.class, JButton.class,
+                        JButton.class, JButton.class, JButton.class,
+                        JButton.class, JButton.class, JButton.class);
                 metodo.setAccessible(true);
-                JPanel barra = (JPanel) metodo.invoke(null,
-                        filtros, nuevo, grupoAcciones, imprimir);
-                assertEquals(4, barra.getComponentCount());
+                JPanel barra = (JPanel) metodo.invoke(null, filtros, nuevo,
+                        cancelar, ver, editar, desactivar, ficha, listado);
+                assertEquals(8, barra.getComponentCount(),
+                        "La barra contiene filtros, Nuevo, cancelar y cinco acciones");
 
                 for (int ancho : new int[]{950, 1100, 1250}) {
-                    barra.setSize(ancho, 90);
+                    barra.setSize(ancho, 94);
                     barra.doLayout();
-                    assertEquals(nuevo.getX(), imprimir.getX(),
-                            "Deben empezar exactamente en la misma coordenada X");
-                    assertEquals(nuevo.getWidth(), imprimir.getWidth(),
-                            "Ambos botones deben tener idéntico ancho");
+                    assertEquals(nuevo.getX(), listado.getX(),
+                            "Nuevo e Imprimir listado comparten inicio");
+                    assertEquals(nuevo.getWidth(), listado.getWidth(),
+                            "Nuevo e Imprimir listado comparten ancho");
                     assertEquals(nuevo.getX() + nuevo.getWidth(),
-                            imprimir.getX() + imprimir.getWidth(),
-                            "Los bordes derechos deben coincidir");
-                    assertTrue(imprimir.getY() > nuevo.getY(),
-                            "Imprimir listado debe estar en la segunda fila");
-                    assertEquals(34, nuevo.getHeight());
-                    assertEquals(34, imprimir.getHeight());
+                            listado.getX() + listado.getWidth(),
+                            "Sus bordes derechos coinciden");
+                    int altura = acciones[0].getHeight();
+                    int fila = acciones[0].getY();
+                    assertEquals(34, altura);
+                    for (int i = 0; i < acciones.length; i++) {
+                        JButton btn = acciones[i];
+                        assertEquals(altura, btn.getHeight(),
+                                "Todos los botones tienen la misma altura");
+                        assertEquals(fila, btn.getY(),
+                                "Todos los botones comparten línea de base");
+                        assertTrue(btn.getWidth() >= btn.getPreferredSize().width);
+                        if (i > 0) {
+                            assertEquals(8, btn.getX() -
+                                    (acciones[i - 1].getX() + acciones[i - 1].getWidth()),
+                                    "La separación debe ser constante");
+                        }
+                    }
+                    assertTrue(fila > nuevo.getY());
                 }
-
-                nuevo.setEnabled(false); // usuario seleccionado
-                imprimir.setEnabled(true);
+                // Los botones no se mueven por habilitar/deshabilitar acciones.
+                int xVer = ver.getX();
+                int xImprimir = listado.getX();
+                nuevo.setEnabled(false);
+                ver.setEnabled(true);
+                cancelar.setVisible(true);
                 barra.doLayout();
-                assertEquals(nuevo.getX(), imprimir.getX(),
-                        "Los botones no deben moverse al seleccionar un registro");
+                assertEquals(xVer, ver.getX());
+                assertEquals(xImprimir, listado.getX());
             } catch (Throwable e) {
                 fallo.set(e);
             }

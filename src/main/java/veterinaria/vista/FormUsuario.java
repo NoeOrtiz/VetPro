@@ -743,26 +743,17 @@ public class FormUsuario extends javax.swing.JPanel {
         izquierda.add(filtroEstado);
         filtros.add(izquierda, java.awt.BorderLayout.WEST);
 
-        javax.swing.JPanel grupoAcciones = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
-        grupoAcciones.setOpaque(false);
         btnVerFicha.addActionListener(e -> mostrarFichaUsuarioSeleccionado());
         btnVerFicha.setToolTipText("Mostrar los datos del usuario seleccionado");
         btnCancelarSeleccion.setToolTipText("Quitar la selección");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionUsuario());
         btnCancelarSeleccion.setText("");
-        // El botón "Quitar selección" queda con las acciones, antes de imprimir.
-        grupoAcciones.add(btnCancelarSeleccion);
-        grupoAcciones.add(btnVerFicha);
-        grupoAcciones.add(btnEditar);
-        grupoAcciones.add(btnEliminar);
-        grupoAcciones.add(btnImprimir);
 
-        // UNA SOLA grilla de dos columnas para ambas filas. De esta manera
-        // "Nuevo usuario" e "Imprimir listado" tienen exactamente la misma
-        // coordenada X, ancho y borde derecho en cualquier tamaño de ventana.
+        // Cinco acciones en cinco columnas reales: misma altura, separación
+        // y coordenadas de fila. La última comparte columna con Nuevo usuario.
         javax.swing.JPanel filas = crearBarraUsuariosAlineada(
-                filtros, btnNuevo, grupoAcciones, btnImprimirLista);
+                filtros, btnNuevo, btnCancelarSeleccion,
+                btnVerFicha, btnEditar, btnEliminar, btnImprimir, btnImprimirLista);
         jpHeader.add(filas, java.awt.BorderLayout.CENTER);
         jpHeader.add(jSeparator1, java.awt.BorderLayout.SOUTH);
         jpHeader.revalidate();
@@ -770,50 +761,74 @@ public class FormUsuario extends javax.swing.JPanel {
     }
 
     /**
-     * Una misma columna derecha, compartida por ambas filas.
-     * La grilla no depende de la selección ni de los textos de los botones.
-     * Sin cambios a acciones, permisos, búsqueda o paginación.
+     * Una única grilla, con los cinco botones de acción en columnas separadas.
+     * No hay un FlowLayout anidado que desplace botones según la selección.
+     * Filtros ocupan las primeras cinco columnas y Nuevo usuario comparte
+     * la última columna con Imprimir listado.
      */
     private static javax.swing.JPanel crearBarraUsuariosAlineada(
             javax.swing.JPanel filtros,
             javax.swing.JButton nuevo,
-            javax.swing.JPanel acciones,
+            javax.swing.JButton cancelarSeleccion,
+            javax.swing.JButton verFicha,
+            javax.swing.JButton editar,
+            javax.swing.JButton desactivar,
+            javax.swing.JButton imprimirFicha,
             javax.swing.JButton imprimirListado) {
-        int anchoDerecha = Math.max(160, Math.max(
-                nuevo.getPreferredSize().width,
+
+        javax.swing.JButton[] acciones = {
+            verFicha, editar, desactivar, imprimirFicha, imprimirListado
+        };
+        // El último botón se ajusta al ancho de Nuevo usuario. La
+        // presentación de los cinco botones comparte alto y separación.
+        int anchoFinal = Math.max(160, Math.max(nuevo.getPreferredSize().width,
                 imprimirListado.getPreferredSize().width));
-        java.awt.Dimension tamañoDerecha = new java.awt.Dimension(anchoDerecha, 34);
-        nuevo.setPreferredSize(tamañoDerecha);
-        imprimirListado.setPreferredSize(tamañoDerecha);
+        for (javax.swing.JButton boton : acciones) {
+            int width = boton == imprimirListado
+                    ? anchoFinal : boton.getPreferredSize().width;
+            boton.setPreferredSize(new java.awt.Dimension(width, 34));
+        }
+        nuevo.setPreferredSize(new java.awt.Dimension(anchoFinal, 34));
+        cancelarSeleccion.setPreferredSize(new java.awt.Dimension(35, 34));
 
         javax.swing.JPanel filas = new javax.swing.JPanel(new java.awt.GridBagLayout());
         filas.setOpaque(false);
 
-        java.awt.GridBagConstraints izq = new java.awt.GridBagConstraints();
-        izq.gridx = 0;
-        izq.gridy = 0;
-        izq.weightx = 1;
-        izq.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        izq.anchor = java.awt.GridBagConstraints.EAST;
-        izq.insets = new java.awt.Insets(0, 0, 8, 8);
-        filas.add(filtros, izq);
+        // Primera fila: filtros a la izquierda, Nuevo usuario a la derecha.
+        java.awt.GridBagConstraints filtrosCelda = new java.awt.GridBagConstraints();
+        filtrosCelda.gridx = 0;
+        filtrosCelda.gridy = 0;
+        filtrosCelda.gridwidth = 5;
+        filtrosCelda.weightx = 1;
+        filtrosCelda.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        filtrosCelda.insets = new java.awt.Insets(0, 0, 9, 8);
+        filas.add(filtros, filtrosCelda);
 
-        java.awt.GridBagConstraints der = new java.awt.GridBagConstraints();
-        der.gridx = 1;
-        der.gridy = 0;
-        der.weightx = 0;
-        der.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        der.anchor = java.awt.GridBagConstraints.EAST;
-        der.insets = new java.awt.Insets(0, 0, 8, 0);
-        filas.add(nuevo, der);
+        java.awt.GridBagConstraints nuevoCelda = new java.awt.GridBagConstraints();
+        nuevoCelda.gridx = 5;
+        nuevoCelda.gridy = 0;
+        nuevoCelda.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        nuevoCelda.insets = new java.awt.Insets(0, 0, 9, 0);
+        filas.add(nuevo, nuevoCelda);
 
-        izq.gridy = 1;
-        izq.insets = new java.awt.Insets(0, 0, 0, 8);
-        filas.add(acciones, izq);
+        // La cancelación queda en el espacio flexible. No mueve las
+        // cinco acciones, y conserva el acceso a la función original.
+        java.awt.GridBagConstraints limpiarCelda = new java.awt.GridBagConstraints();
+        limpiarCelda.gridx = 0;
+        limpiarCelda.gridy = 1;
+        limpiarCelda.weightx = 1;
+        limpiarCelda.anchor = java.awt.GridBagConstraints.EAST;
+        limpiarCelda.insets = new java.awt.Insets(0, 0, 0, 8);
+        filas.add(cancelarSeleccion, limpiarCelda);
 
-        der.gridy = 1;
-        der.insets = new java.awt.Insets(0, 0, 0, 0);
-        filas.add(imprimirListado, der);
+        for (int i = 0; i < acciones.length; i++) {
+            java.awt.GridBagConstraints celda = new java.awt.GridBagConstraints();
+            celda.gridx = i + 1;
+            celda.gridy = 1;
+            celda.fill = java.awt.GridBagConstraints.HORIZONTAL;
+            celda.insets = new java.awt.Insets(0, 0, 0, i == acciones.length - 1 ? 0 : 8);
+            filas.add(acciones[i], celda);
+        }
         return filas;
     }
 
