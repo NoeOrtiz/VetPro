@@ -40,7 +40,8 @@ class UsuariosCorreccionesYReportesTest {
         String code = fuente("vista/FormUsuario.java");
         assertTrue(code.contains("crearBarraUsuariosAlineada("));
         assertTrue(code.contains("inferior.add(accion)"));
-        assertTrue(code.contains("inferior.add(cancelarSeleccion)"));
+        assertTrue(code.contains("cancelarSeleccionUsuario()"));
+        assertFalse(code.contains("inferior.add(cancelarSeleccion)"));
         assertFalse(code.contains("acciones.add(btnCancelarSeleccion);"));
         assertTrue(code.contains("solicitarFormatoCombo("));
         assertTrue(code.contains("Configurar informe de usuario"));
