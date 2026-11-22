@@ -44,8 +44,7 @@ public class TableGradientCell extends DefaultTableCellRenderer {
                 : isSelected;
         super.getTableCellRendererComponent(table, value,
                 highlighted, hasFocus && highlighted, row, column);
-        if (!highlighted) {
-            setBackground(TableRowAppearance.fondo(table, row));
+        setBackground(TableRowAppearance.fondo(table, row));
         Rectangle bounds = table.getCellRect(row, column, true);
         offsetX = -bounds.x;
         tableWidth = Math.max(1, table.getWidth());
