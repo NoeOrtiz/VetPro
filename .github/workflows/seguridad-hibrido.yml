@@ -16,6 +16,7 @@ on:
       - integracion/auditoria-flatlaf-temas
       - integracion/clave-cabecera-centrada
       - integracion/usuarios-toolbar-iconos-gradiente
+      - integracion/usuarios-ajustes-pdf-sobrios
   workflow_dispatch:
 
 permissions:
