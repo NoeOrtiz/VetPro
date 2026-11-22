@@ -45,24 +45,13 @@ public class TableGradientCell extends DefaultTableCellRenderer {
         super.getTableCellRendererComponent(table, value,
                 highlighted, hasFocus && highlighted, row, column);
         if (!highlighted) {
-            Color alternate = UIManager.getColor("Table.alternateRowColor");
-            setBackground(row % 2 == 1 && alternate != null
-                    ? alternate : table.getBackground());
-        }
+            setBackground(TableRowAppearance.fondo(table, row));
         Rectangle bounds = table.getCellRect(row, column, true);
         offsetX = -bounds.x;
         tableWidth = Math.max(1, table.getWidth());
-        boolean dark = UIManager.getColor("Panel.background") != null
-                && luminance(UIManager.getColor("Panel.background")) < 128;
-        // Usuarios solicita el degradado del compañero, de cobrizo a azul.
-        // La preferencia pertenece a la tabla, no afecta los demás módulos.
-        if (Boolean.TRUE.equals(table.getClientProperty("vetpro.gradienteCompanero"))) {
-            start = dark ? new Color(169, 65, 44) : new Color(255, 210, 157);
-            end = dark ? new Color(44, 105, 177) : new Color(174, 207, 245);
-        } else {
-            start = dark ? new Color(42, 88, 104) : new Color(192, 223, 226);
-            end = dark ? new Color(54, 110, 137) : new Color(205, 229, 240);
-        }
+        start = TableRowAppearance.inicio(table);
+        end = TableRowAppearance.fin(table);
+        boolean dark = TableRowAppearance.temaOscuro();
         if (highlighted) {
             setForeground(dark ? Color.WHITE : new Color(35, 39, 45));
         } else {
@@ -80,16 +69,11 @@ public class TableGradientCell extends DefaultTableCellRenderer {
     @Override
     protected void paintComponent(Graphics g) {
         if (highlighted) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setPaint(new GradientPaint(offsetX, 0, start,
-                    offsetX + tableWidth, 0, end));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
+            TableRowAppearance.pintar(g, getWidth(), getHeight(),
+                    true, offsetX, tableWidth, start, end, getBackground());
         } else {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setColor(getBackground());
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.dispose();
+            TableRowAppearance.pintar(g, getWidth(), getHeight(),
+                    false, offsetX, tableWidth, start, end, getBackground());
         }
         super.paintComponent(g);
     }
