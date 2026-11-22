@@ -50,8 +50,8 @@ class UsuariosCorreccionesYReportesTest {
     void editorCompactoMantieneLosCamposYAccionesOriginales() throws Exception {
         String code = fuente("vista/FormUsuario.java");
         assertTrue(code.contains("[52!][52!][52!]"));
-        assertTrue(code.contains("new java.awt.Dimension(780, 236)"));
-        assertTrue(code.contains("new java.awt.Dimension(780, 174)"));
+        assertTrue(code.contains("new java.awt.Dimension(780, 253)"));
+        assertTrue(code.contains("new java.awt.Dimension(780, 208)"));
         for (String campo : new String[]{"txtNombre", "txtApellido", "txtDNI",
                 "txtTelefono", "txtDireccion", "txtEmail",
                 "jcbRol", "txtUsuario", "txtContraseña"}) {
