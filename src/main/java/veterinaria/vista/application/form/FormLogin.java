@@ -28,6 +28,13 @@ public class FormLogin extends javax.swing.JPanel {
         txtPass.setText("");
     }
 
+    /** Permite escribir directamente al abrir la ventana de autenticación. */
+    public void solicitarFocoUsuario() {
+        txtUser.setFocusable(true);
+        txtUser.setRequestFocusEnabled(true);
+        txtUser.requestFocusInWindow();
+    }
+
     private void verificarLogin() {
         String usuarioStr = txtUser.getText();
         String contrasena = new String(txtPass.getPassword());
