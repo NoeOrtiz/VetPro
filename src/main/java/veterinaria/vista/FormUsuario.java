@@ -762,10 +762,9 @@ public class FormUsuario extends javax.swing.JPanel {
     }
 
     /**
-     * Una única grilla, con los cinco botones de acción en columnas separadas.
-     * No hay un FlowLayout anidado que desplace botones según la selección.
-     * Filtros ocupan las primeras cinco columnas y Nuevo usuario comparte
-     * la última columna con Imprimir listado.
+     * La barra utiliza el mismo principio del rediseño del compañero:
+     * filas independientes, BoxLayout vertical y FlowLayout.RIGHT para
+     * las acciones. Ningún botón participa en las columnas del filtro.
      */
     private static javax.swing.JPanel crearBarraUsuariosAlineada(
             javax.swing.JPanel filtros,
@@ -777,11 +776,8 @@ public class FormUsuario extends javax.swing.JPanel {
             javax.swing.JButton imprimirFicha,
             javax.swing.JButton imprimirListado) {
 
-        javax.swing.JButton[] acciones = {
-            verFicha, editar, desactivar, imprimirFicha, imprimirListado
-        };
-        // Dimensiones fijas para impedir que FlatLaf estire botones al
-        // cambiar permisos, selección o estilo (activo/inactivo).
+        // Los tamaños se asignan después del estilo FlatLaf para evitar
+        // anchos dinámicos y mantener las cinco acciones proporcionales.
         configurarTamanoAccion(nuevo, 150);
         configurarTamanoAccion(verFicha, 94);
         configurarTamanoAccion(editar, 78);
@@ -790,44 +786,34 @@ public class FormUsuario extends javax.swing.JPanel {
         configurarTamanoAccion(imprimirListado, 150);
         configurarTamanoAccion(cancelarSeleccion, 34);
 
-        javax.swing.JPanel filas = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        javax.swing.JPanel filas = new javax.swing.JPanel();
         filas.setOpaque(false);
+        filas.setLayout(new javax.swing.BoxLayout(filas, javax.swing.BoxLayout.Y_AXIS));
 
-        // Primera fila: filtros a la izquierda, Nuevo usuario a la derecha.
-        java.awt.GridBagConstraints filtrosCelda = new java.awt.GridBagConstraints();
-        filtrosCelda.gridx = 0;
-        filtrosCelda.gridy = 0;
-        filtrosCelda.gridwidth = 5;
-        filtrosCelda.weightx = 1;
-        filtrosCelda.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        filtrosCelda.insets = new java.awt.Insets(0, 0, 9, 8);
-        filas.add(filtros, filtrosCelda);
+        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(10, 0));
+        superior.setOpaque(false);
+        superior.add(filtros, java.awt.BorderLayout.WEST);
+        superior.add(nuevo, java.awt.BorderLayout.EAST);
+        superior.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 34));
+        superior.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        filas.add(superior);
+        filas.add(javax.swing.Box.createVerticalStrut(9));
 
-        java.awt.GridBagConstraints nuevoCelda = new java.awt.GridBagConstraints();
-        nuevoCelda.gridx = 5;
-        nuevoCelda.gridy = 0;
-        nuevoCelda.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        nuevoCelda.insets = new java.awt.Insets(0, 0, 9, 0);
-        filas.add(nuevo, nuevoCelda);
-
-        // La cancelación queda en el espacio flexible. No mueve las
-        // cinco acciones, y conserva el acceso a la función original.
-        java.awt.GridBagConstraints limpiarCelda = new java.awt.GridBagConstraints();
-        limpiarCelda.gridx = 0;
-        limpiarCelda.gridy = 1;
-        limpiarCelda.weightx = 1;
-        limpiarCelda.anchor = java.awt.GridBagConstraints.EAST;
-        limpiarCelda.insets = new java.awt.Insets(0, 0, 0, 8);
-        filas.add(cancelarSeleccion, limpiarCelda);
-
-        for (int i = 0; i < acciones.length; i++) {
-            java.awt.GridBagConstraints celda = new java.awt.GridBagConstraints();
-            celda.gridx = i + 1;
-            celda.gridy = 1;
-            celda.fill = java.awt.GridBagConstraints.HORIZONTAL;
-            celda.insets = new java.awt.Insets(0, 0, 0, i == acciones.length - 1 ? 0 : 8);
-            filas.add(acciones[i], celda);
+        javax.swing.JPanel inferior = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        inferior.setOpaque(false);
+        // Reservamos la posición del botón de cancelar selección para que
+        // su activación no desplace las cinco acciones principales.
+        inferior.add(cancelarSeleccion);
+        javax.swing.JButton[] acciones = {
+            verFicha, editar, desactivar, imprimirFicha, imprimirListado
+        };
+        for (javax.swing.JButton accion : acciones) {
+            inferior.add(accion);
         }
+        inferior.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 34));
+        inferior.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        filas.add(inferior);
         return filas;
     }
 
@@ -1150,7 +1136,7 @@ public class FormUsuario extends javax.swing.JPanel {
         btnEliminar.setVisible(true);
         btnImprimir.setVisible(true);
         btnImprimirLista.setVisible(true);
-        btnCancelarSeleccion.setVisible(haySeleccion);
+        btnCancelarSeleccion.setVisible(true);
         btnVerFicha.setEnabled(haySeleccion);
         btnNuevo.setEnabled(!haySeleccion && permisoUsuario("NUEVO"));
         btnEditar.setEnabled(haySeleccion && permisoUsuario("EDITAR"));
