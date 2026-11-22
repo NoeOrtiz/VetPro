@@ -30,11 +30,10 @@ class UsuariosToolbarIconosTest {
     void accionesAlineadasEnDosFilasSinPerderComportamiento() throws Exception {
         String s = fuente();
         assertTrue(s.contains("crearBarraUsuariosAlineada("));
-        assertTrue(s.contains("grupoAcciones.add(btnVerFicha)"));
-        assertTrue(s.contains("grupoAcciones.add(btnEditar)"));
-        assertTrue(s.contains("grupoAcciones.add(btnEliminar)"));
-        assertTrue(s.contains("grupoAcciones.add(btnImprimir)"));
-        assertTrue(s.contains("filas.add(imprimirListado, der)"));
+        assertTrue(s.contains("btnVerFicha, btnEditar, btnEliminar, btnImprimir, btnImprimirLista"));
+        assertTrue(s.contains("filas.add(acciones[i], celda)"));
+        assertTrue(s.contains("celda.gridx = i + 1"));
+        assertTrue(s.contains("filtrosCelda.gridwidth = 5"));
         assertTrue(s.contains("btnNuevo.setText(\"Nuevo usuario\")"));
         assertTrue(s.contains("btnImprimir.setText(\"Imprimir ficha\")"));
         assertTrue(s.contains("btnImprimirLista.setText(\"Imprimir listado\")"));
