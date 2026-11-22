@@ -66,14 +66,20 @@ public class PopupSubmenu extends JPanel {
 
     private JButton createButtonItem(String text) {
         JButton button = new JButton(text);
+        // Mismo criterio que los submenús del lateral: texto integrado,
+        // sin un rectángulo pintado detrás de cada opción.
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setOpaque(false);
         button.putClientProperty(FlatClientProperties.STYLE, ""
                 + "background:$Menu.background;"
                 + "foreground:$Menu.foreground;"
-                + "selectedBackground:$Menu.button.selectedBackground;"
-                + "selectedForeground:$Menu.button.selectedForeground;"
-                + "hoverBackground:$Menu.button.hoverBackground;"
-                + "pressedBackground:$Menu.button.pressedBackground;"
+                + "selectedBackground:$Menu.background;"
+                + "selectedForeground:$Menu.foreground;"
+                + "hoverBackground:$Menu.background;"
+                + "pressedBackground:$Menu.background;"
                 + "focusWidth:0;"
+                + "innerFocusWidth:0;"
                 + "iconTextGap:10;"
                 + "margin:5,11,5,11");
         return button;

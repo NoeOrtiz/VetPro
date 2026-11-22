@@ -124,7 +124,7 @@ public class MenuItem extends JPanel {
                 + "background:$Menu.background;"
                 + "foreground:$Menu.lineColor");
         for (int i = 0; i < menus.length; i++) {
-            JButton menuItem = createButtonItem(menus[i]);
+            JButton menuItem = createButtonItem(menus[i], i > 0);
             menuItem.setHorizontalAlignment(menuItem.getComponentOrientation().isLeftToRight() ? JButton.LEADING : JButton.TRAILING);
             if (i == 0) {
                 menuItem.setIcon(getIcon());
@@ -183,19 +183,29 @@ public class MenuItem extends JPanel {
         popup.setSelectedIndex(index);
     }
 
-    private JButton createButtonItem(String text) {
+    private JButton createButtonItem(String text, boolean submenu) {
         JButton button = new JButton(text);
+        // Los botones del lateral no muestran el marco rectangular por defecto.
+        button.setBorderPainted(false);
+        if (submenu) {
+            // Submenús integrados al fondo: sin recuadro, incluso seleccionados
+            // o al pasar el mouse. Se conserva la selección y navegación.
+            button.setContentAreaFilled(false);
+            button.setOpaque(false);
+        }
         button.putClientProperty(FlatClientProperties.STYLE, ""
                 + "background:$Menu.background;"
                 + "foreground:$Menu.foreground;"
-                + "selectedBackground:$Menu.button.selectedBackground;"
-                + "selectedForeground:$Menu.button.selectedForeground;"
-                + "hoverBackground:$Menu.button.hoverBackground;"
-                + "pressedBackground:$Menu.button.pressedBackground;"
+                + "selectedBackground:" + (submenu
+                    ? "$Menu.background;" : "$Menu.button.selectedBackground;")
+                + "selectedForeground:" + (submenu
+                    ? "$Menu.foreground;" : "$Menu.button.selectedForeground;")
+                + "hoverBackground:" + (submenu
+                    ? "$Menu.background;" : "$Menu.button.hoverBackground;")
+                + "pressedBackground:" + (submenu
+                    ? "$Menu.background;" : "$Menu.button.pressedBackground;")
                 + "focusWidth:0;"
                 + "innerFocusWidth:0;"
-                // El redondeo lo define Button.arc, no un estilo inválido 'arc'.
-                + ""
                 + "iconTextGap:10;"
                 + "margin:3,11,3,11");
         return button;
