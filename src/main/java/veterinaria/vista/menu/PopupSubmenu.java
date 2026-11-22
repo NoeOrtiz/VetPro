@@ -71,6 +71,8 @@ public class PopupSubmenu extends JPanel {
                 + "foreground:$Menu.foreground;"
                 + "selectedBackground:$Menu.button.selectedBackground;"
                 + "selectedForeground:$Menu.button.selectedForeground;"
+                + "hoverBackground:$Menu.button.hoverBackground;"
+                + "pressedBackground:$Menu.button.pressedBackground;"
                 + "focusWidth:0;"
                 + "iconTextGap:10;"
                 + "margin:5,11,5,11");
