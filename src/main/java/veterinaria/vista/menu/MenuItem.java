@@ -184,7 +184,7 @@ public class MenuItem extends JPanel {
     }
 
     private JButton createButtonItem(String text, boolean submenu) {
-        JButton button = new JButton(text);
+        JButton button = submenu ? new MenuHoverButton(text) : new JButton(text);
         // Los botones del lateral no muestran el marco rectangular por defecto.
         button.setBorderPainted(false);
         if (submenu) {
