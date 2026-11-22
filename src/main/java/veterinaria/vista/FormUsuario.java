@@ -718,7 +718,7 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 7));
         titulo.setOpaque(false);
         titulo.add(lblGestionUsuarios, java.awt.BorderLayout.NORTH);
-        titulo.add(jSeparator2, java.awt.BorderLayout.SOUTH);
+        jSeparator2.setVisible(false);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
 
         javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
@@ -730,7 +730,7 @@ public class FormUsuario extends javax.swing.JPanel {
         lbUsuarioBusqueda.setText("Buscar usuario:");
         izquierda.add(lbUsuarioBusqueda);
         // Se mantiene el ícono original de búsqueda.
-        izquierda.add(lbBuscar);
+        lbBuscar.setVisible(false);
         txtBusqueda.setPreferredSize(new java.awt.Dimension(415, 34));
         izquierda.add(txtBusqueda);
         btnLimpiarBusqueda.setToolTipText("Limpiar la búsqueda y volver a la primera página");
@@ -756,7 +756,7 @@ public class FormUsuario extends javax.swing.JPanel {
                 filtros, btnNuevo, btnCancelarSeleccion,
                 btnVerFicha, btnEditar, btnEliminar, btnImprimir, btnImprimirLista);
         jpHeader.add(filas, java.awt.BorderLayout.CENTER);
-        jpHeader.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        jSeparator1.setVisible(false);
         jpHeader.revalidate();
         jpHeader.repaint();
     }
@@ -839,6 +839,7 @@ public class FormUsuario extends javax.swing.JPanel {
         veterinaria.util.ui.EstiloHibrido.botonesSutiles(
                 btnLimpiarBusqueda, btnCancelarSeleccion, btnCancelar, btnLimpiar);
 
+        lblGestionUsuarios.setText("Gestión de usuarios");
         btnNuevo.setText("Nuevo usuario");
         btnVerFicha.setText("Ver ficha");
         btnEditar.setText("Editar");
