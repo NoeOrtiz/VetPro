@@ -30,6 +30,8 @@ import veterinaria.reportes.pdf.ReporteSelectorUtil;
 public class FormUsuario extends javax.swing.JPanel {
 
     private boolean ajustandoSeleccionUsuario;
+    private Boolean ultimaSeleccionVisualUsuario;
+    private String ultimoEstiloAccionUsuario = "";
     private java.awt.CardLayout vistasUsuario;
     private javax.swing.JPanel panelVistasUsuario;
     private javax.swing.JLabel tituloEditorUsuario;
@@ -748,21 +750,26 @@ public class FormUsuario extends javax.swing.JPanel {
         filas.add(filtros);
         filas.add(javax.swing.Box.createVerticalStrut(9));
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
         acciones.setOpaque(false);
         acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        javax.swing.JPanel grupoAcciones = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        grupoAcciones.setOpaque(false);
         btnVerFicha.addActionListener(e -> mostrarFichaUsuarioSeleccionado());
         btnVerFicha.setToolTipText("Mostrar los datos del usuario seleccionado");
         btnCancelarSeleccion.setToolTipText("Quitar la selección");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionUsuario());
         btnCancelarSeleccion.setText("");
-        acciones.add(btnVerFicha);
-        acciones.add(btnEditar);
-        acciones.add(btnEliminar);
-        acciones.add(btnImprimir);
-        acciones.add(btnImprimirLista);
-        acciones.add(btnCancelarSeleccion);
+        // El último botón se fija al extremo derecho: mismo borde que "Nuevo usuario".
+        // "Quitar selección" queda antes de las acciones, no después de imprimir.
+        grupoAcciones.add(btnCancelarSeleccion);
+        grupoAcciones.add(btnVerFicha);
+        grupoAcciones.add(btnEditar);
+        grupoAcciones.add(btnEliminar);
+        grupoAcciones.add(btnImprimir);
+        acciones.add(grupoAcciones, java.awt.BorderLayout.CENTER);
+        acciones.add(btnImprimirLista, java.awt.BorderLayout.EAST);
         filas.add(acciones);
 
         jpHeader.add(filas, java.awt.BorderLayout.CENTER);
@@ -915,7 +922,9 @@ public class FormUsuario extends javax.swing.JPanel {
         txtUsuario.setEnabled(false);
         habilitarDatosDeCuenta(false);
 
-        // La búsqueda y la selección se administran desde GestorTablas.
+        // En Usuarios el botón debe responder en el mismo ciclo EDT.
+        // Se aplica solo a este módulo, no al resto de tablas.
+        table.putClientProperty("vetpro.seleccion.rapida", Boolean.TRUE);
         veterinaria.util.GestorTablas.instalarSeleccion(table, () -> {
             boolean seleccion = veterinaria.util.GestorTablas.haySeleccion(table);
             actualizarAccionesSeleccionUsuario();
@@ -995,8 +1004,7 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void actualizarAccionesSeleccionUsuario() {
         boolean haySeleccion = veterinaria.util.GestorTablas.haySeleccion(table);
-        // Los botones permanecen en su posición como en el compañero:
-        // sin saltos de la interfaz cuando se marca/desmarca una fila.
+        // Las acciones conservan su ubicación aun al desmarcar una fila.
         btnVerFicha.setVisible(true);
         btnEditar.setVisible(true);
         btnEliminar.setVisible(true);
@@ -1011,18 +1019,27 @@ public class FormUsuario extends javax.swing.JPanel {
         btnImprimirLista.setEnabled(permisoUsuario("IMPRIMIR"));
         btnCancelarSeleccion.setEnabled(haySeleccion);
         actualizarTextoEstadoSeleccionado();
-        if (haySeleccion) {
-            if ("Reactivar".equals(btnEliminar.getText())) {
+
+        // Evitar revalidaciones de FlatLaf al cambiar de registro: solo
+        // ajustar borde o clase si realmente cambiaron los valores.
+        if (!java.util.Objects.equals(ultimaSeleccionVisualUsuario, haySeleccion)) {
+            java.awt.Color borde = javax.swing.UIManager.getColor("Component.borderColor");
+            if (borde == null) borde = new java.awt.Color(64, 82, 95);
+            scroll.setBorder(javax.swing.BorderFactory.createLineBorder(
+                    haySeleccion ? new java.awt.Color(238, 153, 45) : borde, 1, true));
+            ultimaSeleccionVisualUsuario = haySeleccion;
+        }
+        String estilo = "Reactivar".equals(btnEliminar.getText()) ? "reactivar" : "desactivar";
+        if (!estilo.equals(ultimoEstiloAccionUsuario)) {
+            if ("reactivar".equals(estilo)) {
                 veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnEliminar);
             } else {
                 veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
             }
+            ultimoEstiloAccionUsuario = estilo;
         }
-        java.awt.Color borde = javax.swing.UIManager.getColor("Component.borderColor");
-        if (borde == null) borde = new java.awt.Color(64, 82, 95);
-        scroll.setBorder(javax.swing.BorderFactory.createLineBorder(
-                haySeleccion ? new java.awt.Color(238, 153, 45) : borde, 1, true));
-        table.repaint();
+        // El modelo actualiza el renderer; evitar un segundo repintado
+        // de toda la tabla por cada evento de selección.
     }
 
     /** Conserva los permisos reales del módulo al habilitar acciones. */
@@ -1058,7 +1075,8 @@ public class FormUsuario extends javax.swing.JPanel {
         if (u == null) {
             return;
         }
-        ReporteSelectorUtil.Formato formato = ReporteSelectorUtil.solicitarFormato(this);
+        ReporteSelectorUtil.Formato formato = ReporteSelectorUtil.solicitarFormatoCombo(
+                this, "Configurar informe de usuario");
         if (formato == null) {
             return;
         }
@@ -1821,7 +1839,10 @@ public class FormUsuario extends javax.swing.JPanel {
         lbDatosPersonales.setText("Datos personales y contacto");
         lbDatosPersonales.setFont(lbDatosPersonales.getFont().deriveFont(java.awt.Font.BOLD));
         jpDatosPersonales.add(lbDatosPersonales, java.awt.BorderLayout.NORTH);
-        javax.swing.JPanel personales = new javax.swing.JPanel(new java.awt.GridLayout(3, 2, 14, 11));
+        javax.swing.JPanel personales = new javax.swing.JPanel(new net.miginfocom.swing.MigLayout(
+                "insets 0, fillx, wrap 2, gapx 14, gapy 10",
+                "[grow,fill][grow,fill]",
+                "[52!][52!][52!]"));
         personales.setOpaque(false);
         personales.add(campoUsuario(lbNombre, txtNombre));
         personales.add(campoUsuario(lbApellido, txtApellido));
@@ -1834,13 +1855,13 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JPanel foto = new javax.swing.JPanel();
         foto.setOpaque(false);
         foto.setLayout(new javax.swing.BoxLayout(foto, javax.swing.BoxLayout.Y_AXIS));
-        foto.setPreferredSize(new java.awt.Dimension(150, 0));
+        foto.setPreferredSize(new java.awt.Dimension(132, 0));
         visorFoto = new javax.swing.JLabel();
         visorFoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visorFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        visorFoto.setPreferredSize(new java.awt.Dimension(110, 110));
-        visorFoto.setMinimumSize(new java.awt.Dimension(110, 110));
-        visorFoto.setMaximumSize(new java.awt.Dimension(110, 110));
+        visorFoto.setPreferredSize(new java.awt.Dimension(100, 100));
+        visorFoto.setMinimumSize(new java.awt.Dimension(100, 100));
+        visorFoto.setMaximumSize(new java.awt.Dimension(100, 100));
         foto.add(visorFoto);
         foto.add(javax.swing.Box.createVerticalStrut(10));
         javax.swing.JButton elegirFoto = new javax.swing.JButton("Agregar foto");
@@ -1854,11 +1875,11 @@ public class FormUsuario extends javax.swing.JPanel {
         ayudaFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         foto.add(ayudaFoto);
         jpDatosPersonales.add(foto, java.awt.BorderLayout.EAST);
-        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 280));
-        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 280));
+        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 236));
+        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 236));
         jpDatosPersonales.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpDatosPersonales);
-        pagina.add(javax.swing.Box.createVerticalStrut(14));
+        pagina.add(javax.swing.Box.createVerticalStrut(11));
 
         jpAcceso.removeAll();
         jpAcceso.setLayout(new java.awt.BorderLayout(0, 10));
@@ -1868,7 +1889,10 @@ public class FormUsuario extends javax.swing.JPanel {
         lbNivelDeAcceso.setFont(lbNivelDeAcceso.getFont().deriveFont(java.awt.Font.BOLD));
         jpAcceso.add(lbNivelDeAcceso, java.awt.BorderLayout.NORTH);
         jpDatosCuenta.removeAll();
-        jpDatosCuenta.setLayout(new java.awt.GridLayout(2, 2, 14, 11));
+        jpDatosCuenta.setLayout(new net.miginfocom.swing.MigLayout(
+                "insets 0, fillx, wrap 2, gapx 14, gapy 9",
+                "[grow,fill][grow,fill]",
+                "[52!][52!]"));
         jpDatosCuenta.setOpaque(false);
         jpDatosCuenta.add(campoUsuario(lbRol, jcbRol));
         jpDatosCuenta.add(campoUsuario(lbNombreUsuario, txtUsuario));
@@ -1883,11 +1907,11 @@ public class FormUsuario extends javax.swing.JPanel {
         if (atenuado != null) info.setForeground(atenuado);
         jpDatosCuenta.add(info);
         jpAcceso.add(jpDatosCuenta, java.awt.BorderLayout.CENTER);
-        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 190));
-        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 190));
+        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 174));
+        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 174));
         jpAcceso.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpAcceso);
-        pagina.add(javax.swing.Box.createVerticalStrut(11));
+        pagina.add(javax.swing.Box.createVerticalStrut(8));
 
         javax.swing.JPanel acciones = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 9, 0));
@@ -1895,6 +1919,15 @@ public class FormUsuario extends javax.swing.JPanel {
         acciones.add(btnLimpiar);
         acciones.add(btnCancelar);
         acciones.add(btnGuardar);
+        // Acciones del editor en el mismo lenguaje visual de la barra de listado.
+        iconoUsuario(btnLimpiar, "limpiar_usuario.svg");
+        iconoUsuario(btnCancelar, "cancelar_usuario.svg");
+        iconoUsuario(btnGuardar, "guardar_usuario.svg");
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnLimpiar, btnCancelar, btnGuardar}) {
+            boton.setPreferredSize(new java.awt.Dimension(
+                    boton == btnGuardar ? 150 : 96, 34));
+        }
         acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 54));
         acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(acciones);
@@ -1912,9 +1945,12 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private javax.swing.JPanel campoUsuario(javax.swing.JComponent rotulo,
             javax.swing.JComponent control) {
-        javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
+        javax.swing.JPanel campo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
         campo.setOpaque(false);
         campo.add(rotulo, java.awt.BorderLayout.NORTH);
+        // Altura consistente de 32px para todos los campos y el selector de rol.
+        control.setPreferredSize(new java.awt.Dimension(
+                Math.max(135, control.getPreferredSize().width), 32));
         campo.add(control, java.awt.BorderLayout.CENTER);
         return campo;
     }
