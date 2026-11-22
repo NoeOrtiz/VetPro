@@ -118,9 +118,16 @@ public final class EstiloHibrido {
     private static final class EstadoClienteRenderer extends JPanel
             implements TableCellRenderer {
         private final EstadoEtiqueta etiqueta = new EstadoEtiqueta();
+        private boolean marcada;
+        private int offsetX;
+        private int anchoTabla;
+        private Color inicioDegradado;
+        private Color finDegradado;
 
         private EstadoClienteRenderer() {
             super(new GridBagLayout());
+            // Si JPanel queda opaco, tapa el degradado en la última columna.
+            setOpaque(false);
             setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
             add(etiqueta);
         }
@@ -147,9 +154,40 @@ public final class EstiloHibrido {
             Color alternate = UIManager.getColor("Table.alternateRowColor");
             setBackground((row % 2 == 1 && alternate != null)
                     ? alternate : tabla.getBackground());
-            // No ocultar la selección del registro.
-            if (isSelected) setBackground(tabla.getSelectionBackground());
+            marcada = tabla.getColumnCount() > 0
+                    && Boolean.TRUE.equals(tabla.getValueAt(row, 0));
+            java.awt.Rectangle celda = tabla.getCellRect(row, column, true);
+            offsetX = -celda.x;
+            anchoTabla = Math.max(1, tabla.getWidth());
+            Color fondo = UIManager.getColor("Panel.background");
+            boolean oscuro = fondo != null
+                    && (fondo.getRed() * 299 + fondo.getGreen() * 587
+                    + fondo.getBlue() * 114) / 1000 < 128;
+            if (Boolean.TRUE.equals(tabla.getClientProperty("vetpro.gradienteCompanero"))) {
+                inicioDegradado = oscuro ? new Color(169, 65, 44) : new Color(255, 210, 157);
+                finDegradado = oscuro ? new Color(44, 105, 177) : new Color(174, 207, 245);
+            } else {
+                inicioDegradado = oscuro ? new Color(42, 88, 104) : new Color(192, 223, 226);
+                finDegradado = oscuro ? new Color(54, 110, 137) : new Color(205, 229, 240);
+            }
             return this;
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            try {
+                if (marcada) {
+                    g2.setPaint(new java.awt.GradientPaint(offsetX, 0, inicioDegradado,
+                            offsetX + anchoTabla, 0, finDegradado));
+                } else {
+                    g2.setColor(getBackground());
+                }
+                g2.fillRect(0, 0, getWidth(), getHeight());
+            } finally {
+                g2.dispose();
+            }
+            super.paintComponent(g);
         }
     }
 
