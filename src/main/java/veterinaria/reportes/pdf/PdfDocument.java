@@ -111,6 +111,40 @@ public class PdfDocument implements Closeable {
         cs.setNonStrokingColor(PdfStyle.INK);
     }
 
+    /**
+     * Pastilla con esquinas redondeadas, usada por las fichas y listados.
+     * Aísla los colores y trazos para no alterar otras páginas.
+     */
+    public void roundRect(float x, float y, float w, float h, float radius,
+            java.awt.Color fill, java.awt.Color stroke, float strokeWidth)
+            throws IOException {
+        float r = Math.max(0f, Math.min(radius, Math.min(w, h) / 2f));
+        float k = 0.55228475f * r;
+        cs.saveGraphicsState();
+        try {
+            cs.moveTo(x + r, y);
+            cs.lineTo(x + w - r, y);
+            cs.curveTo(x + w - r + k, y, x + w, y + r - k, x + w, y + r);
+            cs.lineTo(x + w, y + h - r);
+            cs.curveTo(x + w, y + h - r + k, x + w - r + k, y + h, x + w - r, y + h);
+            cs.lineTo(x + r, y + h);
+            cs.curveTo(x + r - k, y + h, x, y + h - r + k, x, y + h - r);
+            cs.lineTo(x, y + r);
+            cs.curveTo(x, y + r - k, x + r - k, y, x + r, y);
+            cs.closePath();
+            if (fill != null) cs.setNonStrokingColor(fill);
+            if (stroke != null) {
+                cs.setStrokingColor(stroke);
+                cs.setLineWidth(strokeWidth);
+            }
+            if (fill != null && stroke != null) cs.fillAndStroke();
+            else if (fill != null) cs.fill();
+            else if (stroke != null) cs.stroke();
+        } finally {
+            cs.restoreGraphicsState();
+        }
+    }
+
     /** Línea horizontal sin cambiar la posición del cursor de texto. */
     public void hline(float a, float b, float atY, java.awt.Color color, float size)
             throws IOException {
