@@ -39,7 +39,7 @@ class UsuariosCorreccionesYReportesTest {
     void laBarraAlineaNuevoUsuarioEImprimirListado() throws Exception {
         String code = fuente("vista/FormUsuario.java");
         assertTrue(code.contains("crearBarraUsuariosAlineada("));
-        assertTrue(code.contains("inferior.add(accion)"));
+        assertTrue(code.contains("inferior.add(boton, accion)"));
         assertTrue(code.contains("cancelarSeleccionUsuario()"));
         assertFalse(code.contains("inferior.add(cancelarSeleccion)"));
         assertFalse(code.contains("acciones.add(btnCancelarSeleccion);"));

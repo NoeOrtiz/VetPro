@@ -45,10 +45,10 @@ class UsuariosDosFilasAlineadasTest {
                 Method metodo = FormUsuario.class.getDeclaredMethod(
                         "crearBarraUsuariosAlineada", JPanel.class, JButton.class,
                         JButton.class, JButton.class, JButton.class,
-                        JButton.class, JButton.class, JButton.class);
+                        JButton.class, JButton.class);
                 metodo.setAccessible(true);
                 JPanel barra = (JPanel) metodo.invoke(null, filtros, nuevo,
-                        cancelar, ver, editar, desactivar, ficha, listado);
+                        ver, editar, desactivar, ficha, listado);
                 assertEquals(3, barra.getComponentCount(),
                         "Dos filas independientes y una separación vertical");
                 JPanel superior = (JPanel) barra.getComponent(0);
@@ -61,8 +61,8 @@ class UsuariosDosFilasAlineadasTest {
                 for (int ancho : new int[]{950, 1100, 1250}) {
                     barra.setSize(ancho, 80);
                     distribuir(barra);
-                    assertEquals(150, nuevo.getWidth());
-                    assertEquals(150, listado.getWidth());
+                    assertEquals(120, nuevo.getWidth());
+                    assertEquals(124, listado.getWidth());
                     assertEquals(34, nuevo.getHeight());
                     for (int i = 0; i < acciones.length; i++) {
                         JButton boton = acciones[i];
@@ -76,7 +76,9 @@ class UsuariosDosFilasAlineadasTest {
                     // Ambos botones terminan junto al borde derecho de su fila.
                     int derechaNuevo = nuevo.getX() + nuevo.getWidth();
                     int derechaListado = listado.getX() + listado.getWidth();
-                    assertTrue(Math.abs(derechaNuevo - derechaListado) <= 8);
+                    assertEquals(ancho, derechaNuevo);
+                    assertEquals(derechaNuevo, derechaListado);
+                    assertEquals(nuevo.getX() - 10, filtros.getWidth());
                     assertTrue(inferior.getY() > superior.getY());
                 }
                 int xVer = ver.getX();

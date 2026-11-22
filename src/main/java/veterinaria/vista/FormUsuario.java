@@ -721,28 +721,32 @@ public class FormUsuario extends javax.swing.JPanel {
         jSeparator2.setVisible(false);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
 
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.GridBagLayout());
         filtros.setOpaque(false);
-        filtros.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-        javax.swing.JPanel izquierda = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 9, 0));
-        izquierda.setOpaque(false);
         lbUsuarioBusqueda.setText("Buscar usuario:");
-        izquierda.add(lbUsuarioBusqueda);
-        // Se mantiene el ícono original de búsqueda.
         lbBuscar.setVisible(false);
         txtBusqueda.setPreferredSize(new java.awt.Dimension(415, 34));
-        izquierda.add(txtBusqueda);
+        txtBusqueda.setMinimumSize(new java.awt.Dimension(80, 34));
         btnLimpiarBusqueda.setToolTipText("Limpiar la búsqueda y volver a la primera página");
         btnLimpiarBusqueda.addActionListener(e -> {
             if (paginacionCompartida != null) paginacionCompartida.limpiarBusqueda();
             else txtBusqueda.setText("");
         });
-        izquierda.add(btnLimpiarBusqueda);
-        izquierda.add(new javax.swing.JLabel("Estado:"));
-        filtroEstado.setPreferredSize(new java.awt.Dimension(135, 34));
-        izquierda.add(filtroEstado);
-        filtros.add(izquierda, java.awt.BorderLayout.WEST);
+        filtroEstado.setPreferredSize(new java.awt.Dimension(110, 34));
+
+        java.awt.GridBagConstraints filtro = new java.awt.GridBagConstraints();
+        filtro.gridy = 0;
+        filtro.insets = new java.awt.Insets(0, 0, 0, 8);
+        filtros.add(lbUsuarioBusqueda, filtro);
+        filtro.weightx = 1;
+        filtro.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        filtros.add(txtBusqueda, filtro);
+        filtro.weightx = 0;
+        filtro.fill = java.awt.GridBagConstraints.NONE;
+        filtros.add(btnLimpiarBusqueda, filtro);
+        filtros.add(new javax.swing.JLabel("Estado:"), filtro);
+        filtro.insets = new java.awt.Insets(0, 0, 0, 0);
+        filtros.add(filtroEstado, filtro);
 
         btnVerFicha.addActionListener(e -> mostrarFichaUsuarioSeleccionado());
         btnVerFicha.setToolTipText("Mostrar los datos del usuario seleccionado");
@@ -758,41 +762,29 @@ public class FormUsuario extends javax.swing.JPanel {
             }
         });
 
-        // Cinco acciones en cinco columnas reales: misma altura, separación
-        // y coordenadas de fila. La última comparte columna con Nuevo usuario.
         javax.swing.JPanel filas = crearBarraUsuariosAlineada(
-                filtros, btnNuevo, btnCancelarSeleccion,
-                btnVerFicha, btnEditar, btnEliminar, btnImprimir, btnImprimirLista);
+                filtros, btnNuevo, btnVerFicha, btnEditar, btnEliminar, btnImprimir, btnImprimirLista);
         jpHeader.add(filas, java.awt.BorderLayout.CENTER);
         jSeparator1.setVisible(false);
         jpHeader.revalidate();
         jpHeader.repaint();
     }
 
-    /**
-     * La barra utiliza el mismo principio del rediseño del compañero:
-     * filas independientes, BoxLayout vertical y FlowLayout.RIGHT para
-     * las acciones. Ningún botón participa en las columnas del filtro.
-     */
+    /** Distribuye el espacio libre en el buscador y alinea las acciones al borde derecho. */
     private static javax.swing.JPanel crearBarraUsuariosAlineada(
             javax.swing.JPanel filtros,
             javax.swing.JButton nuevo,
-            javax.swing.JButton cancelarSeleccion,
             javax.swing.JButton verFicha,
             javax.swing.JButton editar,
             javax.swing.JButton desactivar,
             javax.swing.JButton imprimirFicha,
             javax.swing.JButton imprimirListado) {
-
-        // Los tamaños se asignan después del estilo FlatLaf para evitar
-        // anchos dinámicos y mantener las cinco acciones proporcionales.
-        configurarTamanoAccion(nuevo, 150);
-        configurarTamanoAccion(verFicha, 94);
-        configurarTamanoAccion(editar, 78);
-        configurarTamanoAccion(desactivar, 114);
-        configurarTamanoAccion(imprimirFicha, 132);
-        configurarTamanoAccion(imprimirListado, 150);
-        configurarTamanoAccion(cancelarSeleccion, 34);
+        configurarTamanoAccion(nuevo, 120);
+        configurarTamanoAccion(verFicha, 88);
+        configurarTamanoAccion(editar, 70);
+        configurarTamanoAccion(desactivar, 98);
+        configurarTamanoAccion(imprimirFicha, 116);
+        configurarTamanoAccion(imprimirListado, 124);
 
         javax.swing.JPanel filas = new javax.swing.JPanel();
         filas.setOpaque(false);
@@ -800,23 +792,25 @@ public class FormUsuario extends javax.swing.JPanel {
 
         javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(10, 0));
         superior.setOpaque(false);
-        superior.add(filtros, java.awt.BorderLayout.WEST);
+        superior.add(filtros, java.awt.BorderLayout.CENTER);
         superior.add(nuevo, java.awt.BorderLayout.EAST);
         superior.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 34));
         superior.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         filas.add(superior);
         filas.add(javax.swing.Box.createVerticalStrut(9));
 
-        javax.swing.JPanel inferior = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        javax.swing.JPanel inferior = new javax.swing.JPanel(new java.awt.GridBagLayout());
         inferior.setOpaque(false);
-        // El botón adicional de limpieza duplicaba visualmente "Limpiar".
-        // Se conserva su acción, pero se ofrece por Escape sobre la tabla.
-        javax.swing.JButton[] acciones = {
-            verFicha, editar, desactivar, imprimirFicha, imprimirListado
-        };
-        for (javax.swing.JButton accion : acciones) {
-            inferior.add(accion);
+        java.awt.GridBagConstraints accion = new java.awt.GridBagConstraints();
+        accion.gridy = 0;
+        accion.anchor = java.awt.GridBagConstraints.EAST;
+        accion.weightx = 1;
+        inferior.add(verFicha, accion);
+        accion.weightx = 0;
+        accion.insets = new java.awt.Insets(0, 8, 0, 0);
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                editar, desactivar, imprimirFicha, imprimirListado}) {
+            inferior.add(boton, accion);
         }
         inferior.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 34));
         inferior.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
@@ -892,16 +886,7 @@ public class FormUsuario extends javax.swing.JPanel {
                 btnImprimirLista, btnLimpiarBusqueda, btnCancelarSeleccion}) {
             boton.setFocusable(false);
         }
-        // Se aplica DESPUÉS de los estilos: la versión anterior reemplazaba
-        // los anchos calculados por el layout y estiraba "Imprimir ficha".
-        configurarTamanoAccion(btnNuevo, 150);
-        configurarTamanoAccion(btnVerFicha, 94);
-        configurarTamanoAccion(btnEditar, 78);
-        configurarTamanoAccion(btnEliminar, 114);
-        configurarTamanoAccion(btnImprimir, 132);
-        configurarTamanoAccion(btnImprimirLista, 150);
-        configurarTamanoAccion(btnCancelarSeleccion, 34);
-        configurarTamanoAccion(btnLimpiarBusqueda, 90);
+        configurarTamanoAccion(btnLimpiarBusqueda, 82);
         // Conserva columnas, casillas, filtros, paginación y badges.
         veterinaria.util.ui.EstiloHibrido.tablaClientes(table, 9);
         // Selección sobria y lisa solo para Gestión de usuarios.
