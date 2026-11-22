@@ -749,6 +749,14 @@ public class FormUsuario extends javax.swing.JPanel {
         btnCancelarSeleccion.setToolTipText("Quitar la selección");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionUsuario());
         btnCancelarSeleccion.setText("");
+        table.getInputMap(javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                .put(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0),
+                        "cancelarSeleccionUsuario");
+        table.getActionMap().put("cancelarSeleccionUsuario", new javax.swing.AbstractAction() {
+            @Override public void actionPerformed(java.awt.event.ActionEvent event) {
+                cancelarSeleccionUsuario();
+            }
+        });
 
         // Cinco acciones en cinco columnas reales: misma altura, separación
         // y coordenadas de fila. La última comparte columna con Nuevo usuario.
@@ -802,9 +810,8 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JPanel inferior = new javax.swing.JPanel(
                 new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         inferior.setOpaque(false);
-        // Reservamos la posición del botón de cancelar selección para que
-        // su activación no desplace las cinco acciones principales.
-        inferior.add(cancelarSeleccion);
+        // El botón adicional de limpieza duplicaba visualmente "Limpiar".
+        // Se conserva su acción, pero se ofrece por Escape sobre la tabla.
         javax.swing.JButton[] acciones = {
             verFicha, editar, desactivar, imprimirFicha, imprimirListado
         };
@@ -1136,7 +1143,7 @@ public class FormUsuario extends javax.swing.JPanel {
         btnEliminar.setVisible(true);
         btnImprimir.setVisible(true);
         btnImprimirLista.setVisible(true);
-        btnCancelarSeleccion.setVisible(true);
+        btnCancelarSeleccion.setVisible(false);
         btnVerFicha.setEnabled(haySeleccion);
         btnNuevo.setEnabled(!haySeleccion && permisoUsuario("NUEVO"));
         btnEditar.setEnabled(haySeleccion && permisoUsuario("EDITAR"));
@@ -2043,6 +2050,12 @@ public class FormUsuario extends javax.swing.JPanel {
         espacioInfo.setOpaque(false);
         jpDatosCuenta.add(espacioInfo);
         jpAcceso.add(jpDatosCuenta, java.awt.BorderLayout.CENTER);
+        // Reservar la misma columna derecha que ocupa la foto arriba:
+        // así ambos conjuntos de campos comparten el mismo eje central.
+        javax.swing.JPanel columnaFotoVacia = new javax.swing.JPanel();
+        columnaFotoVacia.setOpaque(false);
+        columnaFotoVacia.setPreferredSize(new java.awt.Dimension(132, 1));
+        jpAcceso.add(columnaFotoVacia, java.awt.BorderLayout.EAST);
         jpAcceso.add(info, java.awt.BorderLayout.SOUTH);
         jpAcceso.setPreferredSize(new java.awt.Dimension(780, 208));
         jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 208));
@@ -2067,7 +2080,10 @@ public class FormUsuario extends javax.swing.JPanel {
         }
         acciones.setPreferredSize(new java.awt.Dimension(780, 52));
         acciones.setMinimumSize(new java.awt.Dimension(350, 52));
-        acciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 10, 6, 10));
+        acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 52));
+        acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        acciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 0, 6, 10));
+        pagina.add(acciones);
         mostrarFoto(null);
 
         javax.swing.JScrollPane scroller = new javax.swing.JScrollPane(pagina);
@@ -2078,7 +2094,6 @@ public class FormUsuario extends javax.swing.JPanel {
         scroller.getViewport().setOpaque(false);
         scroller.setOpaque(false);
         jpCamposFormularioUsuario.add(scroller, java.awt.BorderLayout.CENTER);
-        jpCamposFormularioUsuario.add(acciones, java.awt.BorderLayout.SOUTH);
     }
 
     private javax.swing.JPanel campoUsuario(javax.swing.JComponent rotulo,
