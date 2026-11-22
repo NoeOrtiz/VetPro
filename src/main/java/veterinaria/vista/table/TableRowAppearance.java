@@ -28,7 +28,14 @@ public final class TableRowAppearance {
                 ? alterna : tabla.getBackground();
     }
 
+    /** Fondo de selección uniforme y discreto exclusivo de Gestión de usuarios. */
+    private static Color seleccionUsuarios() {
+        return temaOscuro() ? new Color(55, 72, 84) : new Color(214, 228, 236);
+    }
+
     public static Color inicio(JTable tabla) {
+        if (Boolean.TRUE.equals(tabla.getClientProperty("vetpro.seleccionPlanaUsuarios")))
+            return seleccionUsuarios();
         if (Boolean.TRUE.equals(tabla.getClientProperty("vetpro.gradienteCompanero"))) {
             return temaOscuro() ? new Color(169, 65, 44) : new Color(246, 193, 140);
         }
@@ -36,6 +43,8 @@ public final class TableRowAppearance {
     }
 
     public static Color fin(JTable tabla) {
+        if (Boolean.TRUE.equals(tabla.getClientProperty("vetpro.seleccionPlanaUsuarios")))
+            return seleccionUsuarios();
         if (Boolean.TRUE.equals(tabla.getClientProperty("vetpro.gradienteCompanero"))) {
             return temaOscuro() ? new Color(44, 105, 177) : new Color(169, 203, 240);
         }
