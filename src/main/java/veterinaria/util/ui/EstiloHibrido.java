@@ -75,6 +75,10 @@ public final class EstiloHibrido {
         tabla.setRowHeight(Math.max(32, tabla.getRowHeight()));
         tabla.setShowGrid(false);
         tabla.setIntercellSpacing(new Dimension(0, 0));
+        tabla.setRowMargin(0);
+        tabla.getColumnModel().setColumnMargin(0);
+        // La misma paleta para todas las columnas, incluida la selección.
+        tabla.putClientProperty("vetpro.gradienteCompanero", Boolean.TRUE);
         tabla.setFillsViewportHeight(true);
         tabla.putClientProperty("FlatLaf.styleClass", "hibridoTabla");
         if (tabla.getTableHeader() != null) {
@@ -151,42 +155,22 @@ public final class EstiloHibrido {
                     : inactivo
                         ? color("App.status.error.foreground", new Color(243, 169, 169))
                         : color("App.status.warning.foreground", new Color(242, 205, 122)));
-            Color alternate = UIManager.getColor("Table.alternateRowColor");
-            setBackground((row % 2 == 1 && alternate != null)
-                    ? alternate : tabla.getBackground());
+            setBackground(veterinaria.vista.table.TableRowAppearance.fondo(tabla, row));
             marcada = tabla.getColumnCount() > 0
                     && Boolean.TRUE.equals(tabla.getValueAt(row, 0));
             java.awt.Rectangle celda = tabla.getCellRect(row, column, true);
             offsetX = -celda.x;
             anchoTabla = Math.max(1, tabla.getWidth());
-            Color fondo = UIManager.getColor("Panel.background");
-            boolean oscuro = fondo != null
-                    && (fondo.getRed() * 299 + fondo.getGreen() * 587
-                    + fondo.getBlue() * 114) / 1000 < 128;
-            if (Boolean.TRUE.equals(tabla.getClientProperty("vetpro.gradienteCompanero"))) {
-                inicioDegradado = oscuro ? new Color(169, 65, 44) : new Color(255, 210, 157);
-                finDegradado = oscuro ? new Color(44, 105, 177) : new Color(174, 207, 245);
-            } else {
-                inicioDegradado = oscuro ? new Color(42, 88, 104) : new Color(192, 223, 226);
-                finDegradado = oscuro ? new Color(54, 110, 137) : new Color(205, 229, 240);
-            }
+            inicioDegradado = veterinaria.vista.table.TableRowAppearance.inicio(tabla);
+            finDegradado = veterinaria.vista.table.TableRowAppearance.fin(tabla);
             return this;
         }
 
         @Override
         protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            try {
-                if (marcada) {
-                    g2.setPaint(new java.awt.GradientPaint(offsetX, 0, inicioDegradado,
-                            offsetX + anchoTabla, 0, finDegradado));
-                } else {
-                    g2.setColor(getBackground());
-                }
-                g2.fillRect(0, 0, getWidth(), getHeight());
-            } finally {
-                g2.dispose();
-            }
+            veterinaria.vista.table.TableRowAppearance.pintar(
+                    g, getWidth(), getHeight(), marcada, offsetX, anchoTabla,
+                    inicioDegradado, finDegradado, getBackground());
             super.paintComponent(g);
         }
     }
