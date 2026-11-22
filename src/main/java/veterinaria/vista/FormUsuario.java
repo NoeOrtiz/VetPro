@@ -88,6 +88,7 @@ public class FormUsuario extends javax.swing.JPanel {
         actualizarForm();
         instalarPaginacionCompartida();
         aplicarEstiloVisualUsuarios();
+        configurarColumnasCompactasUsuarios();
         // En Usuarios solo se permite una selección a la vez, incluso
         // cuando el usuario marca directamente la casilla de otra fila.
         table.getModel().addTableModelListener(e -> {
@@ -717,7 +718,7 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JPanel titulo = new javax.swing.JPanel(new java.awt.BorderLayout(0, 7));
         titulo.setOpaque(false);
         titulo.add(lblGestionUsuarios, java.awt.BorderLayout.NORTH);
-        titulo.add(jSeparator2, java.awt.BorderLayout.SOUTH);
+        jSeparator2.setVisible(false);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
 
         javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
@@ -729,7 +730,7 @@ public class FormUsuario extends javax.swing.JPanel {
         lbUsuarioBusqueda.setText("Buscar usuario:");
         izquierda.add(lbUsuarioBusqueda);
         // Se mantiene el ícono original de búsqueda.
-        izquierda.add(lbBuscar);
+        lbBuscar.setVisible(false);
         txtBusqueda.setPreferredSize(new java.awt.Dimension(415, 34));
         izquierda.add(txtBusqueda);
         btnLimpiarBusqueda.setToolTipText("Limpiar la búsqueda y volver a la primera página");
@@ -755,17 +756,12 @@ public class FormUsuario extends javax.swing.JPanel {
                 filtros, btnNuevo, btnCancelarSeleccion,
                 btnVerFicha, btnEditar, btnEliminar, btnImprimir, btnImprimirLista);
         jpHeader.add(filas, java.awt.BorderLayout.CENTER);
-        jpHeader.add(jSeparator1, java.awt.BorderLayout.SOUTH);
+        jSeparator1.setVisible(false);
         jpHeader.revalidate();
         jpHeader.repaint();
     }
 
-    /**
-     * Una única grilla, con los cinco botones de acción en columnas separadas.
-     * No hay un FlowLayout anidado que desplace botones según la selección.
-     * Filtros ocupan las primeras cinco columnas y Nuevo usuario comparte
-     * la última columna con Imprimir listado.
-     */
+    /** Barra compacta: filtros arriba y cinco acciones alineadas a la derecha. */
     private static javax.swing.JPanel crearBarraUsuariosAlineada(
             javax.swing.JPanel filtros,
             javax.swing.JButton nuevo,
@@ -775,60 +771,37 @@ public class FormUsuario extends javax.swing.JPanel {
             javax.swing.JButton desactivar,
             javax.swing.JButton imprimirFicha,
             javax.swing.JButton imprimirListado) {
-
-        javax.swing.JButton[] acciones = {
-            verFicha, editar, desactivar, imprimirFicha, imprimirListado
-        };
-        // El último botón se ajusta al ancho de Nuevo usuario. La
-        // presentación de los cinco botones comparte alto y separación.
-        int anchoFinal = Math.max(160, Math.max(nuevo.getPreferredSize().width,
-                imprimirListado.getPreferredSize().width));
-        for (javax.swing.JButton boton : acciones) {
-            int width = boton == imprimirListado
-                    ? anchoFinal : boton.getPreferredSize().width;
-            boton.setPreferredSize(new java.awt.Dimension(width, 34));
-        }
-        nuevo.setPreferredSize(new java.awt.Dimension(anchoFinal, 34));
-        cancelarSeleccion.setPreferredSize(new java.awt.Dimension(35, 34));
-
-        javax.swing.JPanel filas = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        javax.swing.JPanel filas = new javax.swing.JPanel();
         filas.setOpaque(false);
+        filas.setLayout(new javax.swing.BoxLayout(filas, javax.swing.BoxLayout.Y_AXIS));
 
-        // Primera fila: filtros a la izquierda, Nuevo usuario a la derecha.
-        java.awt.GridBagConstraints filtrosCelda = new java.awt.GridBagConstraints();
-        filtrosCelda.gridx = 0;
-        filtrosCelda.gridy = 0;
-        filtrosCelda.gridwidth = 5;
-        filtrosCelda.weightx = 1;
-        filtrosCelda.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        filtrosCelda.insets = new java.awt.Insets(0, 0, 9, 8);
-        filas.add(filtros, filtrosCelda);
+        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
+        superior.setOpaque(false);
+        nuevo.setPreferredSize(new java.awt.Dimension(150, 34));
+        superior.add(filtros, java.awt.BorderLayout.CENTER);
+        superior.add(nuevo, java.awt.BorderLayout.EAST);
+        superior.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        superior.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 36));
+        filas.add(superior);
+        filas.add(javax.swing.Box.createVerticalStrut(8));
 
-        java.awt.GridBagConstraints nuevoCelda = new java.awt.GridBagConstraints();
-        nuevoCelda.gridx = 5;
-        nuevoCelda.gridy = 0;
-        nuevoCelda.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        nuevoCelda.insets = new java.awt.Insets(0, 0, 9, 0);
-        filas.add(nuevo, nuevoCelda);
-
-        // La cancelación queda en el espacio flexible. No mueve las
-        // cinco acciones, y conserva el acceso a la función original.
-        java.awt.GridBagConstraints limpiarCelda = new java.awt.GridBagConstraints();
-        limpiarCelda.gridx = 0;
-        limpiarCelda.gridy = 1;
-        limpiarCelda.weightx = 1;
-        limpiarCelda.anchor = java.awt.GridBagConstraints.EAST;
-        limpiarCelda.insets = new java.awt.Insets(0, 0, 0, 8);
-        filas.add(cancelarSeleccion, limpiarCelda);
-
-        for (int i = 0; i < acciones.length; i++) {
-            java.awt.GridBagConstraints celda = new java.awt.GridBagConstraints();
-            celda.gridx = i + 1;
-            celda.gridy = 1;
-            celda.fill = java.awt.GridBagConstraints.HORIZONTAL;
-            celda.insets = new java.awt.Insets(0, 0, 0, i == acciones.length - 1 ? 0 : 8);
-            filas.add(acciones[i], celda);
+        javax.swing.JPanel inferior = new javax.swing.JPanel(
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
+        inferior.setOpaque(false);
+        cancelarSeleccion.setPreferredSize(new java.awt.Dimension(34, 34));
+        inferior.add(cancelarSeleccion);
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                verFicha, editar, desactivar, imprimirFicha, imprimirListado}) {
+            int ancho = boton == imprimirListado ? 125
+                    : boton == imprimirFicha ? 112
+                    : boton == desactivar ? 105
+                    : boton == verFicha ? 90 : 74;
+            boton.setPreferredSize(new java.awt.Dimension(ancho, 34));
+            inferior.add(boton);
         }
+        inferior.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
+        inferior.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 36));
+        filas.add(inferior);
         return filas;
     }
 
@@ -866,6 +839,7 @@ public class FormUsuario extends javax.swing.JPanel {
         veterinaria.util.ui.EstiloHibrido.botonesSutiles(
                 btnLimpiarBusqueda, btnCancelarSeleccion, btnCancelar, btnLimpiar);
 
+        lblGestionUsuarios.setText("Gestión de usuarios");
         btnNuevo.setText("Nuevo usuario");
         btnVerFicha.setText("Ver ficha");
         btnEditar.setText("Editar");
@@ -906,6 +880,81 @@ public class FormUsuario extends javax.swing.JPanel {
         table.putClientProperty("vetpro.gradienteCompanero", Boolean.TRUE);
     }
 
+    /**
+     * Vista compacta de cinco columnas como la referencia híbrida.
+     * El modelo conserva las diez columnas para los informes, filtros y ABM.
+     * La casilla de selección sigue en la columna 0 con ancho cero.
+     */
+    private void configurarColumnasCompactasUsuarios() {
+        javax.swing.table.TableColumnModel columnas = table.getColumnModel();
+        for (int i = columnas.getColumnCount() - 1; i >= 0; i--) {
+            int modelo = columnas.getColumn(i).getModelIndex();
+            if (modelo != 0 && modelo != 1 && modelo != 3
+                    && modelo != 6 && modelo != 7 && modelo != 9) {
+                columnas.removeColumn(columnas.getColumn(i));
+            }
+        }
+        int[] orden = {0, 1, 7, 3, 6, 9};
+        for (int i = 0; i < orden.length; i++) {
+            for (int j = i; j < columnas.getColumnCount(); j++) {
+                if (columnas.getColumn(j).getModelIndex() == orden[i]) {
+                    columnas.moveColumn(j, i);
+                    break;
+                }
+            }
+        }
+        javax.swing.table.TableColumn seleccion = columnas.getColumn(0);
+        seleccion.setMinWidth(0);
+        seleccion.setMaxWidth(0);
+        seleccion.setPreferredWidth(0);
+        seleccion.setResizable(false);
+        columnas.getColumn(1).setHeaderValue("Nombre completo");
+        columnas.getColumn(2).setHeaderValue("Usuario");
+        columnas.getColumn(3).setHeaderValue("DNI");
+        columnas.getColumn(4).setHeaderValue("Rol");
+        columnas.getColumn(5).setHeaderValue("Estado");
+        int[] ancho = {270, 170, 140, 180, 90};
+        for (int i = 1; i < columnas.getColumnCount(); i++) {
+            columnas.getColumn(i).setPreferredWidth(ancho[i-1]);
+        }
+        javax.swing.table.TableCellRenderer original =
+                table.getDefaultRenderer(Object.class);
+        columnas.getColumn(1).setCellRenderer((tabla, value, selected, focus, row, column) -> {
+            int filaModelo = tabla.convertRowIndexToModel(row);
+            Object apellido = tabla.getModel().getValueAt(filaModelo, 2);
+            String nombreCompleto = String.valueOf(value == null ? "" : value)
+                    + " " + String.valueOf(apellido == null ? "" : apellido);
+            return original.getTableCellRendererComponent(
+                    tabla, nombreCompleto.trim(), selected, focus, row, column);
+        });
+        table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mousePressed(java.awt.event.MouseEvent e) {
+                if (javax.swing.SwingUtilities.isLeftMouseButton(e)) {
+                    int fila = table.rowAtPoint(e.getPoint());
+                    if (fila >= 0) {
+                        int filaModelo = table.convertRowIndexToModel(fila);
+                        javax.swing.table.TableModel modelo = table.getModel();
+                        for (int i = 0; i < modelo.getRowCount(); i++) {
+                            boolean marcar = i == filaModelo;
+                            if (!java.lang.Boolean.valueOf(marcar).equals(modelo.getValueAt(i, 0))) {
+                                ((javax.swing.table.DefaultTableModel) modelo).setValueAt(marcar, i, 0);
+                            }
+                        }
+                        actualizarAccionesSeleccionUsuario();
+                    }
+                }
+            }
+        });
+        table.getTableHeader().repaint();
+    }
+
+    /** Acceso por índice del modelo; la vista puede ocultar o reordenar columnas. */
+    private Object datoUsuario(int filaVista, int columnaModelo) {
+        if (filaVista < 0) return null;
+        return table.getModel().getValueAt(table.convertRowIndexToModel(filaVista), columnaModelo);
+    }
+
     private void iconoUsuario(javax.swing.JButton boton, String archivo) {
         String carpeta = "veterinaria/icon/svg/";
         // El ojo y la impresora ya existen: no se duplican sus recursos.
@@ -931,7 +980,7 @@ public class FormUsuario extends javax.swing.JPanel {
             javax.swing.JLabel label = new javax.swing.JLabel(campos[i] + ":");
             label.setFont(label.getFont().deriveFont(java.awt.Font.BOLD));
             ficha.add(label);
-            Object valor = table.getValueAt(fila, i + 1);
+            Object valor = datoUsuario(fila, i + 1);
             ficha.add(new javax.swing.JLabel(valor == null ? "—" : String.valueOf(valor)));
         }
         JOptionPane.showMessageDialog(this, ficha, "Ficha de usuario",
@@ -1111,7 +1160,7 @@ public class FormUsuario extends javax.swing.JPanel {
             return null;
         }
         try {
-            String usuarioSelec = String.valueOf(table.getValueAt(row, 7));
+            String usuarioSelec = String.valueOf(datoUsuario(row, 7));
             Usuario u = usuarioDAO.buscarPorNombreUsuario(usuarioSelec);
             if (u == null) {
                 JOptionPane.showMessageDialog(this, "No se encontró el usuario seleccionado.", "Advertencia", JOptionPane.WARNING_MESSAGE);
@@ -1137,11 +1186,11 @@ public class FormUsuario extends javax.swing.JPanel {
         try {
             // Fallback de datos planos desde la JTable (por si falla la carga de Persona)
             int rowSel = operarTablas.comprobarElementoSeleccionado(table);
-            String fNombre = (rowSel != -1) ? String.valueOf(table.getValueAt(rowSel, 1)) : "";
-            String fApellido = (rowSel != -1) ? String.valueOf(table.getValueAt(rowSel, 2)) : "";
-            String fDni = (rowSel != -1) ? String.valueOf(table.getValueAt(rowSel, 3)) : "";
-            String fTelefono = (rowSel != -1) ? String.valueOf(table.getValueAt(rowSel, 4)) : "";
-            String fDireccion = (rowSel != -1) ? String.valueOf(table.getValueAt(rowSel, 5)) : "";
+            String fNombre = (rowSel != -1) ? String.valueOf(datoUsuario(rowSel, 1)) : "";
+            String fApellido = (rowSel != -1) ? String.valueOf(datoUsuario(rowSel, 2)) : "";
+            String fDni = (rowSel != -1) ? String.valueOf(datoUsuario(rowSel, 3)) : "";
+            String fTelefono = (rowSel != -1) ? String.valueOf(datoUsuario(rowSel, 4)) : "";
+            String fDireccion = (rowSel != -1) ? String.valueOf(datoUsuario(rowSel, 5)) : "";
 
             // Cargar Persona vinculada (evita LazyInitializationException / proxy sin Session)
             veterinaria.entidad.Persona persona = null;
@@ -1231,7 +1280,7 @@ public class FormUsuario extends javax.swing.JPanel {
         int selectedRow = operarTablas.comprobarElementoSeleccionado(table);
 
         if (selectedRow != -1) {
-            var usuarioSelec = (String) table.getValueAt(selectedRow, 7);
+            var usuarioSelec = (String) datoUsuario(selectedRow, 7);
             usuario = usuarioDAO.buscarPorNombreUsuario(usuarioSelec);
             personaUsuario = personaDAO.obtenerPorId(usuario.getPersona().getIdPersona());
             rolUsuario = usuarioRolDAO.obtenerRol(usuario.getIdUsuario());
@@ -1273,7 +1322,7 @@ public class FormUsuario extends javax.swing.JPanel {
         int selectedRow = operarTablas.comprobarElementoSeleccionado(table);
 
         if (selectedRow != -1) {
-            var usuarioSelec = (String) table.getValueAt(selectedRow, 7);
+            var usuarioSelec = (String) datoUsuario(selectedRow, 7);
             usuario = usuarioDAO.buscarPorNombreUsuario(usuarioSelec);
             personaUsuario = personaDAO.obtenerPorId(usuario.getPersona().getIdPersona());
             rolUsuario = usuarioRolDAO.obtenerRol(usuario.getIdUsuario());
@@ -1429,6 +1478,7 @@ public class FormUsuario extends javax.swing.JPanel {
         Application.actualizarEstadoUsuario("CreandoUsuario");
         if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
         btnGuardar.setText("Crear usuario");
+        iconoUsuario(btnGuardar, "nuevo_usuario.svg");
         limpiarCamposFormulario();
         mostrarVistaUsuario(true);
         mostrarFoto(null);
@@ -1713,6 +1763,7 @@ public class FormUsuario extends javax.swing.JPanel {
             if (editarUsuarioSeleccionado()) {
                 if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Editar usuario");
                 btnGuardar.setText("Guardar cambios");
+                iconoUsuario(btnGuardar, "guardar_usuario.svg");
                 btnNuevo.setEnabled(false);
                 btnEditar.setEnabled(false);
                 btnEliminar.setEnabled(false);
@@ -1756,7 +1807,7 @@ public class FormUsuario extends javax.swing.JPanel {
             btnEliminar.setText("Desactivar");
             return;
         }
-        btnEliminar.setText("Inactivo".equalsIgnoreCase(String.valueOf(table.getValueAt(fila, 9)))
+        btnEliminar.setText("Inactivo".equalsIgnoreCase(String.valueOf(datoUsuario(fila, 9)))
                 ? "Reactivar" : "Desactivar");
     }
 
@@ -1845,7 +1896,10 @@ public class FormUsuario extends javax.swing.JPanel {
 
     private void volverAModoLista() {
         if (tituloEditorUsuario != null) tituloEditorUsuario.setText("Nuevo usuario");
-        if (btnGuardar != null) btnGuardar.setText("Crear usuario");
+        if (btnGuardar != null) {
+            btnGuardar.setText("Crear usuario");
+            iconoUsuario(btnGuardar, "nuevo_usuario.svg");
+        }
         actualizarForm();
         btnNuevo.setEnabled(true);
         actualizarAccionesSeleccionUsuario();
@@ -1878,7 +1932,7 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JPanel pagina = new javax.swing.JPanel();
         pagina.setOpaque(false);
         pagina.setLayout(new javax.swing.BoxLayout(pagina, javax.swing.BoxLayout.Y_AXIS));
-        pagina.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 7, 13, 7));
+        pagina.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 7, 22, 7));
 
         tituloEditorUsuario = new javax.swing.JLabel("Nuevo usuario");
         tituloEditorUsuario.setFont(tituloEditorUsuario.getFont().deriveFont(java.awt.Font.BOLD, 20f));
@@ -1913,9 +1967,9 @@ public class FormUsuario extends javax.swing.JPanel {
         visorFoto = new javax.swing.JLabel();
         visorFoto.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         visorFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        visorFoto.setPreferredSize(new java.awt.Dimension(100, 100));
-        visorFoto.setMinimumSize(new java.awt.Dimension(100, 100));
-        visorFoto.setMaximumSize(new java.awt.Dimension(100, 100));
+        visorFoto.setPreferredSize(new java.awt.Dimension(110, 110));
+        visorFoto.setMinimumSize(new java.awt.Dimension(110, 110));
+        visorFoto.setMaximumSize(new java.awt.Dimension(110, 110));
         foto.add(visorFoto);
         foto.add(javax.swing.Box.createVerticalStrut(10));
         javax.swing.JButton elegirFoto = new javax.swing.JButton("Agregar foto");
@@ -1929,8 +1983,8 @@ public class FormUsuario extends javax.swing.JPanel {
         ayudaFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         foto.add(ayudaFoto);
         jpDatosPersonales.add(foto, java.awt.BorderLayout.EAST);
-        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 236));
-        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 236));
+        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 247));
+        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 247));
         jpDatosPersonales.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpDatosPersonales);
         pagina.add(javax.swing.Box.createVerticalStrut(11));
@@ -1956,19 +2010,22 @@ public class FormUsuario extends javax.swing.JPanel {
         clave.add(btnVerContrasena, java.awt.BorderLayout.EAST);
         jpDatosCuenta.add(campoUsuario(lbDireccion1, clave));
         javax.swing.JLabel info = new javax.swing.JLabel(
-                "<html>El usuario cambiará la contraseña<br>al ingresar por primera vez.</html>");
+                "Usá al menos 8 caracteres, una mayúscula, un número y un símbolo. La contraseña se cambiará al ingresar.");
         java.awt.Color atenuado = javax.swing.UIManager.getColor("App.muted.foreground");
         if (atenuado != null) info.setForeground(atenuado);
-        jpDatosCuenta.add(info);
+        javax.swing.JPanel espacioInfo = new javax.swing.JPanel();
+        espacioInfo.setOpaque(false);
+        jpDatosCuenta.add(espacioInfo);
         jpAcceso.add(jpDatosCuenta, java.awt.BorderLayout.CENTER);
-        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 174));
-        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 174));
+        jpAcceso.add(info, java.awt.BorderLayout.SOUTH);
+        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 185));
+        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 185));
         jpAcceso.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpAcceso);
         pagina.add(javax.swing.Box.createVerticalStrut(8));
 
         javax.swing.JPanel acciones = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 9, 0));
+                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 6));
         acciones.setOpaque(false);
         acciones.add(btnLimpiar);
         acciones.add(btnCancelar);
@@ -1976,13 +2033,14 @@ public class FormUsuario extends javax.swing.JPanel {
         // Acciones del editor en el mismo lenguaje visual de la barra de listado.
         iconoUsuario(btnLimpiar, "limpiar_usuario.svg");
         iconoUsuario(btnCancelar, "cancelar_usuario.svg");
-        iconoUsuario(btnGuardar, "guardar_usuario.svg");
+        iconoUsuario(btnGuardar, "nuevo_usuario.svg");
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
                 btnLimpiar, btnCancelar, btnGuardar}) {
             boton.setPreferredSize(new java.awt.Dimension(
                     boton == btnGuardar ? 150 : 96, 34));
         }
-        acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 54));
+        acciones.setPreferredSize(new java.awt.Dimension(780, 48));
+        acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 48));
         acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(acciones);
         mostrarFoto(null);
