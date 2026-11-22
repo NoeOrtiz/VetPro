@@ -47,6 +47,19 @@ public class Application extends javax.swing.JFrame {
         runCriticalBootstrapOrFail();
 
         addWindowListener(new WindowAdapter() {
+            private boolean focoInicialAsignado;
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+                // Pedir el foco recién cuando Windows activa realmente la ventana.
+                // Así el usuario puede escribir sin hacer clic sobre "Usuario".
+                if (!focoInicialAsignado && getContentPane() instanceof FormLogin) {
+                    focoInicialAsignado = true;
+                    javax.swing.SwingUtilities.invokeLater(() ->
+                            ((FormLogin) getContentPane()).solicitarFocoUsuario());
+                }
+            }
+
             @Override
             public void windowClosing(WindowEvent e) {
                 JPAUtil.close();
