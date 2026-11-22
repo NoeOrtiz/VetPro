@@ -792,10 +792,10 @@ public class FormUsuario extends javax.swing.JPanel {
         inferior.add(cancelarSeleccion);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
                 verFicha, editar, desactivar, imprimirFicha, imprimirListado}) {
-            int ancho = boton == imprimirListado ? 125
-                    : boton == imprimirFicha ? 112
-                    : boton == desactivar ? 105
-                    : boton == verFicha ? 90 : 74;
+            int ancho = boton == imprimirListado ? 140
+                    : boton == imprimirFicha ? 135
+                    : boton == desactivar ? 115
+                    : boton == verFicha ? 105 : 90;
             boton.setPreferredSize(new java.awt.Dimension(ancho, 34));
             inferior.add(boton);
         }
@@ -889,12 +889,12 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.table.TableColumnModel columnas = table.getColumnModel();
         for (int i = columnas.getColumnCount() - 1; i >= 0; i--) {
             int modelo = columnas.getColumn(i).getModelIndex();
-            if (modelo != 0 && modelo != 1 && modelo != 3
+            if (modelo != 1 && modelo != 3
                     && modelo != 6 && modelo != 7 && modelo != 9) {
                 columnas.removeColumn(columnas.getColumn(i));
             }
         }
-        int[] orden = {0, 1, 7, 3, 6, 9};
+        int[] orden = {1, 7, 3, 6, 9};
         for (int i = 0; i < orden.length; i++) {
             for (int j = i; j < columnas.getColumnCount(); j++) {
                 if (columnas.getColumn(j).getModelIndex() == orden[i]) {
@@ -903,23 +903,20 @@ public class FormUsuario extends javax.swing.JPanel {
                 }
             }
         }
-        javax.swing.table.TableColumn seleccion = columnas.getColumn(0);
-        seleccion.setMinWidth(0);
-        seleccion.setMaxWidth(0);
-        seleccion.setPreferredWidth(0);
-        seleccion.setResizable(false);
-        columnas.getColumn(1).setHeaderValue("Nombre completo");
-        columnas.getColumn(2).setHeaderValue("Usuario");
-        columnas.getColumn(3).setHeaderValue("DNI");
-        columnas.getColumn(4).setHeaderValue("Rol");
-        columnas.getColumn(5).setHeaderValue("Estado");
-        int[] ancho = {270, 170, 140, 180, 90};
-        for (int i = 1; i < columnas.getColumnCount(); i++) {
-            columnas.getColumn(i).setPreferredWidth(ancho[i-1]);
+        // No hay columna de casillas visible; el modelo la conserva para las acciones.
+        table.setAutoCreateColumnsFromModel(false);
+        columnas.getColumn(0).setHeaderValue("Nombre completo");
+        columnas.getColumn(1).setHeaderValue("Usuario");
+        columnas.getColumn(2).setHeaderValue("DNI");
+        columnas.getColumn(3).setHeaderValue("Rol");
+        columnas.getColumn(4).setHeaderValue("Estado");
+        int[] ancho = {290, 180, 145, 190, 95};
+        for (int i = 0; i < columnas.getColumnCount(); i++) {
+            columnas.getColumn(i).setPreferredWidth(ancho[i]);
         }
         javax.swing.table.TableCellRenderer original =
                 table.getDefaultRenderer(Object.class);
-        columnas.getColumn(1).setCellRenderer((tabla, value, selected, focus, row, column) -> {
+        columnas.getColumn(0).setCellRenderer((tabla, value, selected, focus, row, column) -> {
             int filaModelo = tabla.convertRowIndexToModel(row);
             Object apellido = tabla.getModel().getValueAt(filaModelo, 2);
             String nombreCompleto = String.valueOf(value == null ? "" : value)
@@ -1983,8 +1980,8 @@ public class FormUsuario extends javax.swing.JPanel {
         ayudaFoto.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
         foto.add(ayudaFoto);
         jpDatosPersonales.add(foto, java.awt.BorderLayout.EAST);
-        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 247));
-        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 247));
+        jpDatosPersonales.setPreferredSize(new java.awt.Dimension(780, 253));
+        jpDatosPersonales.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 253));
         jpDatosPersonales.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpDatosPersonales);
         pagina.add(javax.swing.Box.createVerticalStrut(11));
@@ -2018,8 +2015,8 @@ public class FormUsuario extends javax.swing.JPanel {
         jpDatosCuenta.add(espacioInfo);
         jpAcceso.add(jpDatosCuenta, java.awt.BorderLayout.CENTER);
         jpAcceso.add(info, java.awt.BorderLayout.SOUTH);
-        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 185));
-        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 185));
+        jpAcceso.setPreferredSize(new java.awt.Dimension(780, 208));
+        jpAcceso.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 208));
         jpAcceso.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
         pagina.add(jpAcceso);
         pagina.add(javax.swing.Box.createVerticalStrut(8));
@@ -2039,10 +2036,9 @@ public class FormUsuario extends javax.swing.JPanel {
             boton.setPreferredSize(new java.awt.Dimension(
                     boton == btnGuardar ? 150 : 96, 34));
         }
-        acciones.setPreferredSize(new java.awt.Dimension(780, 48));
-        acciones.setMaximumSize(new java.awt.Dimension(Integer.MAX_VALUE, 48));
-        acciones.setAlignmentX(java.awt.Component.LEFT_ALIGNMENT);
-        pagina.add(acciones);
+        acciones.setPreferredSize(new java.awt.Dimension(780, 52));
+        acciones.setMinimumSize(new java.awt.Dimension(350, 52));
+        acciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 10, 6, 10));
         mostrarFoto(null);
 
         javax.swing.JScrollPane scroller = new javax.swing.JScrollPane(pagina);
@@ -2053,6 +2049,7 @@ public class FormUsuario extends javax.swing.JPanel {
         scroller.getViewport().setOpaque(false);
         scroller.setOpaque(false);
         jpCamposFormularioUsuario.add(scroller, java.awt.BorderLayout.CENTER);
+        jpCamposFormularioUsuario.add(acciones, java.awt.BorderLayout.SOUTH);
     }
 
     private javax.swing.JPanel campoUsuario(javax.swing.JComponent rotulo,
