@@ -20,6 +20,7 @@ on:
       - integracion/tema-claro-menu-tablas-uniformes
       - integracion/restaurar-verde-submenus-sin-recuadros
       - integracion/selector-tema-pastilla-sin-marco
+      - integracion/usuarios-dos-filas-alineadas
   workflow_dispatch:
 
 permissions:
