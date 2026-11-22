@@ -45,7 +45,9 @@ public final class TableGradientCheckBoxRenderer extends JPanel implements Table
         Rectangle cell = table.getCellRect(row, column, true);
         offsetX = -cell.x;
         tableWidth = Math.max(1, table.getWidth());
-        background = table.getBackground();
+        Color alternate = UIManager.getColor("Table.alternateRowColor");
+        background = row % 2 == 1 && alternate != null
+                ? alternate : table.getBackground();
         Color panel = UIManager.getColor("Panel.background");
         boolean dark = panel != null
                 && (panel.getRed() * 299 + panel.getGreen() * 587 + panel.getBlue() * 114) / 1000 < 128;
