@@ -48,12 +48,12 @@ class UsuariosToolbarIconosTest {
     @Test
     void busquedaIncluyeRolYUsuarioYPreservaPrefijoYPaginacion() throws Exception {
         String s = fuente();
-        assertTrue(s.contains("new int[]{1, 2, 3, 6, 7}"));
+        assertTrue(s.contains("new int[]{7, 6}"));
         assertTrue(s.contains("paginacionCompartida.activarBusquedaPorPrefijo()"));
-        assertTrue(s.contains("Nombre, apellido, DNI, usuario o rol"));
+        assertTrue(s.contains("FlatClientProperties.PLACEHOLDER_TEXT, \"\""));
         assertTrue(s.contains("paginacionCompartida.limpiarBusqueda()"));
         assertTrue(s.contains("new veterinaria.vista.table.TableGradientCheckBoxRenderer()"));
-        assertTrue(s.contains("table.putClientProperty(\"vetpro.gradienteCompanero\", Boolean.TRUE)"));
+        assertTrue(s.contains("table.putClientProperty(\"vetpro.seleccionPlanaUsuarios\", Boolean.TRUE)"));
         assertTrue(s.contains("table.getColumnModel().getColumn(0).setCellRenderer("));
     }
 
