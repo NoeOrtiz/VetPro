@@ -65,7 +65,7 @@ public class PopupSubmenu extends JPanel {
     }
 
     private JButton createButtonItem(String text) {
-        JButton button = new JButton(text);
+        JButton button = new MenuHoverButton(text);
         // Mismo criterio que los submenús del lateral: texto integrado,
         // sin un rectángulo pintado detrás de cada opción.
         button.setBorderPainted(false);
