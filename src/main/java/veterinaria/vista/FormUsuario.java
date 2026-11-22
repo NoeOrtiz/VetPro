@@ -780,18 +780,15 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.JButton[] acciones = {
             verFicha, editar, desactivar, imprimirFicha, imprimirListado
         };
-        // El último botón se ajusta al ancho de Nuevo usuario. La
-        // presentación de los cinco botones comparte alto y separación.
-        int anchoFinal = 150;
-        for (javax.swing.JButton boton : acciones) {
-            int width = boton == imprimirListado ? anchoFinal
-                    : boton == imprimirFicha ? 132
-                    : boton == desactivar ? 116
-                    : boton == verFicha ? 108 : 90;
-            boton.setPreferredSize(new java.awt.Dimension(width, 34));
-        }
-        nuevo.setPreferredSize(new java.awt.Dimension(anchoFinal, 34));
-        cancelarSeleccion.setPreferredSize(new java.awt.Dimension(35, 34));
+        // Dimensiones fijas para impedir que FlatLaf estire botones al
+        // cambiar permisos, selección o estilo (activo/inactivo).
+        configurarTamanoAccion(nuevo, 150);
+        configurarTamanoAccion(verFicha, 94);
+        configurarTamanoAccion(editar, 78);
+        configurarTamanoAccion(desactivar, 114);
+        configurarTamanoAccion(imprimirFicha, 132);
+        configurarTamanoAccion(imprimirListado, 150);
+        configurarTamanoAccion(cancelarSeleccion, 34);
 
         javax.swing.JPanel filas = new javax.swing.JPanel(new java.awt.GridBagLayout());
         filas.setOpaque(false);
@@ -832,6 +829,14 @@ public class FormUsuario extends javax.swing.JPanel {
             filas.add(acciones[i], celda);
         }
         return filas;
+    }
+
+    /** Ancho y alto invariables incluso si cambia el estado o el tema FlatLaf. */
+    private static void configurarTamanoAccion(javax.swing.JButton boton, int ancho) {
+        java.awt.Dimension tamano = new java.awt.Dimension(ancho, 34);
+        boton.setPreferredSize(tamano);
+        boton.setMinimumSize(tamano);
+        boton.setMaximumSize(tamano);
     }
 
     /** Reutiliza los tres paneles generados por NetBeans, pero evita el alto fijo de 390px. */
@@ -893,16 +898,17 @@ public class FormUsuario extends javax.swing.JPanel {
                 btnNuevo, btnVerFicha, btnEditar, btnEliminar, btnImprimir,
                 btnImprimirLista, btnLimpiarBusqueda, btnCancelarSeleccion}) {
             boton.setFocusable(false);
-            int minWidth = boton == btnNuevo ? 138
-                    : boton == btnImprimirLista ? 152
-                    : boton == btnImprimir ? 140
-                    : boton == btnVerFicha ? 115
-                    : boton == btnEliminar ? 122
-                    : boton == btnLimpiarBusqueda ? 95
-                    : boton == btnCancelarSeleccion ? 35 : 92;
-            boton.setPreferredSize(new java.awt.Dimension(
-                    Math.max(minWidth, boton.getPreferredSize().width), 34));
         }
+        // Se aplica DESPUÉS de los estilos: la versión anterior reemplazaba
+        // los anchos calculados por el layout y estiraba "Imprimir ficha".
+        configurarTamanoAccion(btnNuevo, 150);
+        configurarTamanoAccion(btnVerFicha, 94);
+        configurarTamanoAccion(btnEditar, 78);
+        configurarTamanoAccion(btnEliminar, 114);
+        configurarTamanoAccion(btnImprimir, 132);
+        configurarTamanoAccion(btnImprimirLista, 150);
+        configurarTamanoAccion(btnCancelarSeleccion, 34);
+        configurarTamanoAccion(btnLimpiarBusqueda, 90);
         // Conserva columnas, casillas, filtros, paginación y badges.
         veterinaria.util.ui.EstiloHibrido.tablaClientes(table, 9);
         // Hace coincidir el fondo de todas las celdas con el degradado del checkbox.
@@ -912,7 +918,7 @@ public class FormUsuario extends javax.swing.JPanel {
     /**
      * Vista compacta de cinco columnas como la referencia híbrida.
      * El modelo conserva las diez columnas para los informes, filtros y ABM.
-     * La casilla de selección sigue en la columna 0 con ancho cero.
+     * La casilla de selección original permanece visible en la columna 0.
      */
     private void configurarColumnasCompactasUsuarios() {
         javax.swing.table.TableColumnModel columnas = table.getColumnModel();
@@ -1170,6 +1176,9 @@ public class FormUsuario extends javax.swing.JPanel {
             } else {
                 veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
             }
+            // Cambiar el estilo altera el tamaño preferido de FlatLaf.
+            // Restaurarlo impide que la fila de botones salte al seleccionar.
+            configurarTamanoAccion(btnEliminar, 114);
             ultimoEstiloAccionUsuario = estilo;
         }
         // El modelo actualiza el renderer; evitar un segundo repintado
