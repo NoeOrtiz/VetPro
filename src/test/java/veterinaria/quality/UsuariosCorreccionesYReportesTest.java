@@ -38,8 +38,8 @@ class UsuariosCorreccionesYReportesTest {
     @Test
     void laBarraAlineaNuevoUsuarioEImprimirListado() throws Exception {
         String code = fuente("vista/FormUsuario.java");
-        assertTrue(code.contains("filtros.add(btnNuevo, java.awt.BorderLayout.EAST)"));
-        assertTrue(code.contains("acciones.add(btnImprimirLista, java.awt.BorderLayout.EAST)"));
+        assertTrue(code.contains("crearBarraUsuariosAlineada("));
+        assertTrue(code.contains("filas.add(imprimirListado, der)"));
         assertTrue(code.contains("grupoAcciones.add(btnCancelarSeleccion)"));
         assertFalse(code.contains("acciones.add(btnCancelarSeleccion);"));
         assertTrue(code.contains("solicitarFormatoCombo("));
