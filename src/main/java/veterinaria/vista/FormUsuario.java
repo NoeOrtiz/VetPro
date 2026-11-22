@@ -884,9 +884,9 @@ public class FormUsuario extends javax.swing.JPanel {
         iconoUsuario(btnCancelarSeleccion, "limpiar_usuario.svg");
         btnCancelarSeleccion.setToolTipText("Quitar selección del usuario");
 
+        // Campo vacío: la búsqueda se limita exclusivamente a Usuario y Rol.
         txtBusqueda.putClientProperty(
-                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
-                "Nombre, apellido, DNI, usuario o rol");
+                com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT, "");
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
                 btnNuevo, btnVerFicha, btnEditar, btnEliminar, btnImprimir,
                 btnImprimirLista, btnLimpiarBusqueda, btnCancelarSeleccion}) {
@@ -904,8 +904,10 @@ public class FormUsuario extends javax.swing.JPanel {
         configurarTamanoAccion(btnLimpiarBusqueda, 90);
         // Conserva columnas, casillas, filtros, paginación y badges.
         veterinaria.util.ui.EstiloHibrido.tablaClientes(table, 9);
-        // Hace coincidir el fondo de todas las celdas con el degradado del checkbox.
-        table.putClientProperty("vetpro.gradienteCompanero", Boolean.TRUE);
+        // Selección sobria y lisa solo para Gestión de usuarios.
+        // No se modifica el estilo de las demás tablas de VetPRO.
+        table.putClientProperty("vetpro.gradienteCompanero", Boolean.FALSE);
+        table.putClientProperty("vetpro.seleccionPlanaUsuarios", Boolean.TRUE);
     }
 
     /**
@@ -1027,7 +1029,7 @@ public class FormUsuario extends javax.swing.JPanel {
         paginacionCompartida = veterinaria.util.GestorTablas.paginar(
                 table, txtBusqueda,
                 new veterinaria.util.GestorTablas.Configuracion(
-                        new int[]{1, 2, 3, 6, 7}, new int[]{1, 2, 3, 6, 7}, 15));
+                        new int[]{7, 6}, new int[]{7, 6}, 15));
         paginacionCompartida.activarBusquedaPorPrefijo();
         jpListaUsuarios.add(paginacionCompartida.getControles(), java.awt.BorderLayout.SOUTH);
         // La acción limpiar está en la fila de filtros; no hay una X superpuesta.
