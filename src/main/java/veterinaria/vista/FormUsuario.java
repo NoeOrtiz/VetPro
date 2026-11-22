@@ -889,12 +889,12 @@ public class FormUsuario extends javax.swing.JPanel {
         javax.swing.table.TableColumnModel columnas = table.getColumnModel();
         for (int i = columnas.getColumnCount() - 1; i >= 0; i--) {
             int modelo = columnas.getColumn(i).getModelIndex();
-            if (modelo != 1 && modelo != 3
+            if (modelo != 0 && modelo != 1 && modelo != 3
                     && modelo != 6 && modelo != 7 && modelo != 9) {
                 columnas.removeColumn(columnas.getColumn(i));
             }
         }
-        int[] orden = {1, 7, 3, 6, 9};
+        int[] orden = {0, 1, 7, 3, 6, 9};
         for (int i = 0; i < orden.length; i++) {
             for (int j = i; j < columnas.getColumnCount(); j++) {
                 if (columnas.getColumn(j).getModelIndex() == orden[i]) {
@@ -903,20 +903,23 @@ public class FormUsuario extends javax.swing.JPanel {
                 }
             }
         }
-        // No hay columna de casillas visible; el modelo la conserva para las acciones.
+        // Se conserva la casilla de selección original, con ancho legible.
         table.setAutoCreateColumnsFromModel(false);
-        columnas.getColumn(0).setHeaderValue("Nombre completo");
-        columnas.getColumn(1).setHeaderValue("Usuario");
-        columnas.getColumn(2).setHeaderValue("DNI");
-        columnas.getColumn(3).setHeaderValue("Rol");
-        columnas.getColumn(4).setHeaderValue("Estado");
-        int[] ancho = {290, 180, 145, 190, 95};
+        columnas.getColumn(0).setHeaderValue("Seleccionar");
+        columnas.getColumn(1).setHeaderValue("Nombre completo");
+        columnas.getColumn(2).setHeaderValue("Usuario");
+        columnas.getColumn(3).setHeaderValue("DNI");
+        columnas.getColumn(4).setHeaderValue("Rol");
+        columnas.getColumn(5).setHeaderValue("Estado");
+        int[] ancho = {88, 270, 155, 145, 175, 95};
         for (int i = 0; i < columnas.getColumnCount(); i++) {
             columnas.getColumn(i).setPreferredWidth(ancho[i]);
         }
+        columnas.getColumn(0).setCellRenderer(
+                new veterinaria.vista.table.TableGradientCheckBoxRenderer());
         javax.swing.table.TableCellRenderer original =
                 table.getDefaultRenderer(Object.class);
-        columnas.getColumn(0).setCellRenderer((tabla, value, selected, focus, row, column) -> {
+        columnas.getColumn(1).setCellRenderer((tabla, value, selected, focus, row, column) -> {
             int filaModelo = tabla.convertRowIndexToModel(row);
             Object apellido = tabla.getModel().getValueAt(filaModelo, 2);
             String nombreCompleto = String.valueOf(value == null ? "" : value)
@@ -927,7 +930,9 @@ public class FormUsuario extends javax.swing.JPanel {
         table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mousePressed(java.awt.event.MouseEvent e) {
-                if (javax.swing.SwingUtilities.isLeftMouseButton(e)) {
+                // En la columna Seleccionar se deja actuar al checkbox original.
+                if (javax.swing.SwingUtilities.isLeftMouseButton(e)
+                        && table.columnAtPoint(e.getPoint()) != 0) {
                     int fila = table.rowAtPoint(e.getPoint());
                     if (fila >= 0) {
                         int filaModelo = table.convertRowIndexToModel(fila);
