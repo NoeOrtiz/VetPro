@@ -38,7 +38,7 @@ class MenuUsuariosEsteticaTest {
         assertTrue(u.contains("new java.awt.CardLayout()"));
         assertTrue(u.contains("mostrarVistaUsuario(true)"));
         assertTrue(u.contains("EstiloHibrido.tablaClientes(table, 9)"));
-        assertTrue(u.contains("new int[]{1, 2, 3, 6, 7}"));
+        assertTrue(u.contains("new int[]{7, 6}"));
         assertTrue(u.contains("paginacionCompartida.activarBusquedaPorPrefijo()"));
         assertTrue(u.contains("[52!][52!][52!]"));
         assertTrue(u.contains("new java.awt.Dimension(780, 253)"));
