@@ -170,7 +170,7 @@ class UsuariosCorreccionesYReportesTest {
                 String contenido = new PDFTextStripper().getText(doc);
                 for(String valor : new String[]{"LISTA DE USUARIOS",
                         "Carolina", "Fernando", "qa.usuario",
-                        "qa.fernando", "Activo", "Inactivo", "Estado"}) {
+                        "qa.fernando", "Activo", "Inactivo", "ESTADO"}) {
                     assertTrue(contenido.contains(valor), "Falta: " + valor);
                 }
                 assertTrue(doc.getPage(0).getMediaBox().getWidth()
