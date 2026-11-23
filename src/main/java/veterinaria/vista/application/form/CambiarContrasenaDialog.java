@@ -1,13 +1,16 @@
 package veterinaria.vista.application.form;
 
 import com.formdev.flatlaf.FlatClientProperties;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 import javax.swing.JOptionPane;
 import net.miginfocom.swing.MigLayout;
 import veterinaria.entidad.Usuario;
 import veterinaria.servicio.AutenticacionService;
 import veterinaria.util.Validaciones;
+import veterinaria.util.ui.EstiloHibrido;
 
 public class CambiarContrasenaDialog extends javax.swing.JDialog {
 
@@ -15,53 +18,64 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
     private final AutenticacionService autenticacionService = new AutenticacionService();
     private final Validaciones validaciones = new Validaciones();
     private boolean contraseñaCambiada = false;
-    private final javax.swing.JTextField txtCodigo = new javax.swing.JTextField();
-    private final javax.swing.JButton btnEnviarCodigo = new javax.swing.JButton("Enviar código");
+    private final JTextField txtCodigo = new JTextField();
+    private final JPasswordField txtNuevaPass = new JPasswordField();
+    private final JPasswordField txtConfirmarPass = new JPasswordField();
+    private final JButton btnEnviarCodigo = new JButton("Enviar código");
+    private final JButton btnGuardar = new JButton("Verificar y actualizar");
     private boolean codigoSolicitado = false;
 
     public CambiarContrasenaDialog(java.awt.Window parent, Usuario usuario) {
         super(parent, ModalityType.APPLICATION_MODAL);
         this.usuario = usuario;
-        initComponents();
         init();
     }
 
     private void init() {
         setTitle("Cambio obligatorio de contraseña");
-        getContentPane().removeAll();
-        setLayout(new MigLayout("fillx, wrap 1, insets 24, gapy 9", "[grow,fill]"));
-        setLocationRelativeTo(getOwner());
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setLayout(new MigLayout("fillx, wrap 1, insets 22 24 20 24, gapy 0",
+                "[380lp,grow,fill]"));
 
-        javax.swing.JLabel info = new javax.swing.JLabel(
-                "<html>Para continuar, verifique el correo asociado a su cuenta "
-                + "y establezca una contraseña personal.</html>");
-        add(info, "w 340!");
-        add(new javax.swing.JLabel("Código de verificación (6 dígitos):"));
-        txtCodigo.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Código recibido por correo");
-        add(txtCodigo, "h 30!");
+        JLabel titulo = new JLabel("Creá tu contraseña personal");
+        titulo.putClientProperty(FlatClientProperties.STYLE, "font:$h1.font");
+        add(titulo, "gapbottom 6lp");
+
+        JLabel info = new JLabel("<html>Solicitá el código que enviaremos al correo de tu cuenta.<br>"
+                + "Ingresalo para verificar tu identidad y continuar.</html>");
+        add(info, "gapbottom 12lp");
+
+        EstiloHibrido.botonesSecundarios(btnEnviarCodigo);
         btnEnviarCodigo.addActionListener(e -> enviarCodigo());
-        add(btnEnviarCodigo, "align right");
-        add(new javax.swing.JLabel("Nueva contraseña:"));
+        add(btnEnviarCodigo, "align right, h 36lp!, gapbottom 14lp");
+
+        txtCodigo.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Código recibido por correo");
+        agregarCampo("Código de verificación (6 dígitos)", txtCodigo);
         txtNuevaPass.putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true; showCapsLock:true");
         txtConfirmarPass.putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true; showCapsLock:true");
-        add(txtNuevaPass, "h 30!");
-        add(new javax.swing.JLabel("Confirmar contraseña:"));
-        add(txtConfirmarPass, "h 30!");
-        btnGuardar.setText("Verificar y actualizar");
-        add(btnGuardar, "h 32!");
-        javax.swing.JLabel advertencia = new javax.swing.JLabel(
-                "<html><small>El código vence a los 10 minutos. "
-                + "Sin verificarlo no podrá ingresar al sistema.</small></html>");
-        add(advertencia);
-        txtConfirmarPass.addKeyListener(new KeyAdapter() {
-            @Override public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) guardarNuevaContrasena();
-            }
-        });
+        agregarCampo("Nueva contraseña", txtNuevaPass);
+        agregarCampo("Confirmar contraseña", txtConfirmarPass);
+
+        JLabel advertencia = new JLabel("<html>El código vence a los 10 minutos.<br>"
+                + "Completá la verificación para ingresar al sistema.</html>");
+        advertencia.putClientProperty(FlatClientProperties.STYLE_CLASS, "ayuda");
+        add(advertencia, "gapbottom 16lp");
+
+        EstiloHibrido.botonesPrimarios(btnGuardar);
+        btnGuardar.addActionListener(e -> guardarNuevaContrasena());
+        txtConfirmarPass.addActionListener(e -> guardarNuevaContrasena());
+        add(btnGuardar, "align right, h 36lp!");
+
         pack();
         setLocationRelativeTo(getOwner());
+    }
+
+    private void agregarCampo(String titulo, JTextField campo) {
+        JLabel etiqueta = new JLabel(titulo);
+        etiqueta.setLabelFor(campo);
+        add(etiqueta, "gapbottom 5lp");
+        add(campo, "h 36lp!, gapbottom 12lp");
     }
 
     private void enviarCodigo() {
@@ -159,65 +173,4 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
     public boolean isContraseñaCambiada() {
         return contraseñaCambiada;
     }
-
-    @SuppressWarnings("unchecked")
-    private void initComponents() {
-        lblMensaje = new javax.swing.JLabel();
-        lblNueva = new javax.swing.JLabel();
-        txtNuevaPass = new javax.swing.JPasswordField();
-        lblConfirmar = new javax.swing.JLabel();
-        txtConfirmarPass = new javax.swing.JPasswordField();
-        btnGuardar = new javax.swing.JButton();
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-
-        lblMensaje.setText("Por seguridad, debe actualizar su contraseña.");
-        lblNueva.setText("Nueva Contraseña:");
-        lblConfirmar.setText("Confirmar Contraseña:");
-
-        btnGuardar.setText("Guardar y Continuar");
-        btnGuardar.addActionListener(evt -> guardarNuevaContrasena());
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(lblMensaje, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(lblNueva)
-                    .addComponent(txtNuevaPass)
-                    .addComponent(lblConfirmar)
-                    .addComponent(txtConfirmarPass)
-                    .addComponent(btnGuardar, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE))
-                .addContainerGap(25, Short.MAX_VALUE))
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addComponent(lblMensaje)
-                .addGap(18, 18, 18)
-                .addComponent(lblNueva)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtNuevaPass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(12, 12, 12)
-                .addComponent(lblConfirmar)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtConfirmarPass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(24, 24, 24)
-                .addComponent(btnGuardar)
-                .addContainerGap(25, Short.MAX_VALUE))
-        );
-
-        pack();
-    }
-
-    private javax.swing.JButton btnGuardar;
-    private javax.swing.JLabel lblConfirmar;
-    private javax.swing.JLabel lblMensaje;
-    private javax.swing.JLabel lblNueva;
-    private javax.swing.JPasswordField txtConfirmarPass;
-    private javax.swing.JPasswordField txtNuevaPass;
 }
