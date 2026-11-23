@@ -729,10 +729,14 @@ public class FormUsuario extends javax.swing.JPanel {
         lbBuscar.setVisible(false);
         txtBusqueda.setPreferredSize(new java.awt.Dimension(415, 34));
         txtBusqueda.setMinimumSize(new java.awt.Dimension(80, 34));
-        btnLimpiarBusqueda.setToolTipText("Limpiar la búsqueda y volver a la primera página");
+        btnLimpiarBusqueda.setToolTipText("Restablecer la vista inicial de usuarios activos");
         btnLimpiarBusqueda.addActionListener(e -> {
+            if (!"Activos".equals(filtroEstado.getSelectedItem())) {
+                filtroEstado.setSelectedItem("Activos");
+            }
             if (paginacionCompartida != null) paginacionCompartida.limpiarBusqueda();
             else txtBusqueda.setText("");
+            scroll.getViewport().setViewPosition(new java.awt.Point());
         });
         filtroEstado.setPreferredSize(new java.awt.Dimension(110, 34));
 

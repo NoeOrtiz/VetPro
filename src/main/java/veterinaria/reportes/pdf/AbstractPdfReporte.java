@@ -81,11 +81,17 @@ public abstract class AbstractPdfReporte implements Reporte {
      * inspirado en el informe compartido por la usuaria.
      */
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
+        renderHeaderConLogo(pdf, 74f, 60f);
+    }
+
+    protected final void renderHeaderConLogo(PdfDocument pdf, float ancho, float alto) throws Exception {
         float top = pdf.getY();
         float m = pdf.getMargin();
         float right = pdf.getPageW() - m;
-        renderLogo(pdf, m, top - 60f, 74f, 60f);
-        float tx = m + 89f;
+        renderLogo(pdf, m, top - alto, ancho, alto);
+        float tx = m + ancho + 15f;
+        float extraAlto = alto - 60f;
+        top -= extraAlto / 2f;
         pdf.text(PdfStyle.TXT_BOLD_FONT, 7, tx, top - 11f,
                 "CLÍNICA VETERINARIA DOGTOR CAT", PdfStyle.ACCENT_DARK);
         int size = 13;
@@ -103,8 +109,9 @@ public abstract class AbstractPdfReporte implements Reporte {
         pdf.text(PdfStyle.TXT_BOLD_FONT, 10,
                 right - pdf.textWidth(PdfStyle.TXT_BOLD_FONT, 10, ts),
                 top - 32f, ts, PdfStyle.INK);
-        pdf.hline(m, right, top - 71f, PdfStyle.ACCENT, 1.5f);
-        pdf.setY(top - 93f);
+        float linea = top - 71f - extraAlto / 2f;
+        pdf.hline(m, right, linea, PdfStyle.ACCENT, 1.5f);
+        pdf.setY(linea - 22f);
     }
 
     protected void renderTable(
@@ -178,7 +185,11 @@ public abstract class AbstractPdfReporte implements Reporte {
         //pdf.line();
     }
 
-    /** Pie de todas las páginas: emisor, fecha y numeración. */
+    protected boolean mostrarFechaEnPie() {
+        return true;
+    }
+
+    /** Pie de todas las páginas con emisor y numeración. */
     private void renderFooterAllPages(PdfDocument pdf, ReporteRequest request) throws Exception {
         String fecha = new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date());
         String usuario = request.get("emisor", String.class);
@@ -196,7 +207,8 @@ public abstract class AbstractPdfReporte implements Reporte {
                 cs.stroke();
                 pie(cs, PdfStyle.TXT_BOLD_FONT, 7.5f, m, y - 15f,
                         "VetPRO - Dogtor Cat", PdfStyle.ACCENT_DARK);
-                String centro = "Emitido por " + usuario.trim() + " - " + fecha;
+                String centro = "Emitido por " + usuario.trim();
+                if (mostrarFechaEnPie()) centro += " - " + fecha;
                 float wm = PdfStyle.TXT_FONT.getStringWidth(centro) / 1000f * 7.5f;
                 pie(cs, PdfStyle.TXT_FONT, 7.5f, (pdf.getPageW() - wm) / 2f,
                         y - 15f, centro, PdfStyle.MUTED);
