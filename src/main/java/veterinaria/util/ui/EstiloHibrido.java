@@ -37,6 +37,56 @@ public final class EstiloHibrido {
         for (JLabel l : etiquetas) if (l != null) aplicarClase(l, "hibridoTitulo");
     }
 
+    /** Conserva el ancho natural de las acciones y hace lugar para las filas necesarias. */
+    public static JPanel filaAcciones() {
+        JPanel panel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 4) {
+            @Override
+            public Dimension preferredLayoutSize(java.awt.Container contenedor) {
+                Dimension preferido = super.preferredLayoutSize(contenedor);
+                int ancho = contenedor.getWidth();
+                if (ancho <= 0 || ancho >= preferido.width) return preferido;
+
+                int disponible = ancho - 2 * getHgap();
+                int anchoFila = 0;
+                int altoFila = 0;
+                int alto = getVgap();
+                for (Component componente : contenedor.getComponents()) {
+                    if (!componente.isVisible()) continue;
+                    Dimension medida = componente.getPreferredSize();
+                    int necesario = anchoFila == 0 ? medida.width : getHgap() + medida.width;
+                    if (anchoFila > 0 && anchoFila + necesario > disponible) {
+                        alto += altoFila + getVgap();
+                        anchoFila = 0;
+                        altoFila = 0;
+                        necesario = medida.width;
+                    }
+                    anchoFila += necesario;
+                    altoFila = Math.max(altoFila, medida.height);
+                }
+                return new Dimension(ancho, alto + altoFila + getVgap());
+            }
+        });
+        panel.setOpaque(false);
+        panel.addComponentListener(new java.awt.event.ComponentAdapter() {
+            private int anchoAnterior;
+
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                if (anchoAnterior == panel.getWidth()) return;
+                anchoAnterior = panel.getWidth();
+                panel.revalidate();
+            }
+        });
+        return panel;
+    }
+
+    public static void iconosBoton(String archivo, JButton... botones) {
+        for (JButton boton : botones) {
+            boton.setIcon(new com.formdev.flatlaf.extras.FlatSVGIcon("veterinaria/icon/svg/" + archivo, 0.70f));
+            boton.setIconTextGap(6);
+        }
+    }
+
     public static void botonesPrimarios(JButton... botones) {
         botonesConClase("hibridoPrimario", false, botones);
     }

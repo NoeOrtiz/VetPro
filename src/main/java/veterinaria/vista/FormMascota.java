@@ -71,9 +71,6 @@ public class FormMascota extends javax.swing.JPanel {
                 tableMascotas, txtBusqueda, 15, new int[]{2, 6, 7}, new int[]{2, 6, 7});
         paginacionMascotas.activarBusquedaPorPrefijo();
         panelPaginacionMascotas.add(paginacionMascotas.getControles(), java.awt.BorderLayout.CENTER);
-        javax.swing.JButton limpiarBusqueda = paginacionMascotas.getBotonLimpiar();
-        txtBusqueda.setLayout(new java.awt.BorderLayout());
-        txtBusqueda.add(limpiarBusqueda, java.awt.BorderLayout.EAST);
         // Reutilizar el ajuste de AutoTable, sin anchos fijos por formulario.
         // JTable distribuye el ancho disponible entre las columnas visibles.
         tableMascotas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -540,11 +537,11 @@ public class FormMascota extends javax.swing.JPanel {
                 .addContainerGap(52, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, panelDatosLayout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnGuardar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnLimpiar, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnLimpiar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         panelDatosLayout.setVerticalGroup(
@@ -645,7 +642,7 @@ public class FormMascota extends javax.swing.JPanel {
         tableMascotas.getTableHeader().setReorderingAllowed(false);
         scroll.setViewportView(tableMascotas);
 
-        btnImprimirLista.setText("Imprimir Lista");
+        btnImprimirLista.setText("Imprimir listado");
 
         javax.swing.GroupLayout jpListaPacientesLayout = new javax.swing.GroupLayout(jpListaPacientes);
         jpListaPacientes.setLayout(jpListaPacientesLayout);
@@ -702,7 +699,7 @@ public class FormMascota extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(panelHadear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(panelBotones, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(panelBotones, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(panelDatos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -719,6 +716,7 @@ public class FormMascota extends javax.swing.JPanel {
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
         jpListaPacientes.setVisible(false);
+        panelBotones.setVisible(false);
         panelDatos.setVisible(true);
     }//GEN-LAST:event_btnNuevoActionPerformed
 
@@ -732,6 +730,7 @@ public class FormMascota extends javax.swing.JPanel {
                 btnEliminar.setEnabled(false);
                 panelDatos.setVisible(true);
                 jpListaPacientes.setVisible(false);
+                panelBotones.setVisible(false);
             } else {
                 // Si no hay selección válida, permanecemos en modo lista.
                 Application.actualizarEstadoUsuario("InicioFormularioMascota");
@@ -899,6 +898,7 @@ public class FormMascota extends javax.swing.JPanel {
             limpiarForm();
             panelDatos.setVisible(false);
             jpListaPacientes.setVisible(true);
+            panelBotones.setVisible(true);
             btnNuevo.setEnabled(true);
             btnEditar.setEnabled(true);
             btnEliminar.setEnabled(true);
@@ -910,6 +910,7 @@ public class FormMascota extends javax.swing.JPanel {
         limpiarForm();
         panelDatos.setVisible(false);
         jpListaPacientes.setVisible(true);
+        panelBotones.setVisible(true);
         btnNuevo.setEnabled(true);
         btnEditar.setEnabled(true);
         btnEliminar.setEnabled(true);
@@ -1009,29 +1010,26 @@ public class FormMascota extends javax.swing.JPanel {
         panelBotones.removeAll();
         panelBotones.setLayout(new java.awt.BorderLayout(0, 8));
 
-        // Filtros en la misma grilla: etiquetas y controles alineados como Clientes.
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
-        filtros.setOpaque(false);
+        javax.swing.JPanel superior = new javax.swing.JPanel(new net.miginfocom.swing.MigLayout(
+                "insets 0, gap 8, fillx", "[][grow,fill][][][][]", "[34!]"));
+        superior.setOpaque(false);
         lbUsuarioBusqueda.setText("Buscar paciente:");
-        filtros.add(lbUsuarioBusqueda, java.awt.BorderLayout.WEST);
-        filtros.add(txtBusqueda, java.awt.BorderLayout.CENTER);
+        superior.add(lbUsuarioBusqueda);
+        txtBusqueda.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Nombre, especie o dueño");
+        superior.add(txtBusqueda, "h 34!");
+        javax.swing.JButton limpiarBusqueda = new javax.swing.JButton("Limpiar");
+        limpiarBusqueda.addActionListener(e -> paginacionMascotas.limpiarBusqueda());
+        superior.add(limpiarBusqueda, "h 34!");
         filtroEstadoMascota = new javax.swing.JComboBox<>(new String[]{"Todos", "Activos", "Inactivos"});
         filtroEstadoMascota.setSelectedItem("Activos");
         filtroEstadoMascota.addActionListener(e -> cargarDatosTablaMascota());
-        javax.swing.JPanel estado = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
-        estado.setOpaque(false);
-        estado.add(new javax.swing.JLabel("Estado:"), java.awt.BorderLayout.WEST);
-        estado.add(filtroEstadoMascota, java.awt.BorderLayout.CENTER);
-        filtros.add(estado, java.awt.BorderLayout.EAST);
-
-        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(10, 0));
-        superior.setOpaque(false);
-        superior.add(filtros, java.awt.BorderLayout.CENTER);
-        superior.add(btnNuevo, java.awt.BorderLayout.EAST);
+        superior.add(new javax.swing.JLabel("Estado:"));
+        superior.add(filtroEstadoMascota, "h 34!");
+        superior.add(btnNuevo, "h 34!");
         panelBotones.add(superior, java.awt.BorderLayout.NORTH);
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
-        acciones.setOpaque(false);
+        javax.swing.JPanel acciones = veterinaria.util.ui.EstiloHibrido.filaAcciones();
         cancelarSeleccionMascota = new javax.swing.JButton("Cancelar");
         cancelarSeleccionMascota.addActionListener(e -> {
             for (int fila = 0; fila < tableMascotas.getRowCount(); fila++) {
@@ -1047,13 +1045,24 @@ public class FormMascota extends javax.swing.JPanel {
         cambiarDuenoMascota = new javax.swing.JButton("Cambiar dueño");
         cambiarDuenoMascota.addActionListener(e -> mostrarTransferenciaMascota());
         btnNuevo.setText("Nuevo paciente");
-        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnNuevo);
+        btnImprimir.setText("Imprimir ficha");
+        btnImprimirLista.setText("Imprimir listado");
+        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnNuevo, btnGuardar);
         veterinaria.util.ui.EstiloHibrido.botonesSecundarios(
-                btnEditar, verInfoMascota, cambiarDuenoMascota, btnImprimir, btnImprimirLista);
-        veterinaria.util.ui.EstiloHibrido.botonesSutiles(cancelarSeleccionMascota);
+                btnEditar, verInfoMascota, cambiarDuenoMascota, btnImprimir, btnImprimirLista, btnCancelar);
+        veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+        veterinaria.util.ui.EstiloHibrido.botonesSutiles(cancelarSeleccionMascota, limpiarBusqueda, btnLimpiar);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("nuevo_usuario.svg", btnNuevo);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("editar_usuario.svg", btnEditar);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("desactivar_usuario.svg", btnEliminar);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("ver_recibo.svg", verInfoMascota);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("imprimir_recibo.svg", btnImprimir, btnImprimirLista);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("limpiar_usuario.svg", limpiarBusqueda, btnLimpiar);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("cancelar_usuario.svg", btnCancelar, cancelarSeleccionMascota);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("guardar_usuario.svg", btnGuardar);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
                 btnEditar, btnEliminar, verInfoMascota, cambiarDuenoMascota,
-                cancelarSeleccionMascota, btnImprimir}) {
+                cancelarSeleccionMascota, btnImprimir, btnImprimirLista}) {
             acciones.add(boton);
         }
         panelBotones.add(acciones, java.awt.BorderLayout.SOUTH);

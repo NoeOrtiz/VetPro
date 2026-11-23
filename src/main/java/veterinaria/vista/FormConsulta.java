@@ -197,8 +197,7 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
             return;
         }
 
-        jpListaVisitas.setVisible(false);
-        jpDatos.setVisible(true);
+        mostrarSoloFormulario();
 
         // Modo solo lectura
         btnNuevo.setEnabled(false);
@@ -640,8 +639,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         paginacionConsultas.activarBusquedaPorPrefijo();
         paginacionConsultas.establecerFiltroAdicional(this::coincideEstadoModelo);
         tablaPaginada.add(paginacionConsultas.getControles(), java.awt.BorderLayout.SOUTH);
-        txtBusqueda.setLayout(new java.awt.BorderLayout());
-        txtBusqueda.add(paginacionConsultas.getBotonLimpiar(), java.awt.BorderLayout.EAST);
         javax.swing.SwingUtilities.invokeLater(() -> paginacionConsultas.activarTamanoAdaptable());
 
         tableVisitas.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
@@ -700,7 +697,6 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         btnVerInfo.addActionListener(e -> mostrarInformacionConsulta());
         btnVerInfo.setEnabled(false);
         btnQuitarSeleccion = new javax.swing.JButton("×");
-        btnQuitarSeleccion.setPreferredSize(new java.awt.Dimension(32, 28));
         btnQuitarSeleccion.setToolTipText("Desmarca la consulta sin modificar su estado.");
         btnQuitarSeleccion.setEnabled(false);
         btnQuitarSeleccion.addActionListener(e -> {
@@ -724,86 +720,64 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         titulo.add(resumenCola, java.awt.BorderLayout.EAST);
         titulo.add(jSeparator1, java.awt.BorderLayout.SOUTH);
         jpHeader.add(titulo, java.awt.BorderLayout.NORTH);
-        javax.swing.JPanel herramientas = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        javax.swing.JPanel herramientas = new javax.swing.JPanel(new java.awt.BorderLayout(0, 8));
         herramientasConsultas = herramientas;
         herramientas.setOpaque(false);
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0));
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new net.miginfocom.swing.MigLayout(
+                "insets 0, gap 8, fillx, hidemode 3", "[][grow,fill][][][][]", "[34!]"));
         filtros.setOpaque(false);
-        javax.swing.JPanel buscar = new javax.swing.JPanel(new java.awt.BorderLayout(6, 4));
-        buscar.setOpaque(false);
-        buscar.add(lbUsuarioBusqueda, java.awt.BorderLayout.NORTH);
-        javax.swing.JPanel cajaBuscar = new javax.swing.JPanel(new java.awt.BorderLayout(6, 0));
-        cajaBuscar.setOpaque(false);
-        cajaBuscar.add(lbBuscar, java.awt.BorderLayout.WEST);
-        txtBusqueda.setPreferredSize(new java.awt.Dimension(230, 28));
-        cajaBuscar.add(txtBusqueda, java.awt.BorderLayout.CENTER);
-        buscar.add(cajaBuscar, java.awt.BorderLayout.CENTER);
-        filtros.add(buscar);
-        javax.swing.JPanel estado = new javax.swing.JPanel(new java.awt.BorderLayout(0, 4));
-        estado.setOpaque(false);
-        estado.add(lbEstadoFiltro, java.awt.BorderLayout.NORTH);
-        jcbEstadoFiltro.setPreferredSize(new java.awt.Dimension(140, 28));
+        lbUsuarioBusqueda.setText("Buscar consulta:");
+        filtros.add(lbUsuarioBusqueda);
+        txtBusqueda.putClientProperty(com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
+                "Paciente, cliente o veterinario");
+        filtros.add(txtBusqueda, "h 34!");
+        javax.swing.JButton limpiarBusqueda = new javax.swing.JButton("Limpiar");
+        limpiarBusqueda.addActionListener(e -> paginacionConsultas.limpiarBusqueda());
+        filtros.add(limpiarBusqueda, "h 34!");
+        filtros.add(lbEstadoFiltro);
+        filtros.add(jcbEstadoFiltro, "h 34!");
+        btnNuevo.setText("Nueva consulta");
+        filtros.add(btnNuevo, "h 34!");
+        herramientas.add(filtros, java.awt.BorderLayout.NORTH);
+
         resumenCola.setToolTipText("Pacientes en espera de atención y actualmente atendidos");
-        // Botón legible incluso cuando la carga del recurso SVG falla.
         btnActualizarConsultas = new javax.swing.JButton("Actualizar");
-        btnActualizarConsultas.setPreferredSize(new java.awt.Dimension(88, 28));
         btnActualizarConsultas.setFocusable(false);
         btnActualizarConsultas.setToolTipText("Actualizar consultas");
         btnActualizarConsultas.getAccessibleContext().setAccessibleName("Actualizar consultas");
         btnActualizarConsultas.addActionListener(e -> comprobarActualizaciones(true));
-        // Estado queda limpio; actualizar y limpiar selección corresponden a la lista.
-        estado.add(jcbEstadoFiltro, java.awt.BorderLayout.CENTER);
-        filtros.add(estado);
-        herramientas.add(filtros, java.awt.BorderLayout.WEST);
+        btnQuitarSeleccion.setText("");
+        btnQuitarSeleccion.getAccessibleContext().setAccessibleName("Quitar selección");
+        btnImprimirListaVisitas.setText("Imprimir listado");
 
-        // Cabecera y tabla comparten un único contenedor: NO reemplazar
-        // componentes del GroupLayout generado (provoca huecos verticales).
+        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnNuevo, btnLlamarSiguiente);
+        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnEditar, btnRetomarAtencion,
+                btnVerInfo, btnImprimirVisita, btnImprimirListaVisitas, btnActualizarConsultas);
+        veterinaria.util.ui.EstiloHibrido.botonesPeligro(btnEliminar);
+        veterinaria.util.ui.EstiloHibrido.botonesSutiles(limpiarBusqueda, btnQuitarSeleccion);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("nuevo_usuario.svg", btnNuevo);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("editar_usuario.svg", btnEditar);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("ver_recibo.svg", btnVerInfo);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("cancelar_usuario.svg", btnEliminar, btnQuitarSeleccion);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("imprimir_recibo.svg", btnImprimirVisita, btnImprimirListaVisitas);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("actualizar.svg", btnActualizarConsultas);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("limpiar_usuario.svg", limpiarBusqueda);
+
+        javax.swing.JPanel acciones = veterinaria.util.ui.EstiloHibrido.filaAcciones();
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnActualizarConsultas, btnQuitarSeleccion, btnLlamarSiguiente,
+                btnRetomarAtencion, btnEditar, btnVerInfo, btnEliminar, btnImprimirVisita,
+                btnImprimirListaVisitas}) {
+            acciones.add(boton);
+        }
+        herramientas.add(acciones, java.awt.BorderLayout.SOUTH);
+
         jpListaVisitas.removeAll();
-        jpListaVisitas.setLayout(new java.awt.BorderLayout(0, 6));
-        javax.swing.JPanel cabeceraLista = new javax.swing.JPanel(new java.awt.BorderLayout(0, 5));
-        cabeceraLista.setOpaque(false);
-        javax.swing.JPanel accionesLista = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0));
-        accionesLista.setOpaque(false);
-        accionesLista.add(lbListaDeVisitas);
-        accionesLista.add(btnActualizarConsultas);
-        accionesLista.add(btnQuitarSeleccion);
-        cabeceraLista.add(accionesLista, java.awt.BorderLayout.WEST);
-        cabeceraLista.add(btnImprimirListaVisitas, java.awt.BorderLayout.EAST);
-        cabeceraLista.add(jSeparator6, java.awt.BorderLayout.SOUTH);
-        cabeceraLista.setBorder(javax.swing.BorderFactory.createEmptyBorder(4, 10, 0, 10));
-        jpListaVisitas.add(cabeceraLista, java.awt.BorderLayout.NORTH);
-        // Mantener el contenedor paginado: incluye la tabla y los controles inferiores.
-        // Agregar directamente scroll1 lo desprendía de tablaPaginada y ocultaba la paginación.
+        jpListaVisitas.setLayout(new java.awt.BorderLayout());
         tablaPaginada.setOpaque(false);
         jpListaVisitas.add(tablaPaginada, java.awt.BorderLayout.CENTER);
-        jpListaVisitas.revalidate();
-        jpListaVisitas.repaint();
-
-        // Dos filas por función: evita controles encimados en ventanas reducidas.
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridLayout(2, 1, 0, 4));
-        acciones.setOpaque(false);
-        javax.swing.JPanel accionesRecepcion = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
-        accionesRecepcion.setOpaque(false);
-        accionesRecepcion.add(btnNuevo);
-        accionesRecepcion.add(btnVerInfo);
-        accionesRecepcion.add(btnEliminar);
-        accionesRecepcion.add(btnImprimirVisita);
-        javax.swing.JPanel accionesClinicas = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 6, 0));
-        accionesClinicas.setOpaque(false);
-        accionesClinicas.add(btnLlamarSiguiente);
-        accionesClinicas.add(btnRetomarAtencion);
-        accionesClinicas.add(btnEditar);
-        // Finalización disponible desde la ficha clínica; no duplicar la acción en la barra.
-        acciones.add(accionesRecepcion);
-        acciones.add(accionesClinicas);
-        herramientas.add(acciones, java.awt.BorderLayout.EAST);
         jpHeader.add(herramientas, java.awt.BorderLayout.CENTER);
         jpHeader.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 12, 8, 12));
-        jpHeader.revalidate();
-        jpHeader.repaint();
 
         configurarFormularioAmplio();
 
@@ -946,25 +920,23 @@ public class FormConsulta extends javax.swing.JPanel implements HistoriaEventoAb
         // Al registrarse una consulta aún no corresponde completar evolución.
         jScrollPane1.setFocusable(false);
 
-        javax.swing.JPanel botones = new javax.swing.JPanel(
-                new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
-        botones.setOpaque(false);
-        btnGuardar.setPreferredSize(new java.awt.Dimension(153, 30));
+        javax.swing.JPanel botones = veterinaria.util.ui.EstiloHibrido.filaAcciones();
         btnGuardarEnObservacion = new javax.swing.JButton("Dejar en observación");
         btnGuardarEnObservacion.setToolTipText("Guarda el avance, mantiene abierta la consulta y permite atender otro paciente.");
-        btnGuardarEnObservacion.setPreferredSize(new java.awt.Dimension(155, 30));
         btnGuardarEnObservacion.addActionListener(e -> guardarAtencion(false, true));
         btnFinalizarDesdeFicha = new javax.swing.JButton("Guardar y finalizar");
-        btnFinalizarDesdeFicha.setPreferredSize(new java.awt.Dimension(155, 30));
         btnFinalizarDesdeFicha.setToolTipText("Guarda diagnóstico y evolución, y cierra definitivamente la consulta.");
         btnFinalizarDesdeFicha.addActionListener(e -> guardarAtencion(true));
-        btnCancelar.setPreferredSize(new java.awt.Dimension(95, 30));
-        btnLimpiar.setPreferredSize(new java.awt.Dimension(83, 30));
-        botones.add(btnGuardar);
-        botones.add(btnGuardarEnObservacion);
-        botones.add(btnFinalizarDesdeFicha);
-        botones.add(btnCancelar);
-        botones.add(btnLimpiar);
+        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnGuardar, btnFinalizarDesdeFicha);
+        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(btnGuardarEnObservacion, btnCancelar);
+        veterinaria.util.ui.EstiloHibrido.botonesSutiles(btnLimpiar);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("guardar_usuario.svg", btnGuardar, btnFinalizarDesdeFicha);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("limpiar_usuario.svg", btnLimpiar);
+        veterinaria.util.ui.EstiloHibrido.iconosBoton("cancelar_usuario.svg", btnCancelar);
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnLimpiar, btnCancelar, btnGuardarEnObservacion, btnGuardar, btnFinalizarDesdeFicha}) {
+            botones.add(boton);
+        }
         jpDatos.add(botones, java.awt.BorderLayout.SOUTH);
         jpDatos.revalidate();
     }
