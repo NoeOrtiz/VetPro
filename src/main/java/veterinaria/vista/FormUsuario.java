@@ -21,6 +21,8 @@ import veterinaria.persistencia.UsuarioRolDAO;
 import veterinaria.util.ManejoTablas;
 import veterinaria.util.Validaciones;
 import veterinaria.vista.application.Application;
+import veterinaria.vista.application.form.FichaUsuarioDialog;
+import veterinaria.vista.table.TableGradientCell;
 import veterinaria.util.PermisoUI;
 import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteService;
@@ -885,10 +887,8 @@ public class FormUsuario extends javax.swing.JPanel {
         configurarTamanoAccion(btnLimpiarBusqueda, 82);
         // Conserva columnas, casillas, filtros, paginación y badges.
         veterinaria.util.ui.EstiloHibrido.tablaClientes(table, 9);
-        // Selección sobria y lisa solo para Gestión de usuarios.
-        // No se modifica el estilo de las demás tablas de VetPRO.
+        // Usa el degradado discreto de VetPRO en todas las columnas.
         table.putClientProperty("vetpro.gradienteCompanero", Boolean.FALSE);
-        table.putClientProperty("vetpro.seleccionPlanaUsuarios", Boolean.TRUE);
     }
 
     /**
@@ -928,14 +928,13 @@ public class FormUsuario extends javax.swing.JPanel {
         }
         columnas.getColumn(0).setCellRenderer(
                 new veterinaria.vista.table.TableGradientCheckBoxRenderer());
-        javax.swing.table.TableCellRenderer original =
-                table.getDefaultRenderer(Object.class);
+        TableGradientCell rendererNombre = new TableGradientCell();
         columnas.getColumn(1).setCellRenderer((tabla, value, selected, focus, row, column) -> {
             int filaModelo = tabla.convertRowIndexToModel(row);
             Object apellido = tabla.getModel().getValueAt(filaModelo, 2);
             String nombreCompleto = String.valueOf(value == null ? "" : value)
                     + " " + String.valueOf(apellido == null ? "" : apellido);
-            return original.getTableCellRendererComponent(
+            return rendererNombre.getTableCellRendererComponent(
                     tabla, nombreCompleto.trim(), selected, focus, row, column);
         });
         table.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
@@ -984,20 +983,17 @@ public class FormUsuario extends javax.swing.JPanel {
     private void mostrarFichaUsuarioSeleccionado() {
         int fila = operarTablas.comprobarElementoSeleccionado(table);
         if (fila < 0) return;
-        String[] campos = {"Nombre", "Apellido", "DNI", "Teléfono",
-                "Dirección", "Rol", "Usuario", "E-mail", "Estado"};
-        javax.swing.JPanel ficha = new javax.swing.JPanel(
-                new java.awt.GridLayout(campos.length, 2, 12, 7));
-        ficha.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        for (int i = 0; i < campos.length; i++) {
-            javax.swing.JLabel label = new javax.swing.JLabel(campos[i] + ":");
-            label.setFont(label.getFont().deriveFont(java.awt.Font.BOLD));
-            ficha.add(label);
-            Object valor = datoUsuario(fila, i + 1);
-            ficha.add(new javax.swing.JLabel(valor == null ? "—" : String.valueOf(valor)));
-        }
-        JOptionPane.showMessageDialog(this, ficha, "Ficha de usuario",
-                JOptionPane.INFORMATION_MESSAGE);
+        FichaUsuarioDialog.Datos datos = new FichaUsuarioDialog.Datos(
+                textoFichaUsuario(fila, 1), textoFichaUsuario(fila, 2),
+                textoFichaUsuario(fila, 3), textoFichaUsuario(fila, 4),
+                textoFichaUsuario(fila, 5), textoFichaUsuario(fila, 6),
+                textoFichaUsuario(fila, 7), textoFichaUsuario(fila, 8),
+                textoFichaUsuario(fila, 9));
+        new FichaUsuarioDialog(SwingUtilities.getWindowAncestor(this), datos).setVisible(true);
+    }
+
+    private String textoFichaUsuario(int fila, int columna) {
+        return java.util.Objects.toString(datoUsuario(fila, columna), "").trim();
     }
 
     private void instalarPaginacionCompartida() {

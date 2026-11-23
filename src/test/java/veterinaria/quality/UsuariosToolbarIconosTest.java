@@ -53,7 +53,7 @@ class UsuariosToolbarIconosTest {
         assertTrue(s.contains("FlatClientProperties.PLACEHOLDER_TEXT, \"Buscá por usuario o rol.\""));
         assertTrue(s.contains("paginacionCompartida.limpiarBusqueda()"));
         assertTrue(s.contains("new veterinaria.vista.table.TableGradientCheckBoxRenderer()"));
-        assertTrue(s.contains("table.putClientProperty(\"vetpro.seleccionPlanaUsuarios\", Boolean.TRUE)"));
+        assertTrue(s.contains("rendererNombre.getTableCellRendererComponent("));
         assertTrue(s.contains("table.getColumnModel().getColumn(0).setCellRenderer("));
     }
 
