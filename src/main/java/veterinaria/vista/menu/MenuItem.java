@@ -133,9 +133,7 @@ public class MenuItem extends JPanel {
             menuItem.setHorizontalAlignment(menuItem.getComponentOrientation().isLeftToRight() ? JButton.LEADING : JButton.TRAILING);
             if (i == 0) {
                 menuItem.setIcon(getIcon(false));
-                if ("CLIENTE".equalsIgnoreCase(menus[0])) {
-                    menuItem.setSelectedIcon(getIcon(true));
-                }
+                menuItem.setSelectedIcon(getIcon(true));
                 menuItem.addActionListener((ActionEvent e) -> {
                     if (menus.length > 1) {
                         if (menu.isMenuFull()) {
