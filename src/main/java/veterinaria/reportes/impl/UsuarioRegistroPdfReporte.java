@@ -24,6 +24,16 @@ public class UsuarioRegistroPdfReporte extends AbstractPdfReporte {
     }
 
     @Override
+    protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
+        renderHeaderConLogo(pdf, 90f, 90f);
+    }
+
+    @Override
+    protected boolean mostrarFechaEnPie() {
+        return false;
+    }
+
+    @Override
     protected void validar(ReporteRequest request) throws Exception {
         Usuario usuario = request.get("usuario", Usuario.class);
         if (usuario == null) throw new Exception("Usuario no proporcionado.");
