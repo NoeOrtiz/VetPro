@@ -1035,7 +1035,7 @@ public class FormUsuario extends javax.swing.JPanel {
             }
         });
         jcbRol.setEnabled(false);
-        txtUsuario.setEditable(false);
+        txtUsuario.setEnabled(false);
         habilitarDatosDeCuenta(false);
 
         // En Usuarios el botón debe responder en el mismo ciclo EDT.
@@ -1500,7 +1500,7 @@ public class FormUsuario extends javax.swing.JPanel {
         btnNuevo.setEnabled(false);
         btnEditar.setEnabled(false);
         btnEliminar.setEnabled(false);
-        SwingUtilities.invokeLater(txtUsuario::requestFocusInWindow);
+        SwingUtilities.invokeLater(txtNombre::requestFocusInWindow);
     }//GEN-LAST:event_btnNuevoActionPerformed
 
     private void btnGuardarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGuardarActionPerformed
