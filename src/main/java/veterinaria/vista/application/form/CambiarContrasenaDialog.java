@@ -36,19 +36,18 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);
         setLayout(new MigLayout("fillx, wrap 1, insets 22 24 20 24, gapy 0",
-                "[380lp,grow,fill]"));
+                "[360lp,grow]"));
 
         JLabel titulo = new JLabel("Creá tu contraseña personal");
         titulo.putClientProperty(FlatClientProperties.STYLE, "font:$h1.font");
         add(titulo, "gapbottom 6lp");
 
-        JLabel info = new JLabel("<html>Solicitá el código que enviaremos al correo de tu cuenta.<br>"
-                + "Ingresalo para verificar tu identidad y continuar.</html>");
+        JLabel info = new JLabel("Solicitá el código de verificación por correo.");
         add(info, "gapbottom 12lp");
 
         EstiloHibrido.botonesSecundarios(btnEnviarCodigo);
         btnEnviarCodigo.addActionListener(e -> enviarCodigo());
-        add(btnEnviarCodigo, "align right, h 36lp!, gapbottom 14lp");
+        add(btnEnviarCodigo, "align right, wmin 120lp, h 34lp!, gapbottom 12lp");
 
         txtCodigo.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Código recibido por correo");
         agregarCampo("Código de verificación (6 dígitos)", txtCodigo);
@@ -57,8 +56,7 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
         agregarCampo("Nueva contraseña", txtNuevaPass);
         agregarCampo("Confirmar contraseña", txtConfirmarPass);
 
-        JLabel advertencia = new JLabel("<html>El código vence a los 10 minutos.<br>"
-                + "Completá la verificación para ingresar al sistema.</html>");
+        JLabel advertencia = new JLabel("El código vence a los 10 minutos.");
         advertencia.putClientProperty(FlatClientProperties.STYLE_CLASS, "ayuda");
         add(advertencia, "gapbottom 16lp");
 
@@ -75,7 +73,7 @@ public class CambiarContrasenaDialog extends javax.swing.JDialog {
         JLabel etiqueta = new JLabel(titulo);
         etiqueta.setLabelFor(campo);
         add(etiqueta, "gapbottom 5lp");
-        add(campo, "h 36lp!, gapbottom 12lp");
+        add(campo, "growx, h 34lp!, gapbottom 10lp");
     }
 
     private void enviarCodigo() {
