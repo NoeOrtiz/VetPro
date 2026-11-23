@@ -48,8 +48,7 @@ public class FormLogin extends javax.swing.JPanel {
 
                 if (usuarioLogueado != null && usuarioLogueado.isPrimerLogin()) {
                     JOptionPane.showMessageDialog(this,
-                            "Debe establecer una contraseña personal para continuar.\n"
-                            + "Esto es obligatorio en el primer ingreso y después de un restablecimiento administrativo.",
+                            "Creá tu contraseña personal para continuar.",
                             "Cambio obligatorio de contraseña",
                             JOptionPane.INFORMATION_MESSAGE);
 
