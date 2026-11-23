@@ -1006,37 +1006,31 @@ public class FormMascota extends javax.swing.JPanel {
     private javax.swing.JComboBox<String> filtroEstadoMascota;
 
     private void configurarBarraAccionesMascota() {
-        // Conservar los controles y el estilo FlatLaf; distribuirlos en una sola fila.
         panelBotones.removeAll();
-        panelBotones.setLayout(new java.awt.BorderLayout(4, 0));
+        panelBotones.setLayout(new java.awt.BorderLayout(0, 8));
 
         // Filtros en la misma grilla: etiquetas y controles alineados como Clientes.
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
         filtros.setOpaque(false);
-        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-        c.anchor = java.awt.GridBagConstraints.WEST;
-        c.insets = new java.awt.Insets(0, 0, 6, 8);
-        c.gridx = 0; c.gridy = 0;
-        filtros.add(lbUsuarioBusqueda, c);
-        c.gridx = 1;
-        filtros.add(new javax.swing.JLabel("Estado:"), c);
-        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.BorderLayout(7, 0));
-        busqueda.setOpaque(false);
-        busqueda.add(lbBuscar, java.awt.BorderLayout.WEST);
-        busqueda.add(txtBusqueda, java.awt.BorderLayout.CENTER);
-        busqueda.setPreferredSize(new java.awt.Dimension(280, 28));
-        c.gridx = 0; c.gridy = 1;
-        c.insets = new java.awt.Insets(0, 0, 0, 8);
-        filtros.add(busqueda, c);
+        lbUsuarioBusqueda.setText("Buscar paciente:");
+        filtros.add(lbUsuarioBusqueda, java.awt.BorderLayout.WEST);
+        filtros.add(txtBusqueda, java.awt.BorderLayout.CENTER);
         filtroEstadoMascota = new javax.swing.JComboBox<>(new String[]{"Todos", "Activos", "Inactivos"});
         filtroEstadoMascota.setSelectedItem("Activos");
-        filtroEstadoMascota.setPreferredSize(new java.awt.Dimension(135, 28));
         filtroEstadoMascota.addActionListener(e -> cargarDatosTablaMascota());
-        c.gridx = 1;
-        filtros.add(filtroEstadoMascota, c);
-        panelBotones.add(filtros, java.awt.BorderLayout.WEST);
+        javax.swing.JPanel estado = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
+        estado.setOpaque(false);
+        estado.add(new javax.swing.JLabel("Estado:"), java.awt.BorderLayout.WEST);
+        estado.add(filtroEstadoMascota, java.awt.BorderLayout.CENTER);
+        filtros.add(estado, java.awt.BorderLayout.EAST);
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(10, 0));
+        superior.setOpaque(false);
+        superior.add(filtros, java.awt.BorderLayout.CENTER);
+        superior.add(btnNuevo, java.awt.BorderLayout.EAST);
+        panelBotones.add(superior, java.awt.BorderLayout.NORTH);
+
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         acciones.setOpaque(false);
         cancelarSeleccionMascota = new javax.swing.JButton("Cancelar");
         cancelarSeleccionMascota.addActionListener(e -> {
@@ -1052,23 +1046,17 @@ public class FormMascota extends javax.swing.JPanel {
         verInfoMascota.addActionListener(e -> mostrarInfoMascota());
         cambiarDuenoMascota = new javax.swing.JButton("Cambiar dueño");
         cambiarDuenoMascota.addActionListener(e -> mostrarTransferenciaMascota());
-        java.awt.GridBagConstraints ac = new java.awt.GridBagConstraints();
-        ac.insets = new java.awt.Insets(0, 2, 0, 2);
-        ac.gridy = 1;
-        int columna = 0;
+        btnNuevo.setText("Nuevo paciente");
+        veterinaria.util.ui.EstiloHibrido.botonesPrimarios(btnNuevo);
+        veterinaria.util.ui.EstiloHibrido.botonesSecundarios(
+                btnEditar, verInfoMascota, cambiarDuenoMascota, btnImprimir, btnImprimirLista);
+        veterinaria.util.ui.EstiloHibrido.botonesSutiles(cancelarSeleccionMascota);
         for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnEliminar, verInfoMascota, cambiarDuenoMascota, cancelarSeleccionMascota}) {
-            boton.setPreferredSize(new java.awt.Dimension(boton == cambiarDuenoMascota ? 110 : 78, 28));
-            ac.gridx = columna++;
-            acciones.add(boton, ac);
+                btnEditar, btnEliminar, verInfoMascota, cambiarDuenoMascota,
+                cancelarSeleccionMascota, btnImprimir}) {
+            acciones.add(boton);
         }
-        ac.gridx = 5;
-        ac.gridy = 0;
-        ac.anchor = java.awt.GridBagConstraints.EAST;
-        btnImprimir.setPreferredSize(new java.awt.Dimension(83, 28));
-        acciones.add(btnImprimir, ac);
-        panelBotones.add(acciones, java.awt.BorderLayout.EAST);
-        panelBotones.setMinimumSize(new java.awt.Dimension(0, 78));
+        panelBotones.add(acciones, java.awt.BorderLayout.SOUTH);
         panelBotones.revalidate();
         panelBotones.repaint();
     }
@@ -1097,7 +1085,6 @@ public class FormMascota extends javax.swing.JPanel {
                     (esAdministradorMascota()
                         ? (fallecimiento ? "Rectificar baja" : "Reactivar")
                         : (fallecimiento ? "Solicitar rectificación" : "Solicitar reactivación")));
-            btnEliminar.setPreferredSize(new java.awt.Dimension(activo ? 78 : 152, 28));
             btnEliminar.setVisible(!activo || (esAdministradorMascota()
                     && sesion != null && sesion.puede("FormMascota.ELIMINAR")));
         }

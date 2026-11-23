@@ -126,41 +126,29 @@ public class FormCliente extends javax.swing.JPanel {
         titulo.add(jSeparator1, java.awt.BorderLayout.SOUTH);
         panelBotones.add(titulo, java.awt.BorderLayout.NORTH);
 
-        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(12, 0));
+        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(0, 8));
         contenido.setOpaque(false);
-        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        javax.swing.JPanel filtros = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
         filtros.setOpaque(false);
-        java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
-        c.anchor = java.awt.GridBagConstraints.WEST;
-        c.insets = new java.awt.Insets(0, 0, 6, 8);
-        c.gridx = 0; c.gridy = 0;
-        filtros.add(lbUsuarioBusqueda, c);
-        c.gridx = 1;
-        filtros.add(lbEstado1, c);
-        javax.swing.JPanel busqueda = new javax.swing.JPanel(new java.awt.BorderLayout(7, 0));
-        busqueda.setOpaque(false);
-        busqueda.add(lbBuscar, java.awt.BorderLayout.WEST);
-        busqueda.add(txtBusqueda, java.awt.BorderLayout.CENTER);
-        busqueda.setPreferredSize(new java.awt.Dimension(285, 30));
-        c.gridx = 0; c.gridy = 1; c.insets = new java.awt.Insets(0, 0, 0, 8);
-        filtros.add(busqueda, c);
-        jcbEstadoCliente.setPreferredSize(new java.awt.Dimension(140, 28));
-        c.gridx = 1;
-        filtros.add(jcbEstadoCliente, c);
-        contenido.add(filtros, java.awt.BorderLayout.WEST);
+        lbUsuarioBusqueda.setText("Buscar cliente:");
+        filtros.add(lbUsuarioBusqueda, java.awt.BorderLayout.WEST);
+        filtros.add(txtBusqueda, java.awt.BorderLayout.CENTER);
+        javax.swing.JPanel estado = new javax.swing.JPanel(new java.awt.BorderLayout(8, 0));
+        estado.setOpaque(false);
+        estado.add(lbEstado1, java.awt.BorderLayout.WEST);
+        estado.add(jcbEstadoCliente, java.awt.BorderLayout.CENTER);
+        filtros.add(estado, java.awt.BorderLayout.EAST);
 
-        javax.swing.JPanel acciones = new javax.swing.JPanel();
-        acciones.setOpaque(false);
-        acciones.setLayout(new javax.swing.BoxLayout(acciones, javax.swing.BoxLayout.Y_AXIS));
-        btnImprimir.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
-        acciones.add(btnImprimir);
-        acciones.add(javax.swing.Box.createVerticalStrut(8));
+        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(10, 0));
+        superior.setOpaque(false);
+        superior.add(filtros, java.awt.BorderLayout.CENTER);
+        superior.add(btnNuevo, java.awt.BorderLayout.EAST);
+        contenido.add(superior, java.awt.BorderLayout.NORTH);
+
         javax.swing.JPanel fila = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 8, 0));
         fila.setOpaque(false);
-        for (javax.swing.JButton boton : new javax.swing.JButton[]{btnNuevo, btnEditar, btnEliminar}) {
-            boton.setPreferredSize(new java.awt.Dimension(90, 28));
-            fila.add(boton);
-        }
+        fila.add(btnEditar);
+        fila.add(btnEliminar);
         btnEliminar.setText("Desactivar");
         btnVerInfo.setToolTipText("Consultar la ficha completa y las mascotas del cliente");
         btnVerInfo.addActionListener(e -> mostrarInfoCliente());
@@ -168,9 +156,8 @@ public class FormCliente extends javax.swing.JPanel {
         btnCancelarSeleccion.setToolTipText("Desmarcar el cliente seleccionado");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionCliente());
         fila.add(btnCancelarSeleccion);
-        fila.setAlignmentX(java.awt.Component.RIGHT_ALIGNMENT);
-        acciones.add(fila);
-        contenido.add(acciones, java.awt.BorderLayout.EAST);
+        fila.add(btnImprimir);
+        contenido.add(fila, java.awt.BorderLayout.SOUTH);
         panelBotones.add(contenido, java.awt.BorderLayout.CENTER);
         panelBotones.add(jSeparator2, java.awt.BorderLayout.SOUTH);
         panelBotones.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 8, 0, 8));
@@ -196,16 +183,7 @@ public class FormCliente extends javax.swing.JPanel {
         txtBusqueda.putClientProperty(
                 com.formdev.flatlaf.FlatClientProperties.PLACEHOLDER_TEXT,
                 "Nombre, apellido o DNI");
-        for (javax.swing.JButton boton : new javax.swing.JButton[]{
-                btnNuevo, btnEditar, btnEliminar, btnImprimirLista, btnVerInfo,
-                btnImprimir, btnGuardar}) {
-            java.awt.Dimension tam = boton.getPreferredSize();
-            if (tam != null) {
-                boton.setPreferredSize(new java.awt.Dimension(
-                        Math.max(tam.width, boton == btnNuevo ? 118 : 96),
-                        Math.max(tam.height, 32)));
-            }
-        }
+
     }
 
     /** Respeta roles y permisos aun cuando se selecciona una fila. */
