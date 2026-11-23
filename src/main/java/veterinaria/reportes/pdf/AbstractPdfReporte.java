@@ -85,10 +85,16 @@ public abstract class AbstractPdfReporte implements Reporte {
     }
 
     protected final void renderHeaderConLogo(PdfDocument pdf, float ancho, float alto) throws Exception {
+        renderHeaderConLogo(pdf, ancho, alto, false);
+    }
+
+    protected final void renderHeaderConLogo(PdfDocument pdf, float ancho, float alto,
+            boolean compacto) throws Exception {
         float top = pdf.getY();
         float m = pdf.getMargin();
         float right = pdf.getPageW() - m;
-        renderLogo(pdf, m, top - alto, ancho, alto);
+        float baseLogo = top - alto + (compacto ? 10f : 0f);
+        renderLogo(pdf, m, baseLogo, ancho, alto);
         float tx = m + ancho + 15f;
         float extraAlto = alto - 60f;
         top -= extraAlto / 2f;
@@ -103,13 +109,22 @@ public abstract class AbstractPdfReporte implements Reporte {
                 "Itaembé Guazú - Sistema de gestión VetPRO", PdfStyle.MUTED);
         String ts = new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date());
         String label = "FECHA DE EMISIÓN";
-        pdf.text(PdfStyle.TXT_BOLD_FONT, 7,
-                right - pdf.textWidth(PdfStyle.TXT_BOLD_FONT, 7, label),
+        float anchoEtiqueta = pdf.textWidth(PdfStyle.TXT_BOLD_FONT, 7, label);
+        float anchoFecha = pdf.textWidth(PdfStyle.TXT_BOLD_FONT, 10, ts);
+        float anchoBloqueFecha = Math.max(anchoEtiqueta, anchoFecha);
+        float xEtiqueta = right - anchoEtiqueta;
+        float xFecha = right - anchoFecha;
+        if (compacto) {
+            xEtiqueta -= (anchoBloqueFecha - anchoEtiqueta) / 2f;
+            xFecha -= (anchoBloqueFecha - anchoFecha) / 2f;
+        }
+        pdf.text(PdfStyle.TXT_BOLD_FONT, 7, xEtiqueta,
                 top - 14f, label, PdfStyle.MUTED);
-        pdf.text(PdfStyle.TXT_BOLD_FONT, 10,
-                right - pdf.textWidth(PdfStyle.TXT_BOLD_FONT, 10, ts),
+        pdf.text(PdfStyle.TXT_BOLD_FONT, 10, xFecha,
                 top - 32f, ts, PdfStyle.INK);
-        float linea = top - 71f - extraAlto / 2f;
+        // El logo tiene margen transparente inferior. En la ficha, la línea
+        // se acerca a la parte visible y queda debajo del texto.
+        float linea = compacto ? baseLogo + alto * 0.14f : top - 71f - extraAlto / 2f;
         pdf.hline(m, right, linea, PdfStyle.ACCENT, 1.5f);
         pdf.setY(linea - 22f);
     }

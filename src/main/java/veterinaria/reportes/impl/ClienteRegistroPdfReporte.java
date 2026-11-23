@@ -43,7 +43,7 @@ public class ClienteRegistroPdfReporte extends AbstractPdfReporte {
 
     @Override
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
-        renderHeaderConLogo(pdf, 90f, 90f);
+        renderHeaderConLogo(pdf, 110f, 110f, true);
     }
 
     @Override
