@@ -77,7 +77,8 @@ public class NotificationBell extends JPanel {
         boton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         boton.addActionListener(e -> {
             construirPopup();
-            popup.show(boton, boton.getWidth() - popup.getPreferredSize().width, boton.getHeight() + 8);
+            popup.show(boton, (boton.getWidth() - popup.getPreferredSize().width) / 2,
+                    boton.getHeight() + 8);
             refrescar();
         });
         add(boton, BorderLayout.CENTER);
@@ -134,14 +135,11 @@ public class NotificationBell extends JPanel {
         if (fondo == null) fondo = new Color(48, 62, 75);
         panel.setBackground(fondo);
         panel.setBorder(new EmptyBorder(12, 15, 12, 15));
-        panel.setPreferredSize(new Dimension(350, ultimos == null ? 100 :
-                (esAdmin() && solicitudesPendientes > 0 ? 205 : 155)));
         JLabel cabecera = new JLabel("Notificaciones");
         cabecera.setFont(cabecera.getFont().deriveFont(Font.BOLD, 16f));
         cabecera.setForeground(UIManager.getColor("Label.foreground"));
         cabecera.setAlignmentX(Component.LEFT_ALIGNMENT);
         panel.add(cabecera);
-        panel.add(Box.createVerticalStrut(12));
         if (ultimos == null) {
             agregarFila(panel, "Cargando notificaciones...", null);
         } else {
@@ -156,13 +154,14 @@ public class NotificationBell extends JPanel {
                     popup.setVisible(false);
                     abrirSolicitudes();
                 });
+                panel.add(Box.createVerticalStrut(12));
                 panel.add(solicitudes);
-                panel.add(Box.createVerticalStrut(10));
             }
             if (cantidad == 0)
                 agregarFila(panel, "Todo al día", "No hay alertas pendientes");
         }
         popup.add(panel);
+        if (popup.isVisible()) popup.pack();
         popup.revalidate();
         popup.repaint();
     }
@@ -241,6 +240,7 @@ public class NotificationBell extends JPanel {
     }
 
     private void agregarFila(JPanel panel, String titulo, String detalle) {
+        panel.add(Box.createVerticalStrut(12));
         JLabel nombre = new JLabel(titulo);
         nombre.setForeground(VERDE);
         nombre.setFont(nombre.getFont().deriveFont(Font.BOLD, 13f));
@@ -253,7 +253,6 @@ public class NotificationBell extends JPanel {
             panel.add(Box.createVerticalStrut(3));
             panel.add(descripcion);
         }
-        panel.add(Box.createVerticalStrut(12));
     }
 
     @Override
