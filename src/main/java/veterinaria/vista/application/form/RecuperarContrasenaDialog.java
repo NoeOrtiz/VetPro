@@ -4,9 +4,7 @@ import com.formdev.flatlaf.FlatClientProperties;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Window;
 import javax.swing.BorderFactory;
@@ -27,11 +25,9 @@ import net.miginfocom.swing.MigLayout;
 import veterinaria.servicio.RecuperacionClaveService;
 import veterinaria.util.EmailUtil;
 import veterinaria.util.Validaciones;
+import veterinaria.util.ui.EstiloHibrido;
 
 public class RecuperarContrasenaDialog extends JDialog {
-
-    private static final int ANCHO_MINIMO = 640;
-    private static final int ALTO_MINIMO = 640;
 
     private final RecuperacionClaveService recuperacionService = new RecuperacionClaveService();
     private final Validaciones validaciones = new Validaciones();
@@ -60,7 +56,7 @@ public class RecuperarContrasenaDialog extends JDialog {
 
     /** Se reutiliza el circuito de recuperación por código también desde Mi perfil. */
     public RecuperarContrasenaDialog(Window owner, String usuarioInicial, boolean desdePerfil) {
-        super(owner instanceof Frame ? (Frame) owner : null,
+        super(owner,
                 desdePerfil ? "Cambiar contraseña" : "Recuperar contraseña",
                 ModalityType.APPLICATION_MODAL);
         this.desdePerfil = desdePerfil;
@@ -71,8 +67,8 @@ public class RecuperarContrasenaDialog extends JDialog {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        JPanel panelPrincipal = new JPanel(new BorderLayout(0, 10));
-        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(20, 28, 18, 28));
+        JPanel panelPrincipal = new JPanel(new BorderLayout(0, 18));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(18, 26, 22, 26));
 
         // La cabecera debe conservar su altura natural: MigLayout con "filly"
         // estiraba las tres filas y separaba el logo, título y subtítulo.
@@ -84,7 +80,7 @@ public class RecuperarContrasenaDialog extends JDialog {
         JLabel lblLogo = new JLabel();
         try {
             ImageIcon iconoOriginal = new ImageIcon(getClass().getResource("/veterinaria/icon/png/login.png"));
-            Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+            Image imagenEscalada = iconoOriginal.getImage().getScaledInstance(78, 78, Image.SCALE_SMOOTH);
             lblLogo.setIcon(new ImageIcon(imagenEscalada));
         } catch (Exception e) {
             // Ignorar si falla la carga
@@ -93,14 +89,11 @@ public class RecuperarContrasenaDialog extends JDialog {
         JLabel lblTitulo = new JLabel("Restablecer acceso");
         lblTitulo.putClientProperty(FlatClientProperties.STYLE, "font:$h1.font");
 
-        lblAyuda = new JLabel("<html><div style='text-align: center;'>Complete los datos registrados para recibir un código de verificación en su correo.</div></html>");
+        lblAyuda = new JLabel("<html><div style='text-align: center;'>Completá tus datos para recibir un código de verificación<br>por correo.</div></html>");
         lblAyuda.putClientProperty(FlatClientProperties.STYLE, "foreground:lighten(@foreground,40%); font:$regular.font");
 
         lblLogo.setHorizontalAlignment(JLabel.CENTER);
         lblLogo.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
-        lblLogo.setPreferredSize(new Dimension(110, 105));
-        lblLogo.setMinimumSize(new Dimension(110, 105));
-        lblLogo.setMaximumSize(new Dimension(110, 105));
 
         lblTitulo.setHorizontalAlignment(JLabel.CENTER);
         lblTitulo.setAlignmentX(java.awt.Component.CENTER_ALIGNMENT);
@@ -116,12 +109,9 @@ public class RecuperarContrasenaDialog extends JDialog {
         panelCabecera.add(javax.swing.Box.createVerticalStrut(4));
         panelCabecera.add(lblAyuda);
 
-        // Alineación superior real: sin llenar la altura sobrante con filas
-        // distribuidas verticalmente ni introducir un panel centrador.
         panelFormulario = new JPanel(new MigLayout(
-                "fillx, insets 0, hidemode 3, gapx 13, gapy 12, aligny top",
-                "[60!][grow,fill]",
-                "[top]"
+                "fillx, insets 0, wrap 1, gapy 0",
+                "[420lp,grow,fill]"
         ));
         panelFormulario.setOpaque(false);
 
@@ -140,18 +130,15 @@ public class RecuperarContrasenaDialog extends JDialog {
 
         cargarPaso1();
 
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 12));
-        panelBotones.setBorder(BorderFactory.createEmptyBorder(0, 20, 14, 20));
+        JPanel panelBotones = new JPanel(new MigLayout(
+                "insets 0, alignx right",
+                "[]10[]", "[36lp,fill]"));
+        panelBotones.setOpaque(false);
 
         JButton btnCancelar = new JButton("Cancelar");
-        btnAccion = new JButton("Enviar Código");
-
-        // Botones grises del primer modelo, sin cambiar sus acciones.
-        String estiloBoton = "focusWidth:0; innerFocusWidth:0";
-        btnCancelar.putClientProperty(FlatClientProperties.STYLE, estiloBoton);
-        btnAccion.putClientProperty(FlatClientProperties.STYLE, estiloBoton);
-        btnAccion.setPreferredSize(new Dimension(120, 34));
-        btnCancelar.setPreferredSize(new Dimension(91, 34));
+        btnAccion = new JButton("Enviar código");
+        EstiloHibrido.botonesSecundarios(btnCancelar);
+        EstiloHibrido.botonesPrimarios(btnAccion);
 
         btnCancelar.addActionListener(e -> dispose());
         btnAccion.addActionListener(e -> {
@@ -168,10 +155,8 @@ public class RecuperarContrasenaDialog extends JDialog {
         panelPrincipal.add(panelCabecera, BorderLayout.NORTH);
         panelPrincipal.add(panelFormulario, BorderLayout.CENTER);
 
-        add(panelPrincipal, BorderLayout.CENTER);
-        add(panelBotones, BorderLayout.SOUTH);
-
-        setMinimumSize(new Dimension(ANCHO_MINIMO, ALTO_MINIMO));
+        panelPrincipal.add(panelBotones, BorderLayout.SOUTH);
+        setContentPane(panelPrincipal);
         pack();
         setResizable(false);
         setLocationRelativeTo(getOwner());
@@ -181,14 +166,9 @@ public class RecuperarContrasenaDialog extends JDialog {
     private void cargarPaso1() {
         panelFormulario.removeAll();
 
-        panelFormulario.add(new JLabel("Usuario"));
-        panelFormulario.add(txtUsuario, "wrap, h 34!");
-
-        panelFormulario.add(new JLabel("E-mail"));
-        panelFormulario.add(txtEmail, "wrap, h 34!");
-
-        panelFormulario.add(new JLabel("DNI"));
-        panelFormulario.add(txtDni, "wrap, h 34!");
+        agregarCampo("Usuario", txtUsuario);
+        agregarCampo("E-mail", txtEmail);
+        agregarCampo("DNI", txtDni);
 
         panelFormulario.revalidate();
         panelFormulario.repaint();
@@ -250,15 +230,9 @@ public class RecuperarContrasenaDialog extends JDialog {
         // Tooltip inicial por defecto
         txtNuevaContrasena.setToolTipText("<html><b>Requisitos de seguridad:</b><br>• Mínimo 8 caracteres<br>• Al menos una letra mayúscula<br>• Al menos un número<br>• Carácter especial (@$!%*?&._-)</html>");
 
-        // Agregamos los campos al formulario de manera limpia
-        panelFormulario.add(new JLabel("Código recibido"));
-        panelFormulario.add(txtCodigo, "wrap, h 34!");
-
-        panelFormulario.add(new JLabel("Nueva clave"));
-        panelFormulario.add(txtNuevaContrasena, "wrap, h 34!");
-
-        panelFormulario.add(new JLabel("Repetir clave"));
-        panelFormulario.add(txtRepetirContrasena, "wrap, h 34!");
+        agregarCampo("Código recibido", txtCodigo);
+        agregarCampo("Nueva contraseña", txtNuevaContrasena);
+        agregarCampo("Repetir contraseña", txtRepetirContrasena);
 
         panelFormulario.revalidate();
         panelFormulario.repaint();
@@ -269,7 +243,13 @@ public class RecuperarContrasenaDialog extends JDialog {
 
     private void configurarCampo(JTextField campo, String placeholder) {
         campo.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, placeholder);
-        campo.setPreferredSize(new Dimension(475, 34));
+    }
+
+    private void agregarCampo(String titulo, JTextField campo) {
+        JLabel etiqueta = new JLabel(titulo);
+        etiqueta.setLabelFor(campo);
+        panelFormulario.add(etiqueta, "gapbottom 5lp");
+        panelFormulario.add(campo, "h 36lp!, gapbottom 10lp");
     }
 
     private void enviarCodigoRecuperacion() {
@@ -348,7 +328,7 @@ public class RecuperarContrasenaDialog extends JDialog {
                             EmailUtil.enviarCodigo(email, codigoPlano);
 
                             codigoEnviado = true;
-                            lblAyuda.setText("<html><div style='text-align: center;'>Ingrese el código de 6 dígitos enviado a su correo y su nueva contraseña.</div></html>");
+                            lblAyuda.setText("<html><div style='text-align: center;'>Ingresá el código de 6 dígitos recibido por correo<br>y elegí una contraseña nueva.</div></html>");
                             btnAccion.setText("Actualizar contraseña");
                             cargarPaso2();
 
