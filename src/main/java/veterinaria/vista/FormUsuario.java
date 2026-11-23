@@ -887,8 +887,6 @@ public class FormUsuario extends javax.swing.JPanel {
         configurarTamanoAccion(btnLimpiarBusqueda, 82);
         // Conserva columnas, casillas, filtros, paginación y badges.
         veterinaria.util.ui.EstiloHibrido.tablaClientes(table, 9);
-        // Usa el degradado discreto de VetPRO en todas las columnas.
-        table.putClientProperty("vetpro.gradienteCompanero", Boolean.FALSE);
     }
 
     /**
