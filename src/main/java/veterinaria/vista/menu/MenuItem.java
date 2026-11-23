@@ -71,7 +71,7 @@ public class MenuItem extends JPanel {
         init();
     }
 
-    private Icon getIcon() {
+    private Icon getIcon(boolean seleccionado) {
         Color lightColor = FlatUIUtils.getUIColor("Menu.icon.lightColor", Color.red);
         Color darkColor = FlatUIUtils.getUIColor("Menu.icon.darkColor", Color.red);
 
@@ -113,6 +113,11 @@ public class MenuItem extends JPanel {
 
         FlatSVGIcon icon = new FlatSVGIcon("veterinaria/menu/icon/" + iconName + ".svg");
         FlatSVGIcon.ColorFilter f = new FlatSVGIcon.ColorFilter();
+        if (seleccionado) {
+            Color verde = FlatUIUtils.getUIColor("App.brandColor", new Color(132, 191, 78));
+            lightColor = verde;
+            darkColor = verde;
+        }
         f.add(Color.decode("#969696"), lightColor, darkColor);
         icon.setColorFilter(f);
         return icon;
@@ -127,7 +132,10 @@ public class MenuItem extends JPanel {
             JButton menuItem = createButtonItem(menus[i], i > 0);
             menuItem.setHorizontalAlignment(menuItem.getComponentOrientation().isLeftToRight() ? JButton.LEADING : JButton.TRAILING);
             if (i == 0) {
-                menuItem.setIcon(getIcon());
+                menuItem.setIcon(getIcon(false));
+                if ("CLIENTE".equalsIgnoreCase(menus[0])) {
+                    menuItem.setSelectedIcon(getIcon(true));
+                }
                 menuItem.addActionListener((ActionEvent e) -> {
                     if (menus.length > 1) {
                         if (menu.isMenuFull()) {

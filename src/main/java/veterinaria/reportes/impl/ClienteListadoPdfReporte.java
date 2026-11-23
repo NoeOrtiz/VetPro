@@ -2,16 +2,14 @@ package veterinaria.reportes.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import javax.swing.JTable;
 import javax.swing.table.TableModel;
-
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteTipo;
 import veterinaria.reportes.pdf.AbstractPdfReporte;
 import veterinaria.reportes.pdf.PdfDocument;
-import veterinaria.reportes.pdf.PdfStyle;
 
 public class ClienteListadoPdfReporte extends AbstractPdfReporte {
 
@@ -39,126 +37,50 @@ public class ClienteListadoPdfReporte extends AbstractPdfReporte {
     }
 
     @Override
+    protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
+        renderHeaderConLogo(pdf, 90f, 90f);
+    }
+
+    @Override
+    protected boolean mostrarFechaEnPie() {
+        return false;
+    }
+
+    @Override
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
-        JTable tabla = request.get("tabla", JTable.class);
-        TableModel m = tabla.getModel();
+        TableModel modelo = request.get("tabla", JTable.class).getModel();
+        String estadoFiltro = safe(request.get("estadoFiltro", String.class)).toUpperCase(Locale.ROOT);
+        if (estadoFiltro.isBlank()) estadoFiltro = "TODOS";
 
-        // 🌟 Leer el parámetro opcional de filtro por estado
-        String estadoFiltro = request.get("estadoFiltro", String.class);
-        if (estadoFiltro == null || estadoFiltro.isBlank()) {
-            estadoFiltro = "TODOS";
-        } else {
-            estadoFiltro = estadoFiltro.trim().toUpperCase();
-        }
-
-        int colEstado = 10;
-
-        // Filtrar índices de filas según lo seleccionado
-        List<Integer> filasFiltradas = new ArrayList<>();
-        for (int r = 0; r < m.getRowCount(); r++) {
-            String est = safe(m.getValueAt(r, colEstado)).toUpperCase();
-            if ("TODOS".equals(estadoFiltro) || est.equals(estadoFiltro)) {
-                filasFiltradas.add(r);
-            }
-        }
-
+        int[] columnas = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+        List<String[]> filas = new ArrayList<>();
         int activos = 0;
         int inactivos = 0;
-        for (int fila : filasFiltradas) {
-            if ("ACTIVO".equalsIgnoreCase(safe(m.getValueAt(fila, colEstado)))) {
-                activos++;
-            } else if ("INACTIVO".equalsIgnoreCase(safe(m.getValueAt(fila, colEstado)))) {
-                inactivos++;
+        for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+            String estado = safe(modelo.getValueAt(fila, 10)).toUpperCase(Locale.ROOT);
+            if (!"TODOS".equals(estadoFiltro) && !estadoFiltro.equals(estado)) continue;
+
+            String[] datos = new String[columnas.length];
+            for (int i = 0; i < columnas.length; i++) {
+                datos[i] = safe(modelo.getValueAt(fila, columnas[i]));
             }
-        }
-        String infoHeader = "Total listados: " + filasFiltradas.size()
-                + "    |    Activos: " + activos + "    |    Inactivos: " + inactivos;
-        if (!"TODOS".equals(estadoFiltro)) {
-            infoHeader += "    |    Filtro: " + estadoFiltro;
-        }
-        pdf.down(8f);
-        pdf.text(PdfStyle.TXT_FONT, 9, pdf.getMargin(), pdf.getY(), infoHeader);
-        pdf.down(18f);
-
-        int[] cols = new int[]{2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
-        String[] headers = {"NOMBRE", "APELLIDO", "DNI", "DIRECCIÓN", "E-MAIL", "TEL.", "RAZÓN SOCIAL", "CUIT", "ESTADO", "F. ALTA"};
-
-        final int fontSize = 7;
-        final float lineH = 11f; // Mayor espacio de línea
-
-        // 🌟 Pesos asignados para dar MUCHO espacio a DIRECCIÓN y E-MAIL
-        float[] propWeights = new float[]{8f, 8f, 7f, 18f, 18f, 9f, 12f, 9f, 6f, 7f};
-        float totalWeight = 0;
-        for (float w : propWeights) {
-            totalWeight += w;
+            filas.add(datos);
+            if ("ACTIVO".equals(estado)) activos++;
+            if ("INACTIVO".equals(estado)) inactivos++;
         }
 
-        float usableWidth = pdf.getUsableWidth();
-        float[] w = new float[headers.length];
-        for (int i = 0; i < w.length; i++) {
-            w[i] = (propWeights[i] / totalWeight) * usableWidth;
-        }
-
-        float x = pdf.getMargin();
-        final float[] cx = new float[w.length];
-        for (int i = 0; i < w.length; i++) {
-            cx[i] = x;
-            x += w[i];
-        }
-
-        // Banda de encabezado y línea fina, según el PDF de referencia.
-        pdf.fillRect(pdf.getMargin(), pdf.getY() - 17f,
-                pdf.getUsableWidth(), 26f, PdfStyle.ACCENT_SOFT);
-        for (int i = 0; i < headers.length; i++) {
-            pdf.text(PDType1Font.HELVETICA_BOLD, fontSize,
-                    cx[i] + 2f, pdf.getY() - 7f,
-                    headers[i], PdfStyle.ACCENT_DARK);
-        }
-        pdf.hline(pdf.getMargin(), pdf.getPageW() - pdf.getMargin(),
-                pdf.getY() - 19f, PdfStyle.ACCENT, 0.9f);
-        pdf.down(34f);
-
-        // Filas alternadas, sin alterar filtro, contenido ni orden.
-        int indiceVisual = 0;
-        for (int r : filasFiltradas) {
-            String[] data = new String[cols.length];
-            for (int c = 0; c < cols.length; c++) {
-                data[c] = safe(m.getValueAt(r, cols[c]));
-            }
-
-            List<List<String>> wrapped = new ArrayList<>();
-            int maxLines = 1;
-            for (int i = 0; i < w.length; i++) {
-                List<String> lines = pdf.wrapText(PdfStyle.TXT_FONT, fontSize, data[i], w[i] - 3f);
-                wrapped.add(lines);
-                maxLines = Math.max(maxLines, lines.size());
-            }
-
-            float neededSpace = (maxLines * lineH) + 6f;
-            pdf.ensureSpace(neededSpace);
-
-            float yTop = pdf.getY();
-            if ((indiceVisual++ % 2) == 1) {
-                pdf.fillRect(pdf.getMargin() - 1f,
-                        yTop - neededSpace + 6f,
-                        pdf.getUsableWidth() + 2f, neededSpace, PdfStyle.ZEBRA);
-            }
-            for (int i = 0; i < maxLines; i++) {
-                float yy = yTop - (i * lineH);
-                for (int col = 0; col < w.length; col++) {
-                    pdf.text(PdfStyle.TXT_FONT, fontSize, cx[col], yy, pick(wrapped.get(col), i));
-                }
-            }
-            // 🌟 Más separación entre filas para que no queden pegadas
-            pdf.down((maxLines * lineH) + 8f);
-        }
+        UsuarioPdfPresentacion.resumen(pdf,
+                new String[]{"Clientes", String.valueOf(filas.size())},
+                new String[]{"Activos", String.valueOf(activos)},
+                new String[]{"Inactivos", String.valueOf(inactivos)},
+                new String[]{"Filtro", estadoFiltro});
+        UsuarioPdfPresentacion.tabla(pdf,
+                new String[]{"Nombre", "Apellido", "DNI", "Dirección", "E-mail", "Tel.",
+                        "Razón social", "CUIT", "Estado", "F. alta"},
+                new float[]{8f, 8f, 7f, 15f, 19f, 9f, 12f, 9f, 7f, 8f}, filas);
     }
 
-    private String safe(Object o) {
-        return (o == null) ? "" : String.valueOf(o).trim();
-    }
-
-    private String pick(List<String> lines, int idx) {
-        return (lines == null || idx >= lines.size()) ? "" : lines.get(idx);
+    private static String safe(Object valor) {
+        return valor == null ? "" : valor.toString().trim();
     }
 }

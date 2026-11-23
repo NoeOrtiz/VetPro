@@ -33,7 +33,7 @@ public class FormCliente extends javax.swing.JPanel {
     private ClienteControlador clienteControlador = new ClienteControlador();
     private boolean listenerSeleccionUnicaInstalado = false;
     private final javax.swing.JButton btnCancelarSeleccion = new javax.swing.JButton("Cancelar");
-    private final javax.swing.JButton btnVerInfo = new javax.swing.JButton("Ver Info");
+    private final javax.swing.JButton btnVerInfo = new javax.swing.JButton("Ver ficha");
     private final ClienteDAO clienteDAO = new ClienteDAO();
     private final PersonaDAO personaDAO = new PersonaDAO();
     private final Validaciones validar = new Validaciones();
@@ -128,9 +128,15 @@ public class FormCliente extends javax.swing.JPanel {
         lbUsuarioBusqueda.setText("Buscar cliente:");
         superior.add(lbUsuarioBusqueda);
         superior.add(txtBusqueda, "h 34!");
+        btnLimpiarBusqueda.setToolTipText("Restablecer la vista inicial de clientes activos");
         btnLimpiarBusqueda.addActionListener(e -> {
+            String activo = EstadoCliente.ACTIVO.getDescripcion();
+            if (!activo.equals(jcbEstadoCliente.getSelectedItem())) {
+                jcbEstadoCliente.setSelectedItem(activo);
+            }
             if (paginacionCompartida != null) paginacionCompartida.limpiarBusqueda();
             else txtBusqueda.setText("");
+            scroll.getViewport().setViewPosition(new java.awt.Point());
         });
         superior.add(btnLimpiarBusqueda, "h 34!");
         superior.add(lbEstado1);
@@ -139,14 +145,14 @@ public class FormCliente extends javax.swing.JPanel {
         contenido.add(superior, java.awt.BorderLayout.NORTH);
 
         javax.swing.JPanel fila = new javax.swing.JPanel(new net.miginfocom.swing.MigLayout(
-                "insets 0, gap 8, alignx right", "", "[34!]"));
+                "insets 0, gap 8, alignx right, hidemode 3", "", "[34!]"));
         fila.setOpaque(false);
-        fila.add(btnEditar, "h 34!");
-        fila.add(btnEliminar, "h 34!");
-        btnEliminar.setText("Desactivar");
         btnVerInfo.setToolTipText("Consultar la ficha completa y las mascotas del cliente");
         btnVerInfo.addActionListener(e -> mostrarInfoCliente());
         fila.add(btnVerInfo, "h 34!");
+        fila.add(btnEditar, "h 34!");
+        fila.add(btnEliminar, "h 34!");
+        btnEliminar.setText("Desactivar");
         btnCancelarSeleccion.setToolTipText("Desmarcar el cliente seleccionado");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionCliente());
         fila.add(btnCancelarSeleccion, "h 34!");
@@ -259,6 +265,7 @@ public class FormCliente extends javax.swing.JPanel {
         btnLimpiar.setText("Limpiar campos");
         iconoCliente(btnNuevo, "nuevo_usuario.svg");
         iconoCliente(btnGuardar, "nuevo_usuario.svg");
+        iconoCliente(btnVerInfo, "ver_recibo.svg");
         iconoCliente(btnEditar, "editar_usuario.svg");
         iconoCliente(btnEliminar, "desactivar_usuario.svg");
         iconoCliente(btnImprimir, "imprimir_recibo.svg");
@@ -285,7 +292,7 @@ public class FormCliente extends javax.swing.JPanel {
         btnEliminar.setVisible(puedeCambiarEstadoCliente());
         btnImprimir.setEnabled(seleccion);
         btnCancelarSeleccion.setVisible(seleccion);
-        btnVerInfo.setVisible(seleccion);
+        btnVerInfo.setEnabled(seleccion);
         btnEditar.setEnabled(seleccion);
         btnEliminar.setEnabled(seleccion && puedeCambiarEstadoCliente());
         actualizarTextoAccionCliente();
@@ -1170,7 +1177,7 @@ public class FormCliente extends javax.swing.JPanel {
             btnEliminar.setEnabled(false);
         }
         btnCancelarSeleccion.setVisible(false);
-        btnVerInfo.setVisible(false);
+        btnVerInfo.setEnabled(false);
 
         instalarDegradadoSeleccionClientes();
         veterinaria.util.ui.EstiloHibrido.tablaClientes(tableClientes, COL_ESTADO);
@@ -1357,7 +1364,7 @@ public class FormCliente extends javax.swing.JPanel {
             btnImprimir.setEnabled(haySeleccion);
         }
         btnCancelarSeleccion.setVisible(haySeleccion);
-        btnVerInfo.setVisible(haySeleccion);
+        btnVerInfo.setEnabled(haySeleccion);
         actualizarTextoAccionCliente();
         btnNuevo.setEnabled(!haySeleccion);
     }

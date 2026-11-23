@@ -1,10 +1,6 @@
-
 package veterinaria.reportes.impl;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import veterinaria.entidad.Cliente;
 import veterinaria.entidad.Persona;
@@ -12,11 +8,10 @@ import veterinaria.reportes.core.ReporteRequest;
 import veterinaria.reportes.core.ReporteTipo;
 import veterinaria.reportes.pdf.AbstractPdfReporte;
 import veterinaria.reportes.pdf.PdfDocument;
-import veterinaria.reportes.pdf.PdfStyle;
 
 public class ClienteRegistroPdfReporte extends AbstractPdfReporte {
 
-    private static final DateTimeFormatter DTF_EMISION = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter FECHA_ALTA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Override
     public ReporteTipo tipo() {
@@ -48,55 +43,42 @@ public class ClienteRegistroPdfReporte extends AbstractPdfReporte {
 
     @Override
     protected void renderHeader(PdfDocument pdf, ReporteRequest request) throws Exception {
-        float y = pdf.getY();
-        renderLogo(pdf, (pdf.getPageW() - 160f) / 2f, y - 103f, 160f, 103f);
-        pdf.setY(y - 116f);
-        String t = titulo();
-        pdf.text(PdfStyle.H2_FONT, 14,
-                pdf.centerX(pdf.textWidth(PdfStyle.H2_FONT, 14, t)), pdf.getY(), t);
-        pdf.down(22f);
-        pdf.line();
+        renderHeaderConLogo(pdf, 90f, 90f);
+    }
+
+    @Override
+    protected boolean mostrarFechaEnPie() {
+        return false;
     }
 
     @Override
     protected void renderBody(PdfDocument pdf, ReporteRequest request) throws Exception {
-        Cliente c = request.get("cliente", Cliente.class);
-        Persona p = request.get("persona", Persona.class);
-        float x = pdf.getMargin() + 10f;
-        pdf.down(10f);
-        campo(pdf, x, "DATOS PERSONALES", "", true);
-        campo(pdf, x, "Nombre y apellido", p == null ? "" :
-                safe(p.getNombre()) + " " + safe(p.getApellido()), false);
-        campo(pdf, x, "DNI", p == null ? "" : safe(p.getDni()), false);
-        campo(pdf, x, "Teléfono", p == null ? "" : safe(p.getTelefono()), false);
-        campo(pdf, x, "Dirección", p == null ? "" : safe(p.getDireccion()), false);
-        campo(pdf, x, "E-mail", c == null ? "" : safe(c.getEmail()), false);
-        campo(pdf, x, "Estado", c != null && c.isActivo() ? "Activo" : "Inactivo", false);
-        pdf.down(10f);
-        pdf.line();
-        pdf.down(12f);
-        campo(pdf, x, "DATOS FISCALES Y ADMINISTRATIVOS", "", true);
-        campo(pdf, x, "Razón social", c == null ? "" : safe(c.getRazonSocial()), false);
-        campo(pdf, x, "CUIT", c == null ? "" : safe(c.getCuit()), false);
-        campo(pdf, x, "Fecha de alta", c == null || c.getFechaAlta() == null
-                ? "" : c.getFechaAlta().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")), false);
-        pdf.down(10f);
-        pdf.line();
-    }
+        Cliente cliente = request.get("cliente", Cliente.class);
+        Persona persona = request.get("persona", Persona.class);
+        String nombre = persona == null ? request.get("nombre", String.class) : persona.getNombre();
+        String apellido = persona == null ? request.get("apellido", String.class) : persona.getApellido();
+        String dni = persona == null ? request.get("dni", String.class) : safe(persona.getDni());
+        String telefono = persona == null ? request.get("telefono", String.class) : persona.getTelefono();
+        String direccion = persona == null ? request.get("direccion", String.class) : persona.getDireccion();
 
-    private void campo(PdfDocument pdf, float x, String etiqueta, String valor, boolean seccion) throws Exception {
-        if (seccion) {
-            pdf.text(PDType1Font.HELVETICA_BOLD, 11, x, pdf.getY(), etiqueta);
-            pdf.down(25f);
-        } else {
-            pdf.text(PDType1Font.HELVETICA_BOLD, 10, x, pdf.getY(), etiqueta + ":");
-            java.util.List<String> lineas = pdf.wrapText(PdfStyle.TXT_FONT, 10,
-                    valor, pdf.getUsableWidth() - 165f);
-            for (int i = 0; i < lineas.size(); i++) {
-                pdf.text(PdfStyle.TXT_FONT, 10, x + 132f, pdf.getY() - i * 14f, lineas.get(i));
-            }
-            pdf.down(Math.max(1, lineas.size()) * 14f + 9f);
-        }
+        UsuarioPdfPresentacion.resumen(pdf,
+                new String[]{"Cliente N.º", safe(cliente.getIdCliente())},
+                new String[]{"Estado", cliente.isActivo() ? "Activo" : "Inactivo"});
+        UsuarioPdfPresentacion.seccion(pdf, "Datos personales");
+        UsuarioPdfPresentacion.campos(pdf, new String[][]{
+                {"Nombre y apellido", (safe(nombre) + " " + safe(apellido)).trim()},
+                {"DNI", dni},
+                {"Teléfono", telefono},
+                {"Correo electrónico", cliente.getEmail()},
+                {"Dirección", direccion}
+        }, 2);
+        UsuarioPdfPresentacion.seccion(pdf, "Datos fiscales y administrativos");
+        UsuarioPdfPresentacion.campos(pdf, new String[][]{
+                {"Razón social", cliente.getRazonSocial()},
+                {"CUIT", cliente.getCuit()},
+                {"Fecha de alta", cliente.getFechaAlta() == null
+                        ? "" : cliente.getFechaAlta().format(FECHA_ALTA)}
+        }, 2);
     }
 
     private String safe(Object o) {
