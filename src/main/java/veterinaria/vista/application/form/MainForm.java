@@ -14,7 +14,10 @@ import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
+import java.awt.Graphics;
+import java.awt.font.TextLayout;
+import java.awt.geom.Ellipse2D;
+import javax.swing.Icon;
 import java.util.Locale;
 import javax.swing.ImageIcon;
 import java.awt.event.ActionEvent;
@@ -521,27 +524,40 @@ public class MainForm extends JLayeredPane {
         avatarPerfil.repaint();
     }
 
-    private ImageIcon crearAvatarIniciales(String nombreUsuario) {
+    private Icon crearAvatarIniciales(String nombreUsuario) {
         String cuenta = nombreUsuario == null ? "" : nombreUsuario.strip().toUpperCase(Locale.ROOT);
         int longitud = Math.min(2, cuenta.codePointCount(0, cuenta.length()));
         String iniciales = longitud == 0 ? "U" : cuenta.substring(0, cuenta.offsetByCodePoints(0, longitud));
-        int diametro = 40;
-        BufferedImage imagen = new BufferedImage(diametro, diametro, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = imagen.createGraphics();
-        try {
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.setColor(new Color(255, 160, 0));
-            g.fillOval(0, 0, diametro, diametro);
-            g.setColor(new Color(32, 41, 50));
-            g.setFont(avatarPerfil.getFont().deriveFont(Font.BOLD, 16f));
-            var medidas = g.getFontMetrics();
-            g.drawString(iniciales, (diametro - medidas.stringWidth(iniciales)) / 2,
-                    (diametro - medidas.getHeight()) / 2 + medidas.getAscent());
-        } finally {
-            g.dispose();
+        return new AvatarIniciales(iniciales);
+    }
+
+    private record AvatarIniciales(String texto) implements Icon {
+        private static final int DIAMETRO = 40;
+
+        @Override public int getIconWidth() { return DIAMETRO; }
+
+        @Override public int getIconHeight() { return DIAMETRO; }
+
+        @Override
+        public void paintIcon(Component componente, Graphics graphics, int x, int y) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            try {
+                g.translate(x, y);
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                g.setColor(new Color(255, 160, 0));
+                g.fill(new Ellipse2D.Float(0, 0, DIAMETRO, DIAMETRO));
+
+                Font fuente = componente.getFont().deriveFont(Font.BOLD, 16f);
+                TextLayout letras = new TextLayout(texto, fuente, g.getFontRenderContext());
+                var limites = letras.getBounds();
+                g.setColor(new Color(32, 41, 50));
+                letras.draw(g, (float) (DIAMETRO / 2f - limites.getCenterX()),
+                        (float) (DIAMETRO / 2f - limites.getCenterY()));
+            } finally {
+                g.dispose();
+            }
         }
-        return new ImageIcon(imagen);
     }
 
     /** Cápsula del perfil que se pinta una sola vez alrededor de los controles existentes. */
