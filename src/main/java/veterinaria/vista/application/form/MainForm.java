@@ -6,10 +6,17 @@ import com.formdev.flatlaf.util.UIScale;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.LayoutManager;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.util.Locale;
+import javax.swing.ImageIcon;
 import java.awt.event.ActionEvent;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -486,8 +493,9 @@ public class MainForm extends JLayeredPane {
     public void refrescarFotoPerfil() {
         if (avatarPerfil == null) return;
         javax.swing.Icon icono = null;
+        SesionUsuario sesion = Application.getSesionUsuario();
+        Usuario actual = sesion == null ? null : sesion.getUsuario();
         try {
-            Usuario actual = Application.getSesionUsuario().getUsuario();
             if (actual != null) {
                 Usuario persistido = new veterinaria.persistencia.UsuarioDAO()
                         .obtenerPorId(actual.getIdUsuario());
@@ -495,8 +503,10 @@ public class MainForm extends JLayeredPane {
                 if (ruta != null && !ruta.isBlank()) {
                     java.io.File archivo = new java.io.File(ruta);
                     if (archivo.isFile()) {
-                        icono = veterinaria.util.ui.ImageUtils.toCircularIcon(
-                                new javax.swing.ImageIcon(archivo.getAbsolutePath()), 40);
+                        ImageIcon foto = new ImageIcon(archivo.getAbsolutePath());
+                        if (foto.getIconWidth() > 0 && foto.getIconHeight() > 0) {
+                            icono = veterinaria.util.ui.ImageUtils.toCircularIcon(foto, 40);
+                        }
                     }
                 }
             }
@@ -504,15 +514,34 @@ public class MainForm extends JLayeredPane {
             System.err.println("[PERFIL] No se pudo cargar la foto: " + ex.getMessage());
         }
         if (icono == null) {
-            java.net.URL recurso = getClass().getResource("/veterinaria/icon/png/default.png");
-            if (recurso != null) {
-                icono = veterinaria.util.ui.ImageUtils.toCircularIcon(
-                        new javax.swing.ImageIcon(recurso), 40);
-            }
+            icono = crearAvatarIniciales(actual == null ? null : actual.getNombreUsuario());
         }
         avatarPerfil.setIcon(icono);
         avatarPerfil.revalidate();
         avatarPerfil.repaint();
+    }
+
+    private ImageIcon crearAvatarIniciales(String nombreUsuario) {
+        String cuenta = nombreUsuario == null ? "" : nombreUsuario.strip().toUpperCase(Locale.ROOT);
+        int longitud = Math.min(2, cuenta.codePointCount(0, cuenta.length()));
+        String iniciales = longitud == 0 ? "U" : cuenta.substring(0, cuenta.offsetByCodePoints(0, longitud));
+        int diametro = 40;
+        BufferedImage imagen = new BufferedImage(diametro, diametro, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = imagen.createGraphics();
+        try {
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setColor(new Color(255, 160, 0));
+            g.fillOval(0, 0, diametro, diametro);
+            g.setColor(new Color(32, 41, 50));
+            g.setFont(avatarPerfil.getFont().deriveFont(Font.BOLD, 16f));
+            var medidas = g.getFontMetrics();
+            g.drawString(iniciales, (diametro - medidas.stringWidth(iniciales)) / 2,
+                    (diametro - medidas.getHeight()) / 2 + medidas.getAscent());
+        } finally {
+            g.dispose();
+        }
+        return new ImageIcon(imagen);
     }
 
     /** Cápsula del perfil que se pinta una sola vez alrededor de los controles existentes. */
