@@ -116,18 +116,19 @@ public class FormCliente extends javax.swing.JPanel {
     private void configurarAccionesClientes() {
         panelBotones.removeAll();
         panelBotones.setOpaque(false);
-        panelBotones.setLayout(new java.awt.BorderLayout(0, 16));
+        panelBotones.setLayout(new java.awt.BorderLayout(0, 10));
+        panelBotones.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 2, 7, 2));
         jLabel1.setText("Gestión de clientes");
         panelBotones.add(jLabel1, java.awt.BorderLayout.NORTH);
 
-        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(0, 8));
+        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(0, 9));
         contenido.setOpaque(false);
-        javax.swing.JPanel superior = new javax.swing.JPanel(new net.miginfocom.swing.MigLayout(
-                "insets 0, gap 8, fillx", "[][grow,fill][][][][]", "[34!]"));
+        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.GridBagLayout());
         superior.setOpaque(false);
         lbUsuarioBusqueda.setText("Buscar cliente:");
-        superior.add(lbUsuarioBusqueda);
-        superior.add(txtBusqueda, "h 34!");
+        txtBusqueda.setPreferredSize(new java.awt.Dimension(415, 34));
+        txtBusqueda.setMinimumSize(new java.awt.Dimension(80, 34));
+        jcbEstadoCliente.setPreferredSize(new java.awt.Dimension(110, 34));
         btnLimpiarBusqueda.setToolTipText("Restablecer la vista inicial de clientes activos");
         btnLimpiarBusqueda.addActionListener(e -> {
             String activo = EstadoCliente.ACTIVO.getDescripcion();
@@ -138,40 +139,59 @@ public class FormCliente extends javax.swing.JPanel {
             else txtBusqueda.setText("");
             scroll.getViewport().setViewPosition(new java.awt.Point());
         });
-        superior.add(btnLimpiarBusqueda, "h 34!");
-        superior.add(lbEstado1);
-        superior.add(jcbEstadoCliente, "h 34!");
-        superior.add(btnNuevo, "h 34!");
+        java.awt.GridBagConstraints filtro = new java.awt.GridBagConstraints();
+        filtro.gridy = 0;
+        filtro.insets = new java.awt.Insets(0, 0, 0, 8);
+        superior.add(lbUsuarioBusqueda, filtro);
+        filtro.weightx = 1;
+        filtro.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        superior.add(txtBusqueda, filtro);
+        filtro.weightx = 0;
+        filtro.fill = java.awt.GridBagConstraints.NONE;
+        superior.add(btnLimpiarBusqueda, filtro);
+        superior.add(lbEstado1, filtro);
+        superior.add(jcbEstadoCliente, filtro);
+        filtro.insets = new java.awt.Insets(0, 0, 0, 0);
+        filtro.fill = java.awt.GridBagConstraints.VERTICAL;
+        superior.add(btnNuevo, filtro);
         contenido.add(superior, java.awt.BorderLayout.NORTH);
 
-        javax.swing.JPanel fila = new javax.swing.JPanel(new net.miginfocom.swing.MigLayout(
-                "insets 0, gap 8, alignx right, hidemode 3", "", "[34!]"));
+        java.awt.GridBagLayout layoutAcciones = new java.awt.GridBagLayout();
+        layoutAcciones.rowHeights = new int[]{34};
+        javax.swing.JPanel fila = new javax.swing.JPanel(layoutAcciones);
         fila.setOpaque(false);
         btnVerInfo.setToolTipText("Consultar la ficha completa y las mascotas del cliente");
         btnVerInfo.addActionListener(e -> mostrarInfoCliente());
-        fila.add(btnVerInfo, "h 34!");
-        fila.add(btnEditar, "h 34!");
-        fila.add(btnEliminar, "h 34!");
         btnEliminar.setText("Desactivar");
         btnCancelarSeleccion.setToolTipText("Desmarcar el cliente seleccionado");
         btnCancelarSeleccion.addActionListener(e -> cancelarSeleccionCliente());
-        fila.add(btnCancelarSeleccion, "h 34!");
-        fila.add(btnImprimir, "h 34!");
-        fila.add(btnImprimirLista, "h 34!");
+
+        java.awt.GridBagConstraints accion = new java.awt.GridBagConstraints();
+        accion.gridy = 0;
+        accion.anchor = java.awt.GridBagConstraints.EAST;
+        accion.fill = java.awt.GridBagConstraints.VERTICAL;
+        accion.weightx = 1;
+        fila.add(btnVerInfo, accion);
+        accion.weightx = 0;
+        accion.insets = new java.awt.Insets(0, 8, 0, 0);
+        for (javax.swing.JButton boton : new javax.swing.JButton[]{
+                btnEditar, btnEliminar, btnCancelarSeleccion, btnImprimir, btnImprimirLista}) {
+            fila.add(boton, accion);
+        }
         contenido.add(fila, java.awt.BorderLayout.SOUTH);
         panelBotones.add(contenido, java.awt.BorderLayout.CENTER);
         panelLista.removeAll();
-        panelLista.setLayout(new java.awt.BorderLayout());
+        panelLista.setLayout(new java.awt.BorderLayout(0, 4));
         panelLista.add(scroll, java.awt.BorderLayout.CENTER);
         actualizarAccionesCliente();
     }
 
     private void configurarFormularioCliente() {
         setLayout(new net.miginfocom.swing.MigLayout(
-                "insets 10 16 8 16, fill, hidemode 3", "[grow,fill]", "[][][grow,fill]"));
+                "insets 10 8 8 8, fill, hidemode 3", "[grow,fill]", ""));
         add(panelBotones, "wrap");
         add(jpDatosPersonales, "wrap");
-        add(panelLista, "grow");
+        add(panelLista, "grow, pushy");
 
         jpDatosPersonales.removeAll();
         jpDatosPersonales.setPreferredSize(null);
