@@ -174,7 +174,9 @@ public class FormBienvenida extends JPanel {
                 jc.setForeground(UIManager.getColor("Label.foreground"));
                 if (jc instanceof JButton) {
                     jc.putClientProperty("FlatLaf.styleClass", "hibridoAcceso");
-                    jc.setBorder(new EmptyBorder(20, 20, 20, 20));
+                    jc.putClientProperty("FlatLaf.style",
+                            com.formdev.flatlaf.FlatLaf.isLafDark()
+                                    ? "hoverBackground: #3A4F53" : "hoverBackground: #E9F2DC");
                 } else {
                     // El panel pinta sus propias esquinas redondeadas.
                     jc.setBorder(new EmptyBorder(18, 20, 18, 20));
@@ -331,7 +333,7 @@ public class FormBienvenida extends JPanel {
         b.setBackground(card);
         b.setOpaque(true);
         b.putClientProperty("FlatLaf.styleClass", "hibridoAcceso");
-        b.setBorder(new EmptyBorder(20, 20, 20, 20));
+        b.setRolloverEnabled(true);
         b.setForeground(UIManager.getColor("Label.foreground"));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.setFocusPainted(false);
@@ -347,12 +349,23 @@ public class FormBienvenida extends JPanel {
         JPanel textos = new JPanel();
         textos.setOpaque(false);
         textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
-        textos.add(titulo(titulo, 19));
+        JLabel nombre = titulo(titulo, 19);
+        textos.add(nombre);
         textos.add(Box.createVerticalStrut(10));
         JLabel sub = new JLabel(descripcion);
         sub.setForeground(muted);
         textos.add(sub);
         b.add(textos, BorderLayout.CENTER);
+        Border bordeNormal = new CompoundBorder(
+                new LineBorder(new Color(80, 99, 113)), new EmptyBorder(19, 19, 19, 19));
+        Border bordeHover = new CompoundBorder(
+                new LineBorder(accent, 2), new EmptyBorder(18, 18, 18, 18));
+        b.setBorder(bordeNormal);
+        b.getModel().addChangeListener(e -> {
+            boolean hover = b.isEnabled() && b.getModel().isRollover();
+            b.setBorder(hover ? bordeHover : bordeNormal);
+            nombre.setForeground(hover ? accent : UIManager.getColor("Label.foreground"));
+        });
         b.addActionListener(e -> accion.run());
         return b;
     }
