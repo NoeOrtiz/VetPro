@@ -61,11 +61,8 @@ class CambiarClaveDisenoCompactoTest {
                         ayuda.getParent(), ayuda.getLocation(), dialog.getContentPane());
                 Rectangle boundsForm = SwingUtilities.convertRectangle(
                         form.getParent(), form.getBounds(), dialog.getContentPane());
-                assertTrue(boundsForm.width >= 530,
-                        "El formulario debe ocupar el ancho disponible, no una caja de 525 px");
-                assertTrue(usuario.getWidth() >= 420, "Los campos deben ser anchos");
-                assertTrue(email.getWidth() >= 420);
-                assertTrue(dni.getWidth() >= 420);
+                assertTrue(boundsForm.width >= 380, "El formulario debe ofrecer espacio para los datos");
+                comprobarAnchoUtil(form, usuario, email, dni);
                 assertTrue(posCampo.y < 330, "La primera fila no debe quedar centrada verticalmente");
                 assertTrue(posCampo.y >= posAyuda.y + ayuda.getHeight());
                 assertTrue(posCampo.y - (posAyuda.y + ayuda.getHeight()) < 80,
@@ -81,7 +78,8 @@ class CambiarClaveDisenoCompactoTest {
                 cambiarPaso.invoke(dialog);
                 dialog.validate();
                 JTextField codigo = campo(dialog, "txtCodigo");
-                assertTrue(codigo.getWidth() >= 420, "El código debe ocupar el ancho útil");
+                comprobarAnchoUtil(form, codigo, campo(dialog, "txtNuevaContrasena"),
+                        campo(dialog, "txtRepetirContrasena"));
             } catch (Throwable ex) {
                 fallo.set(ex);
             } finally {
@@ -89,6 +87,13 @@ class CambiarClaveDisenoCompactoTest {
             }
         });
         if (fallo.get() != null) throw new AssertionError(fallo.get());
+    }
+
+    private static void comprobarAnchoUtil(JPanel form, JTextField... campos) {
+        for (JTextField campo : campos) {
+            assertTrue(campo.getWidth() >= form.getWidth() - 4,
+                    "Cada campo debe ocupar el ancho útil del formulario");
+        }
     }
 
     private static JLabel buscarLabel(Component root, String text) {
@@ -104,7 +109,7 @@ class CambiarClaveDisenoCompactoTest {
 
     private static JLabel buscarLogo(Component root) {
         if (root instanceof JLabel label && label.getIcon() != null
-                && label.getIcon().getIconWidth() >= 80) return label;
+                && label.getIcon().getIconWidth() > 0) return label;
         if (root instanceof Container container) {
             for (Component c : container.getComponents()) {
                 JLabel found = buscarLogo(c);

@@ -44,7 +44,8 @@ class PerfilYCambioClaveEstiloTest {
         assertTrue(s.contains("validaciones.validarComplejidadContrasena(nuevaContrasena)"));
         assertFalse(s.contains("formularioCentrado"));
         assertTrue(s.contains("panelPrincipal.add(panelFormulario, BorderLayout.CENTER)"));
-        assertTrue(s.contains("[60!][grow,fill]"));
-        assertTrue(s.contains("btnCancelar.putClientProperty(FlatClientProperties.STYLE, estiloBoton)"));
+        assertTrue(s.contains("pack()"));
+        assertTrue(s.contains("EstiloHibrido.botonesSecundarios(btnCancelar)"));
+        assertTrue(s.contains("EstiloHibrido.botonesPrimarios(btnAccion)"));
     }
 }
